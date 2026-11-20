@@ -847,6 +847,11 @@ function checkMidnightReset(userId) {
         const nextLine = lines[idx + 1] || "";
         if (nextLine && /^\s*(?:ref(?:erans)?\.?|normal)?\s*[:：]?\s*(?:[<>≤≥]\s*\d|\d+(?:[.,]\d+)?\s*[-–—]\s*\d+)/i.test(nextLine) && !/[a-zA-ZğüşıöçĞÜŞİÖÇ]{5,}/.test(nextLine.replace(/referans|normal|araligi|aralığı|range/gi, ""))) {
           combinedRaw = `${rawLine} ${nextLine}`;
+        } else if (nextLine && !/\d+(?:[.,]\d+)?\s*[-–—]\s*\d+(?:[.,]\d+)?/.test(rawLine.replace(/\b\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}\b/g, " "))) {
+          // Range moved to the next line and followed by commentary ("74 - 100 * Karar Sınırları : <70 ... 100-125 ..."):
+          // take ONLY the leading range, ignore the rest.
+          const lead = nextLine.match(/^\s*(?:ref(?:erans)?\.?\s*[:：]?\s*)?(\d+(?:[.,]\d+)?\s*[-–—]\s*\d+(?:[.,]\d+)?)(?=\s|$)/i);
+          if (lead && /[a-zA-ZğüşıöçĞÜŞİÖÇ]{5,}/.test(nextLine)) combinedRaw = `${rawLine} ${lead[1]}`;
         }
 
         let cleanLine = combinedRaw.replace(/(\d+)\s*,\s*(\d+)/g, "$1.$2").replace(/(\d+)\s*\.\s*(\d+)/g, "$1.$2");

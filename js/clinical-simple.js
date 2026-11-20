@@ -131,7 +131,7 @@
       f.tests.slice(0, 3).forEach(function (t) {
         /* Girilmiş ve normal bir tahlille zaten karşılanan testi önerme (tekrar testleri hariç) */
         if (d.isCovered(t) && !f.keep && !/tekrar/i.test(t)) return;
-        addTest(t, r.name + (r.dir === "high" ? " yüksek" : " düşük"), true);
+        addTest(t, r.name + (r.dir === "high" ? " yüksek" : (r.dir === "border" ? " sınırda" : " düşük")), true);
       });
     });
 
@@ -157,6 +157,8 @@
 
     var tests = testOrder.map(function (n, i) { var o = testMap[n]; o._i = i; return o; })
       .sort(function (a, b) { return (b.why.length - a.why.length) || ((b.lab ? 1 : 0) - (a.lab ? 1 : 0)) || (a._i - b._i); });
+    /* A test that IS requested (e.g. Hemogram for a high RBC) must not also show "measured normal in 90 days" */
+    normalNotes = normalNotes.filter(function (n) { return !testMap[d.norm(n.test)]; });
 
     /* Güvenlik uyarıları: motorun ürettiği kutudan okunur; böbrek uyarıları "Değerlerim" satırına taşınır */
     var safety = [], kidney = [];
@@ -325,10 +327,18 @@
       }
       html += '<details class="vs-val' + (r.critical ? " vs-val-crit" : "") + '"><summary>' +
         '<span class="vs-val-name">' + esc(r.name) + (window.VitaSourceInfo ? VitaSourceInfo.button(r.key, r.name) : "") + '</span>' +
-        '<span class="vs-val-num">' + esc(fmt(r.value)) + ' <small>' + esc(r.unit) + esc(r.extra) + '</small>' + dateTag(r) + '</span>' +
-        '<span class="vs-chip ' + chip[1] + '">' + chip[0] + '</span><i class="fa-solid fa-chevron-down vs-chev" aria-hidden="true"></i></summary>' +
+        '<span class="vs-val-num">' + esc(fmt(r.value)) + ' <small>' + esc(r.unit) + esc(r.extra) + '</small></span>' +
+        '<span class="vs-chip ' + chip[1] + '">' + chip[0] + '</span><i class="fa-solid fa-chevron-down vs-chev" aria-hidden="true"></i>' +
+        (dateTag(r) ? '<span class="vs-val-tags">' + dateTag(r) + '</span>' : '') + '</summary>' +
         '<div class="vs-val-body">';
-      if (adv && adv.meaning) html += '<p>' + esc(adv.meaning) + '</p>';
+      /* Borderline values: the generic "X düşük" text contradicts the "Sınırda" chip — use the sourced borderline explanation */
+      var borderText = "";
+      if (r.dir === "border" && window.VitaLabEvidence && VitaLabEvidence.handles(r.key)) {
+        try { var evb = VitaLabEvidence.evaluate(r.key, r.value, { gender: (state.user && state.user.gender) || "K", reference: r.refFallback ? "" : r.ref }); borderText = (evb.clinical && evb.clinical.text) || ""; } catch (_) { borderText = ""; }
+      }
+      if (borderText) html += '<p>' + esc(borderText) + '</p>';
+      else if (r.dir === "border") html += '<p>' + esc(r.name) + ' sınır bölgesinde; laboratuvar aralığında olsa da ek değerlendirme önerilir.</p>';
+      else if (adv && adv.meaning) html += '<p>' + esc(adv.meaning) + '</p>';
       if (r.prev && r.trend) html += '<p class="vs-trend ' + r.trendCls + '">Önceki ölçüm: ' + esc(fmt(r.prev.value)) + ' (' + esc(r.prev.date.split("-").reverse().join(".")) + ') → şimdi ' + esc(fmt(r.value)) + ' · <b>' + esc(r.trend) + '</b></p>';
       if (r.kidneyNote) html += '<p class="vs-safe-line"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> İlaç ve takviye (özellikle ağrı kesici ve mineral) kullanmadan önce hekime danışın.</p>';
       var an = window.VitaAgeStage ? VitaAgeStage.labNote(r.key, r.dir) : "";

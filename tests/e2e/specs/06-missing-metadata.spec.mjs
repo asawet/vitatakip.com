@@ -20,6 +20,8 @@ test('birim/aralık eksik değerler genel aralığa düşer ve bu arayüzde beli
   expect(Object.fromEntries(Object.entries(parsed.vals).map(([k, v]) => [k, v.value]))).toEqual(C.expect);
   const meta = await page.evaluate(() => Object.fromEntries(Object.entries(temporarilyParsedLabResults).map(([k, v]) => [k, { unit: v.unitFromPdf, ref: v.referenceFromPdf }])));
   expect(meta).toEqual(C.metadata);
+  // Range printed on the NEXT line together with decision-limit commentary: only the leading range is taken
+  expect(parsed.vals.glucose.ref).toBe('74 - 106 mg/dL');
 
   /* PDF önizlemesi: genel aralık bildirimi + satır notları + varsayılan birim etiketi */
   const modal = page.locator('#eNabizModal');
@@ -36,15 +38,41 @@ test('birim/aralık eksik değerler genel aralığa düşer ve bu arayüzde beli
   const rec = await page.evaluate(() => { const r = state.labHistory[0]; return { refs: r.references, st: Object.fromEntries(LAB_HISTORY_METRICS.map(m => getLabHistoryMetric(r, m)).filter(Boolean).map(x => [x.key, `${x.status}/${x.referenceSource}`])) }; });
   expect(rec.refs.d3 || '').toBe('');
   expect(rec.refs.tsh || '').toBe('');
-  expect(rec.st).toEqual({ d3: 'outside/app', ferritin: 'within/app', hb: 'within/lab', tsh: 'within/app', glucose: 'within/lab' });
+  expect(rec.st).toEqual({ d3: 'outside/app', b12: 'within/lab', ferritin: 'within/app', hb: 'within/lab', rbc: 'outside/lab', tsh: 'within/app', glucose: 'within/lab' });
 
   /* Geçmiş tahlillerim: genel aralık işareti yalnızca aralığı olmayan 3 kartta */
   await go(page, 'view-labs');
   await page.locator('#labHistoryListContainer article button[aria-controls]').first().click();
   await expect(page.locator('#labHistoryListContainer [data-fallback="range"]')).toHaveCount(3);
 
+  /* Solgunluk belirtisi (Hemogram, Ferritin, B12 önerir) seçilir */
+  await go(page, 'view-neyim');
+  await page.evaluate(() => switchAnamnesisCategoryTab(ANAMNESIS_DICTIONARY.pallor_dark_circles.catId));
+  await page.locator(`.anamnesis-card[onclick*="'pallor_dark_circles'"]`).click();
+
   /* Klinik Analiz: D vitamini 24,8 genel aralıkla "Düşük" ve "genel aralık" etiketli; tam bilgili değerlerde etiket yok */
   await go(page, 'view-clinical-results');
+
+  /* Düzeltme: RBC yüksek → Hemogram isteniyor; aynı anda "Hemogram 90 günde normal ölçüldü" notu ÇIKMAZ */
+  const testNames = await page.locator('#vsTests .vs-test-name').allTextContents();
+  expect(testNames.some(t => /Hemogram/.test(t))).toBe(true);
+  await expect(page.locator('#vsTests .vs-normal-note').filter({ hasText: 'Hemogram' })).toHaveCount(0);
+  await expect(page.locator('#vsTests .vs-normal-note').filter({ hasText: 'Ferritin' })).toHaveCount(1);
+
+  /* Düzeltme: B12 350 "Sınırda" iken metinler "düşük" demez */
+  const b12 = page.locator('#view-clinical-results details.vs-val').filter({ hasText: 'Vitamin B12' }).first();
+  await expect(b12.locator('summary')).toContainText('Sınırda');
+  await b12.locator('summary').click();
+  await expect(b12.locator('.vs-val-body')).toContainText('sınırda');
+  await expect(b12.locator('.vs-val-body')).not.toContainText('B12 düşük');
+  const why = await page.locator('#vsTests .vs-test-why').allTextContents();
+  expect(why.some(t => /Vitamin B12 sınırda/.test(t))).toBe(true);
+  expect(why.some(t => /Vitamin B12 düşük/.test(t))).toBe(false);
+
+  /* Düzeltme: telefonda etiketli satırda tahlil adı sıkışmaz (tek satır, makul genişlik) */
+  const nameBox = await page.locator('#view-clinical-results details.vs-val').filter({ hasText: 'Vitamin D' }).first().locator('.vs-val-name').boundingBox();
+  expect(nameBox.width).toBeGreaterThan(110);
+  expect(nameBox.height).toBeLessThan(30);
   const d3 = page.locator('#view-clinical-results details.vs-val').filter({ hasText: 'Vitamin D' }).first();
   await expect(d3.locator('summary')).toContainText('Düşük');
   await expect(d3.locator('summary .vita-fallback-tag')).toHaveText('genel aralık');

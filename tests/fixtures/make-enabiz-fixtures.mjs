@@ -88,22 +88,28 @@ export const FIXTURES = {
     rows: [
       ['10.11.2026 08:30', 'Tam Kan (Hemogram)'],
       ['HGB', '15.1', 'g/dL', '13.2 - 16.6'],
+      ['RBC', '6.30', '10^9/L', '4.18 - 5.48'],
       ['RDW-SD', '36.9', '', ''],
       ['10.11.2026 09:15', 'Biyokimya'],
       ['25-Hidroksi Vitamin D', '24.8', '', ''],
       ['Ferritin', '71', 'µg/L', ''],
-      ['Glukoz', '91', 'mg/dL', '74 - 106'],
-      ['TSH', '2.93', '', '']
+      /* real 19.08.2025 layout: range on the next line, followed by decision-limit commentary */
+      ['Glukoz (Açlık Kan Şekeri)', '91', 'mg/dL', ''],
+      ['74 - 106 * Karar Sınırları : <70 mg/dL Hipoglisemi 100-125 mg/dL Bozulmuş açlık glukozu >125 mg/dL Diyabet'],
+      ['TSH', '2.93', '', ''],
+      ['Vitamin B12', '350', 'ng/L', '197 - 771']
     ],
-    expect: { hb: 15.1, d3: 24.8, ferritin: 71, glucose: 91, tsh: 2.93 },
+    expect: { hb: 15.1, rbc: 6.3, d3: 24.8, ferritin: 71, glucose: 91, tsh: 2.93, b12: 350 },
     /* which metadata the report actually printed */
-    metadata: { hb: { unit: true, ref: true }, glucose: { unit: true, ref: true }, ferritin: { unit: true, ref: false }, d3: { unit: false, ref: false }, tsh: { unit: false, ref: false } }
+    metadata: { hb: { unit: true, ref: true }, rbc: { unit: true, ref: true }, glucose: { unit: true, ref: true }, ferritin: { unit: true, ref: false }, d3: { unit: false, ref: false }, tsh: { unit: false, ref: false }, b12: { unit: true, ref: true } }
   }
 };
 
 function html(fx) {
   const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
-  const body = fx.rows.map(r => r.length === 2
+  const body = fx.rows.map(r => r.length === 1
+    ? `<tr class="note"><td colspan="5" style="font-size:10.5px">${esc(r[0])}</td></tr>`
+    : r.length === 2
     ? `<tr class="sec"><td>${esc(r[0].split(' ')[0])}<br>${esc(r[0].split(' ')[1])}</td><td colspan="4">${esc(r[1])}</td></tr>`
     : `<tr><td class="ok">✓</td><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td></tr>`).join('');
   return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><style>

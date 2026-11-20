@@ -249,3 +249,8 @@
 .vs-normal-note{margin:0;font-size:12px;color:#64748b}
 .vs-normal-note i{color:#0d9488;font-size:11px}
 .rs-tbl small.rs-date{font-size:10px;color:#94a3b8}
+/* Value row tags (older-lab date, inherited / general range) wrap onto their own line so the test name keeps its width */
+.vs-val > summary{flex-wrap:wrap}
+.vs-val-tags{flex:1 0 100%;order:5;display:flex;flex-wrap:wrap;gap:4px;margin-top:-2px}
+.vs-val-tags > span{margin-left:0}
+.vs-val-name{min-width:40%}

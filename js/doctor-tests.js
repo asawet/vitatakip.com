@@ -261,6 +261,7 @@
     var symTests = order.map(function (n, i) { var o = symMap[n]; o._i = i; return o; })
       .sort(function (a, b) { return (b.symptoms.length - a.symptoms.length) || (a._i - b._i); });
 
+    normalNotes = normalNotes.filter(function (n) { var k = norm(n.test); return !seen[k] && !symMap[k]; });
     var hasAnyLab = enteredKeys.length > 0;
     var baseline = (!hasAnyLab && symTests.length) ? BASELINE.filter(function (t) { return !seen[norm(t)] && !symMap[norm(t)]; }) : [];
 
