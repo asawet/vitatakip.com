@@ -2,7 +2,13 @@
    sayfa/geri dönüş, barkodla otomatik doldurma + düzenlenebilir stok (−/+), Her gün / belirli günler, çoklu vakit + saat,
    aç/tok, akıllı öneri, saat çakışması uyarısı (+ kaydır), gün rozetleri, gün bazlı filtre, Gece grubu, gün/saat bazlı bildirim. */
 import { boot, sleep } from './lib.mjs';
-const { b, p, errs } = await boot({ preload: () => {
+/* VITA_FAKE_DATE=2026-11-20 ile sayfa saati o güne kaydırılır (ör. Cuma'ya özgü durumu denemek için) */
+const { b, p, errs } = await boot({ preloadArg: process.env.VITA_FAKE_DATE || '', preload: fake => {
+  if (fake) {
+    const Real = Date, off = new Real(`${fake}T10:00:00`).getTime() - Real.now();
+    class FakeDate extends Real { constructor(...a) { if (a.length) super(...a); else super(Real.now() + off); } static now() { return Real.now() + off; } }
+    window.Date = FakeDate;
+  }
   window.__notifs = [];
   try { Object.defineProperty(Notification, 'permission', { get: () => 'granted' }); } catch (e) {}
   if (navigator.serviceWorker) navigator.serviceWorker.getRegistration = async () => ({ showNotification: async (t, o) => { window.__notifs.push({ t, body: o && o.body }); } });
@@ -56,7 +62,8 @@ await p.evaluate(today => {
   manualSupHungerNote.value = 'Tok karnına'; manualSupHungerNote.dispatchEvent(new Event('change'));
   document.querySelector('[data-freq="days"]').click();
   document.querySelector(`#vspDays [data-day="${today}"]`).click();
-  document.querySelector('#vspDays [data-day="5"]').click();
+  // Cuma'yı ekle — bugün zaten Cuma ise ikinci tıklama seçimi kaldıracağı için atla
+  if (today !== 5) document.querySelector('#vspDays [data-day="5"]').click();
 }, TODAY);
 const pv = await p.evaluate(() => ({ preview: manualSupDosePreview.innerText, clocks: Array.from(document.querySelectorAll('#vspClocks .vsp-clock span')).map(x => x.innerText) }));
 log('Vakit seçilince her biri için saat kutusu açılır; adet vakitlere bölünür (3 → 2+1); özet gün/saati gösterir', /Günde 3 \S+ · Sabah 09:00, Akşam 21:00 ·/.test(pv.preview) && /Tok karnına/.test(pv.preview) && /^Sabah 2 \S+\|Akşam 1 \S+$/.test(pv.clocks.join('|')), JSON.stringify(pv));
