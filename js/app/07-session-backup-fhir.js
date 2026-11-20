@@ -901,10 +901,14 @@ function checkMidnightReset(userId) {
               // HCT reported as a fraction (0.478 L/L) → percent
               if (param.key === "hct" && val > 0.1 && val < 1) val = Math.round(val * 1000) / 10;
               if (!isNaN(val)) {
+                // Missing-metadata tracking: e-Nabız rows sometimes omit the unit and/or the lab range
+                const unitFromPdf = /(?:ng|pg|[µμu]g|mg|g)\s*\/\s*(?:ml|dl|l)\b|[mnpµμu]mol\s*\/\s*l|\b(?:m?iu|[µμu]iu|mlu|mu)\s*\/\s*m?l|\bu\s*\/\s*l\b|\bfl\b|%|10\s*(?:\^|\*)/i.test(cleanLine.replace(labeledReference ? labeledReference[0] : (genericReference ? genericReference[0] : "\u0000"), " "));
                 detected[param.key] = {
                   ...param,
                   value: (param.key === "b12" || param.key === "alt") ? Math.round(val) : val,
-                  reference: referenceText
+                  reference: referenceText,
+                  referenceFromPdf: Boolean(referenceText),
+                  unitFromPdf: unitFromPdf || /[a-zµμ%]/i.test(rawReferenceText)
                 };
               }
             }
@@ -972,18 +976,27 @@ function checkMidnightReset(userId) {
         </div>`;
 
       if (listContainer) {
-        listContainer.innerHTML = dateBannerHtml + egfrBannerHtml + keys.map(k => {
+        const fallbackCount = keys.filter(k => !results[k].reference).length;
+        const fallbackBannerHtml = fallbackCount ? `
+          <div class="vita-fallback-banner" role="note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <span><b>${fallbackCount} değerin raporda laboratuvar aralığı yok.</b> Bu değerler VitaTakip'in genel karşılaştırma aralığıyla değerlendirilecek; aralığı raporunuzdan biliyorsanız ilgili kutuya yazabilirsiniz.</span>
+          </div>` : "";
+        const appRef = k => { try { return typeof getVitaAppLabReference === "function" ? getVitaAppLabReference(k, state.user?.gender || "K") : ""; } catch (_) { return ""; } };
+        listContainer.innerHTML = dateBannerHtml + egfrBannerHtml + fallbackBannerHtml + keys.map(k => {
           const item = results[k];
+          const noRef = !item.reference;
+          const noUnit = item.unitFromPdf === false;
           return `
             <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_130px_minmax(0,1fr)] gap-2 items-end p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs">
               <div class="min-w-0">
                 <label for="pdfValue-${escapeHtmlText(k)}" class="font-bold text-navy-900 block mb-1">${escapeHtmlText(item.name)}</label>
                 <input id="pdfValue-${escapeHtmlText(k)}" type="number" step="any" value="${escapeHtmlText(item.value)}" oninput="updateParsedPdfField('${escapeHtmlText(k)}','value',this.value)" class="w-full min-h-10 rounded-lg border border-emerald-300 bg-white px-2.5 py-2 font-mono font-bold text-emerald-900 focus:border-teal-500" aria-label="${escapeHtmlText(item.name)} sonucu">
               </div>
-              <div class="text-[10px] text-slate-600 pb-2">Birim: <strong>${escapeHtmlText(item.unit)}</strong></div>
+              <div class="text-[10px] text-slate-600 pb-2">Birim: <strong>${escapeHtmlText(item.unit)}</strong>${noUnit ? `<span class="vita-fallback-tag" data-fallback="unit" title="Raporda birim yazmıyor; değerin bu birimde olduğu varsayıldı">varsayılan birim</span>` : ""}</div>
               <div>
                 <label for="pdfReference-${escapeHtmlText(k)}" class="font-bold text-slate-700 block mb-1">PDF’den okunan laboratuvar referansı</label>
-                <input id="pdfReference-${escapeHtmlText(k)}" type="text" value="${escapeHtmlText(item.reference || "")}" placeholder="PDF satırında bulunamadı" oninput="updateParsedPdfField('${escapeHtmlText(k)}','reference',this.value)" class="w-full min-h-10 rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-xs focus:border-teal-500" aria-label="${escapeHtmlText(item.name)} referans aralığı">
+                <input id="pdfReference-${escapeHtmlText(k)}" type="text" value="${escapeHtmlText(item.reference || "")}" placeholder="Raporda aralık yok" oninput="updateParsedPdfField('${escapeHtmlText(k)}','reference',this.value)" class="w-full min-h-10 rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-xs focus:border-teal-500" aria-label="${escapeHtmlText(item.name)} referans aralığı">
+                ${noRef ? `<p class="vita-fallback-note" data-fallback="range" data-key="${escapeHtmlText(k)}"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Genel aralık kullanılacak: <b>${escapeHtmlText(appRef(k))}</b></p>` : ""}
               </div>
             </div>`;
         }).join('');

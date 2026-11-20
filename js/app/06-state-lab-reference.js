@@ -180,7 +180,7 @@ let currentAuthMode = "login";
     const VITA_LAB_APP_REFERENCE_META = {
       // "Genel aralık": laboratuvar referansı girilmediğinde kullanılan, tanı sınırı OLMAYAN karşılaştırma aralığıdır.
       // Kaynak ve doğrulama durumu: js/app/16-lab-evidence.js ve docs/LAB_THRESHOLDS.md
-      d3: { name: "25-OH D Vitamini", value: "20–50 ng/mL", unit: "ng/mL" },
+      d3: { name: "25-OH D Vitamini", value: "30–50 ng/mL", unit: "ng/mL" },
       b12: { name: "Vitamin B12", value: "200–900 pg/mL", unit: "pg/mL" },
       ferritin: { name: "Ferritin", value: "15–150 ng/mL", maleValue: "15–200 ng/mL", unit: "ng/mL" },
       mg: { name: "Magnezyum", value: "1,8–2,3 mg/dL", unit: "mg/dL" },

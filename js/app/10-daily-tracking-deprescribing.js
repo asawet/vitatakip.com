@@ -2129,7 +2129,7 @@
         const cardClass = isOut ? "border-rose-200 bg-rose-50/70" : isNormal ? "border-teal-100 bg-teal-50/50" : "border-slate-200 bg-slate-50";
         const valueClass = isOut ? "text-rose-700" : isNormal ? "text-slate-900" : "text-slate-700";
         const rangeLabel = metric.referenceSource === "lab" ? "Referans" : "Yaklaşık karşılaştırma aralığı";
-        const referenceNote = metric.referenceSource === "lab" ? "" : `<span class="block text-[9px] text-slate-400">Genel uygulama aralığı; laboratuvar referansı değildir</span>`;
+        const referenceNote = metric.referenceSource === "lab" ? "" : `<span class="block text-[9px] text-slate-400" data-fallback="range">Raporda aralık yok — genel uygulama aralığı; laboratuvar referansı değildir</span>`;
         return `<div class="rounded-xl border p-3 ${cardClass}">
           <div class="flex items-start justify-between gap-2"><span class="text-[11px] font-bold text-slate-700">${escapeHtmlText(metric.label)}</span>${statusPill(metric.status, true)}</div>
           <div class="mt-1.5 flex items-baseline gap-1.5"><span class="text-base font-black ${valueClass}">${escapeHtmlText(metric.value)}</span><span class="text-[10px] text-slate-500">${escapeHtmlText(metric.unit)}</span></div>

@@ -20,7 +20,7 @@
     { key: "hcy", name: "Homosistein", unit: "µmol/L", color: "#a16207" }
   ];
   var FALLBACK_RANGE = {
-    d3: [20, 50], b12: [200, 900], ferritin: [15, 150], hb: [12, 16], mg: [1.8, 2.3], folate: [4, 20],
+    d3: [30, 50], b12: [200, 900], ferritin: [15, 150], hb: [12, 16], mg: [1.8, 2.3], folate: [4, 20],
     ca: [8.6, 10.2], zinc: [70, 120], creatinine: [0.6, 1.2], alt: [7, 35], mcv: [80, 100], crp: [0, 5], rbcFolate: [140, 1000], hcy: [5, 15]
   };
   /* Extra CBC / thyroid / metabolic markers from the shared registry */

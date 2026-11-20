@@ -8,7 +8,7 @@
   "use strict";
 
   const BIOMARKER_META = [
-    { key: "d3", label: "D Vitamini (25-OH D3)", shortLabel: "D3 Vitamini", unit: "ng/mL", color: "#0d9488", refMin: 20, refMax: 50, defaultActive: true },
+    { key: "d3", label: "D Vitamini (25-OH D3)", shortLabel: "D3 Vitamini", unit: "ng/mL", color: "#0d9488", refMin: 30, refMax: 50, defaultActive: true },
     { key: "b12", label: "B12 Vitamini", shortLabel: "B12", unit: "pg/mL", color: "#4f46e5", refMin: 200, refMax: 900, defaultActive: true },
     { key: "ferritin", label: "Ferritin (Demir Deposu)", shortLabel: "Ferritin", unit: "ng/mL", color: "#e11d48", refMin: 15, refMax: 150, defaultActive: true },
     { key: "hb", label: "Hemoglobin (Hb)", shortLabel: "Hemoglobin", unit: "g/dL", color: "#dc2626", refMin: 12.0, refMax: 16.0, defaultActive: true },

@@ -103,6 +103,8 @@ const C = await p.evaluate(() => {
 });
 log('Klinik Analiz: HGB 16,5 ve D vitamini 24,8, TSH 2,93 birlikte', /16[,.]5/.test(C.text) && /24[,.]8/.test(C.text) && /2[,.]93/.test(C.text));
 log('Klinik Analiz: eski tarihli değerlerde 16.11.2026 etiketi', C.tags.includes('16.11.2026'), C.tags.length + ' etiket');
+const d3row = await p.evaluate(() => [...document.querySelectorAll('#view-clinical-results details.vs-val summary')].map(e => e.textContent.replace(/\s+/g, ' ').trim()).find(t => /Vitamin D/.test(t)) || '');
+log('D vitamini 24,8 (30 altı) "Düşük" görünür', /24[,.]8/.test(d3row) && /Düşük/.test(d3row), d3row);
 log('Ferritin istenmez, Çinko istenir', !C.tests.some(t => /ferritin/i.test(t)) && C.tests.some(t => /çinko/i.test(t)), C.tests.join(' | '));
 log('"Ferritin: Son 90 günde normal ölçüldü (16.11.2026: 71)" notu', C.notes.some(n => /Ferritin: Son 90 günde normal ölçüldü \(16\.11\.2026: 71\)/.test(n)), C.notes.join(' | '));
 log('TSH artık 90 günde normal ölçüldüğü için istenmez', !C.tests.some(t => /tsh/i.test(t)) && C.notes.some(n => /TSH/.test(n)), C.tests.join(' | '));

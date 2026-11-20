@@ -880,3 +880,6 @@ html[data-theme="dark"] .vita-prelab-inline>summary{color:#bae6fd}
 html[data-theme="dark"] .vs-prelab-list li{color:#cbd5e1}
 html[data-theme="dark"] .vs-rel{background:#111a2e;border-color:#243149}
 html[data-theme="dark"] .vs-rel .vs-warn-t{color:#e2e8f0}
+html[data-theme="dark"] .vita-fallback-tag{color:#fcd34d;background:#422006;border-color:#78350f}
+html[data-theme="dark"] .vita-fallback-note{color:#fcd34d}
+html[data-theme="dark"] .vita-fallback-banner{background:#2a1a05;border-color:#78350f;color:#fde68a}

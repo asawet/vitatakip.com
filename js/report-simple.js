@@ -102,9 +102,10 @@
           var mk = MARK[r.dir] || MARK.ok;
           return '<tr class="' + (r.dir === "ok" ? "" : "rs-abn") + '"><td>' + esc(r.name) + '</td><td><b>' + esc(M.fmt(r.value)) + '</b> <small>' + esc(r.unit) + '</small>' +
             (r.older && r.date ? ' <small class="rs-date">' + esc(dmy(r.date)) + '</small>' : "") + '</td>' +
-            '<td>' + esc(String(r.ref || "—").replace(/\s*(?<![A-Za-zµ])(mg\/dL|ng\/mL|pg\/mL|g\/dL|µg\/dL|U\/L|fL|mg\/L|\(gebelik\))/g, " $1").replace(/\s+/g, " ").replace(/\s?(?<![A-Za-zµ])(mg\/dL|ng\/mL|pg\/mL|g\/dL|µg\/dL|U\/L|fL|mg\/L)/, "")) + '</td>' +
+            '<td' + (r.refFallback ? ' class="rs-fallback" data-fallback="range" title="Raporda laboratuvar aralığı yok; genel aralık"' : '') + '>' + (r.refFallback ? '<sup>*</sup>' : '') + esc(String(r.ref || "—").replace(/\s*(?<![A-Za-zµ])(mg\/dL|ng\/mL|pg\/mL|g\/dL|µg\/dL|U\/L|fL|mg\/L|\(gebelik\))/g, " $1").replace(/\s+/g, " ").replace(/\s?(?<![A-Za-zµ])(mg\/dL|ng\/mL|pg\/mL|g\/dL|µg\/dL|U\/L|fL|mg\/L)/, "")) + '</td>' +
             '<td class="' + mk[1] + '">' + mk[0] + '</td><td>' + (r.prev ? esc(M.fmt(r.prev.value)) + (r.prev.date ? ' <small class="rs-date">' + esc(dmy(r.prev.date)) + '</small>' : "") : "—") + '</td></tr>';
         }).join("") + '</tbody></table>' +
+        (order.some(function (r) { return r.refFallback; }) ? '<p class="rs-note rs-fallback-note" data-fallback="range"><sup>*</sup> Tahlil raporunda laboratuvar aralığı yoktu; VitaTakip genel karşılaştırma aralığı kullanıldı.</p>' : "") +
         (typeof isPregnantNow === "function" && isPregnantNow() ? '<p class="rs-note">Gebelikte eGFR formülleri geçerli olmadığından hesaplanmadı.</p>'
           : (state.lastCDSS && state.lastCDSS.egfrResult ? '<p class="rs-note">eGFR (CKD-EPI 2021): <b>' + esc(state.lastCDSS.egfrResult.egfr) + '</b> mL/dk/1,73 m² (Evre ' + esc(state.lastCDSS.egfrResult.stage) + ')</p>' : "")) + '</section>';
     }

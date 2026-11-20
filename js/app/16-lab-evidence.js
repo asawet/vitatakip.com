@@ -20,6 +20,7 @@
       ADVNUTR_MG: { title: "Advances in Nutrition — Magnesium (semptomlar <0,5 mmol/L altında belirginleşir)", url: "https://advances.nutrition.org/article/S2161-8313(23)00153-9/fulltext", note: "Hipomagnezemi 0,5–0,7 mmol/L arasında çoğunlukla hafif veya belirtisizdir; <0,5 mmol/L altında belirtiler belirginleşir/şiddetlenir." },
       WHO2011_HB: { title: "WHO — Haemoglobin concentrations for the diagnosis of anaemia and assessment of severity (2011)", url: "https://www.who.int/publications/i/item/WHO-nMH-NHD-MNM-11.1", note: "Anemi: gebe olmayan kadın (≥15 yaş) Hb <12 g/dL, erkek (≥15 yaş) <13 g/dL, gebe <11 g/dL (deniz seviyesi)." },
       ENDO2024_D: { title: "Endocrine Society 2024 — Vitamin D for the Prevention of Disease (Demay MB ve ark., J Clin Endocrinol Metab 2024;109:1907-47; PMID 38828931)", url: "https://doi.org/10.1210/clinem/dgae290", note: "75 yaş altı sağlıklı yetişkinde rutin 25(OH)D taraması ve önerilen günlük alımın (DRI) üzerinde ampirik takviye önerilmez; hastalık önleme için en uygun hedef 25(OH)D düzeyi tanımlanamamıştır. 1–18 yaş, 75 yaş üstü, gebelik ve yüksek riskli prediyabette ampirik takviye önerilir." },
+      ENDO2011_D: { title: "Endocrine Society 2011 — Evaluation, treatment, and prevention of vitamin D deficiency (Holick MF ve ark., J Clin Endocrinol Metab 2011;96:1911-30; PMID 21646368)", url: "https://doi.org/10.1210/jc.2011-0385", note: "Risk altındaki hastalarda 25(OH)D <20 ng/mL (50 nmol/L) eksiklik, 21–29 ng/mL (52,5–72,5 nmol/L) yetersizlik olarak tanımlanır; hedef ≥30 ng/mL. Uygulama 30 ng/mL altını bu tanıma göre 'düşük' gösterir. Not: Endocrine Society 2024 güncellemesi sağlıklı yetişkinde hastalık önleme amacıyla belirli bir hedef düzey önermez." },
       IZINCG_ZN: { title: "IZiNCG — Use of serum zinc concentration as an indicator of population zinc status (Hess SY ve ark., Food Nutr Bull 2007;28:S403-29; PMID 17988005)", url: "https://doi.org/10.1177/15648265070283S303", note: "10 yaş ve üzeri, sabah aç karnına alınan örnekte alt sınır kadında 70, erkekte 74 µg/dL (tok sabah 66/70, öğleden sonra 59/61). Serum çinko bireysel düzeyde güvenilir bir gösterge değildir; enflamasyon ve düşük albümin değeri düşürür." },
       BOND_FOL: { title: "BOND — Biomarkers of Nutrition for Development: Folate Review (Bailey LB ve ark., J Nutr 2015;145:1636S-80S; PMID 26451605)", url: "https://doi.org/10.3945/jn.114.206599", note: "Serum folat <3 ng/mL (6,8 nmol/L) eksiklik (makrositer anemi temelli), <4 ng/mL (10 nmol/L) homosistein temelli olası eksiklik eşiği olarak kullanılır. Serum folat son alımı yansıtır; uzun dönem durum için eritrosit folatı daha uygundur." },
       COCHRANE2020_MG: { title: "Cochrane 2020 — Magnesium for skeletal muscle cramps (Garrison SR ve ark.; PMID 32956536)", url: "https://doi.org/10.1002/14651858.CD009402.pub3", note: "Yaşlı yetişkinlerde idiyopatik (çoğunlukla gece) kramplarda magnezyum takviyesi klinik olarak anlamlı koruma sağlamıyor (orta–yüksek kesinlik); gebelikte kanıt çelişkili." },
@@ -37,7 +38,7 @@
        "pubmed-kayit": kaynak kaydı PubMed'de doğrulandı, sayısal eşik özette yer almıyor; "web": resmî kurum sayfası. */
     const VITA_LAB_THRESHOLDS_VERSION = "Kasım 2026";
     const VITA_LAB_SOURCE_CHECK = {
-      ODS_B12: "web", AAFP2025_B12: "web", WHO2020_FERR: "web", AGA2020_IDA: "pubmed", ODS_D: "web", ODS_MG: "web", ADVNUTR_MG: "web",
+      ODS_B12: "web", AAFP2025_B12: "web", WHO2020_FERR: "web", AGA2020_IDA: "pubmed", ODS_D: "web", ENDO2011_D: "pubmed-kayit", ODS_MG: "web", ADVNUTR_MG: "web",
       WHO2011_HB: "web", ENDO2024_D: "pubmed", IZINCG_ZN: "pubmed", BOND_FOL: "pubmed", COCHRANE2020_MG: "pubmed", OMEGA3_HD: "pubmed",
       CAL_HYPER: "pubmed", CAL_HYPO: "pubmed-kayit", MCV_AAFP: "pubmed", WHO2015_RBCFOL: "pubmed", RBCFOL_CUT: "pubmed", REFSUM_HCY: "pubmed-kayit", UNVERIFIED: "yok"
     };
@@ -59,8 +60,8 @@
           typical: { min: 200, max: 900, source: "ODS_B12", verified: false, note: "Alt sınır NIH ODS'ye göre subnormal sınırıdır; üst sınır tipik değerdir." },
           sources: ["ODS_B12", "AAFP2025_B12"] },
         d3: { label: "25-OH D vitamini", unit: "ng/mL", units: { "ng/ml": 1, "nmol/l": 0.4 }, plausible: [3, 200],
-          typical: { min: 20, max: 50, source: "ODS_D", verified: true, note: "NIH ODS: ≥20 ng/mL çoğu kişide yeterli, >50 ng/mL olası yan etkiler. Endocrine Society 2024: hastalık önleme için ideal hedef düzey tanımlanmadı; 30 ng/mL hedefi kanıta dayanmıyor." },
-          sources: ["ODS_D", "ENDO2024_D"] },
+          typical: { min: 30, max: 50, source: "ENDO2011_D", verified: true, note: "Alt sınır Endocrine Society 2011 tanımına göre 30 ng/mL (21–29 yetersizlik, <20 eksiklik). Üst sınır NIH ODS: >50 ng/mL olası yan etkiler. NIH ODS ≥20 ng/mL'yi çoğu kişide yeterli sayar; Endocrine Society 2024 hastalık önleme için hedef düzey önermez." },
+          sources: ["ENDO2011_D", "ODS_D", "ENDO2024_D"] },
         ferritin: { label: "Ferritin", unit: "ng/mL", units: { "ng/ml": 1, "ug/l": 1, "pmol/l": 0.445 }, plausible: [1, 5000],
           typical: { min: 15, max: 150, maxMale: 200, source: "WHO2020_FERR", verified: true, note: "Alt: sağlıklı yetişkinde eksiklik eşiği (15); üst: demir yüklenmesi riski eşiği (K 150 / E 200)." },
           sources: ["WHO2020_FERR", "AGA2020_IDA"] },
@@ -137,8 +138,9 @@
         d3(v) {
           if (v > 150) return { level: "urgent", side: "high", sources: ["ODS_D"], text: "25(OH)D 150 ng/mL (375 nmol/L) üzerinde: NIH ODS bu düzeylerde bulantı, kusma, kas güçsüzlüğü, susuzluk ve böbrek taşı gibi belirgin etkiler tanımlar. D vitamini takviyesini hekime danışmadan sürdürmeyin ve kısa sürede değerlendirme isteyin." };
           if (v > 50) return { level: "high_review", sources: ["ODS_D"], text: "25(OH)D 50 ng/mL (125 nmol/L) üzerinde: NIH ODS olası yan etkilerle ilişkilendirir. Takviye dozunu hekimle gözden geçirin." };
-          if (v < 12) return { level: "low_likely", sources: ["ODS_D"], text: "25(OH)D 12 ng/mL (30 nmol/L) altında: NIH ODS'ye göre eksiklik riski. Kalsiyum, fosfor, PTH gibi tetkikler ve tedavi hekimle planlanmalıdır." };
-          if (v < 20) return { level: "borderline", sources: ["ODS_D"], text: "25(OH)D 12–20 ng/mL arasında: NIH ODS bazı kişilerde yetersiz olabileceğini belirtir. Güneş maruziyeti, beslenme ve risk faktörleriyle birlikte değerlendirilmelidir." };
+          if (v < 12) return { level: "low_likely", sources: ["ODS_D", "ENDO2011_D"], text: "25(OH)D 12 ng/mL (30 nmol/L) altında: belirgin eksiklik (NIH ODS). Kalsiyum, fosfor, PTH gibi tetkikler ve tedavi hekimle planlanmalıdır." };
+          if (v < 20) return { level: "low_likely", sources: ["ENDO2011_D", "ODS_D"], text: "25(OH)D 12–20 ng/mL arasında: Endocrine Society 2011'e göre eksiklik aralığı. Güneş maruziyeti, beslenme ve risk faktörleriyle birlikte hekimle değerlendirilmelidir." };
+          if (v < 30) return { level: "low_likely", sources: ["ENDO2011_D"], text: "25(OH)D 20–30 ng/mL arasında: Endocrine Society 2011'e göre yetersizlik (insufficiency) aralığı; hedef ≥30 ng/mL. Takviye gerekip gerekmediğine ve dozuna hekim karar verir." };
           return { level: "adequate", sources: ["ODS_D"], text: "" };
         },
         ferritin(v, ctx) {
@@ -392,10 +394,11 @@
 
       // --- D vitamini ---
       t("D vitamini 11 ng/mL eksiklik riski", ev("d3", 11).clinical.level === "low_likely");
-      t("D vitamini 12 ng/mL eşiğin kendisi sınırda", ev("d3", 12).clinical.level === "borderline");
-      t("D vitamini 19,9 ng/mL sınırda", ev("d3", 19.9).clinical.level === "borderline");
-      t("D vitamini 20 ng/mL yeterli (NIH ODS)", ev("d3", 20).clinical.level === "adequate");
-      t("D vitamini 25 ng/mL eksik sayılmaz", eng("d3", 25).isLow === false && eng("d3", 25).isBorderline === false);
+      t("D vitamini 12 ng/mL düşük (eksiklik aralığı)", ev("d3", 12).clinical.level === "low_likely");
+      t("D vitamini 19,9 ng/mL düşük", ev("d3", 19.9).clinical.level === "low_likely");
+      t("D vitamini 24,8 ng/mL düşük (Endocrine Society 2011 yetersizlik)", ev("d3", 24.8).clinical.level === "low_likely" && eng("d3", 24.8).isLow === true);
+      t("D vitamini 29,9 ng/mL düşük, 30 ng/mL yeterli", eng("d3", 29.9).isLow === true && ev("d3", 30).clinical.level === "adequate" && eng("d3", 30).isLow === false);
+      t("D vitamini genel aralığı 30–50 ng/mL", ev("d3", 35).reference === "30–50 ng/mL");
       t("D vitamini 50 ng/mL üst sınırın kendisi yeterli", ev("d3", 50).clinical.level === "adequate");
       t("D vitamini 51 ng/mL yüksek-inceleme", ev("d3", 51).clinical.level === "high_review");
       t("D vitamini 151 ng/mL toksisite eşiği", eng("d3", 151).isToxic === true);

@@ -95,7 +95,7 @@
         if (egfr < 60 && dir === "ok") dir = "high";
       }
       rows.push({ key: k, name: d.LAB_NAMES[k], value: labs[k].value, unit: d.LAB_UNITS[k], extra: extra, dir: dir, critical: ev.critical, source: labs[k].source,
-        date: labs[k].date || null, older: !!labs[k].older, ref: refText(k, labs[k]) });
+        date: labs[k].date || null, older: !!labs[k].older, ref: refText(k, labs[k]), refFallback: !(labs[k] && labs[k].ref) });
     });
     /* Önceki ölçüm: aynı göstergenin bir önceki ölçümü (birleştirilmiş 90 günlük panelden) */
     var improved = [];
@@ -299,7 +299,11 @@
 
   /* Subtle date tag when a merged value comes from an earlier lab than the newest one */
   function dateTag(r) {
-    return r.older && r.date ? ' <span class="vs-date-tag" title="Bu değer daha önceki bir tahlilden">' + esc(r.date.split("-").reverse().join(".")) + '</span>' : "";
+    return (r.older && r.date ? ' <span class="vs-date-tag" title="Bu değer daha önceki bir tahlilden">' + esc(r.date.split("-").reverse().join(".")) + '</span>' : "") + fallbackTag(r);
+  }
+  /* Fallback indicator: the report had no lab range for this value, the app's general range was used */
+  function fallbackTag(r) {
+    return r.refFallback ? ' <span class="vita-fallback-tag" data-fallback="range" title="Raporda laboratuvar aralığı yok; VitaTakip genel karşılaştırma aralığı kullanıldı">genel aralık</span>' : "";
   }
 
   function normalNotesHtml(m) {
@@ -328,7 +332,9 @@
       if (r.kidneyNote) html += '<p class="vs-safe-line"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> İlaç ve takviye (özellikle ağrı kesici ve mineral) kullanmadan önce hekime danışın.</p>';
       var an = window.VitaAgeStage ? VitaAgeStage.labNote(r.key, r.dir) : "";
       if (an) html += '<p class="vs-age">' + esc(an) + '</p>';
-      if (r.ref) html += '<p class="vs-ref">Referans: ' + esc(r.ref) + '</p>';
+      if (r.ref) html += r.refFallback
+        ? '<p class="vs-ref vita-fallback-note" data-fallback="range">Raporda laboratuvar aralığı yok; VitaTakip genel karşılaştırma aralığı kullanıldı: <b>' + esc(r.ref) + '</b>. Kendi laboratuvarınızın aralığı farklı olabilir.</p>'
+        : '<p class="vs-ref">Referans: ' + esc(r.ref) + '</p>';
       html += '</div></details>';
     });
     if (m.ok.length) {
