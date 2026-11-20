@@ -359,9 +359,51 @@ const KDSSRuleEngine = {
       if (val > 35) return mk('Gebelikte ALT yüksek: hekime bildirin', 'yellow', 'borderline_high', true, false);
       return mk('Referans aralığında', 'green', 'optimal', false, false);
     }
+    /* Extra CBC / thyroid / metabolic markers (VITA_EXTRA_LAB_DEFS): lab's own range when parseable, else the
+       general adult range. HbA1c / fasting glucose use ADA cut-offs; extreme values are flagged "urgent". Not diagnostic. */
+    const VITA_EXTRA_URGENT = {
+      wbc: v => v < 2 || v > 30, plt: v => v < 50 || v > 1000, glucose: v => v < 54 || v >= 250,
+      hba1c: v => v >= 10, tsh: v => v < 0.05 || v >= 20, hct: v => v >= 60 || v < 20
+    };
+    function evaluateVitaExtraLab(key, value, gender = 'K', referenceText = '') {
+      const def = (window.VITA_EXTRA_LAB_DEFS || []).find(d => d.key === key);
+      if (!def) return null;
+      const val = Number(String(value).replace(',', '.'));
+      if (!Number.isFinite(val)) return null;
+      let range = gender === 'E' && def.maleRange ? def.maleRange : def.range;
+      let source = 'app';
+      try {
+        if (referenceText && typeof isVitaLabReferenceCompatible === 'function' && isVitaLabReferenceCompatible(key, referenceText)) {
+          const r = typeof parseVitaLabReferenceRange === 'function' ? parseVitaLabReferenceRange(referenceText) : null;
+          if (r && Number.isFinite(r.min) && Number.isFinite(r.max) && r.max > r.min) { range = [r.min, r.max]; source = 'lab'; }
+        }
+      } catch (_) { /* fall back to the general range */ }
+      const mk = (statusText, color, tier, isLow, isHigh, status) => ({
+        statusText, tier, color, badgeHtml: KDSSRuleEngine.createBadge(statusText, color),
+        isLow, isHigh, isToxic: status === 'urgent', isBorderline: /^borderline/.test(tier), status, referenceSource: source
+      });
+      if (VITA_EXTRA_URGENT[key] && VITA_EXTRA_URGENT[key](val)) {
+        const low = val < range[0];
+        return mk(low ? 'Belirgin düşük: gecikmeden hekime danışın' : 'Belirgin yüksek: gecikmeden hekime danışın', 'red', low ? 'critical_low' : 'critical_high', low, !low, 'urgent');
+      }
+      if (key === 'hba1c' && source === 'app') {
+        if (val >= 6.5) return mk('Diyabet eşiğinde (≥%6,5): hekim değerlendirmesi', 'red', 'high', false, true, 'above_ref');
+        if (val >= 5.7) return mk('Prediyabet aralığı (%5,7–6,4)', 'yellow', 'borderline_high', false, true, 'above_ref');
+      }
+      if (key === 'glucose' && source === 'app') {
+        if (val >= 126) return mk('Açlık şekeri yüksek (≥126 mg/dL): hekim değerlendirmesi', 'red', 'high', false, true, 'above_ref');
+        if (val >= 100) return mk('Bozulmuş açlık glukozu aralığı (100–125 mg/dL)', 'yellow', 'borderline_high', false, true, 'above_ref');
+      }
+      if (val < range[0]) return mk('Referansın altında', 'yellow', 'low', true, false, 'below_ref');
+      if (val > range[1]) return mk('Referansın üstünde', 'blue', 'high', false, true, 'above_ref');
+      return mk('Referans aralığında', 'green', 'optimal', false, false, 'in_ref');
+    }
+    window.evaluateVitaExtraLab = evaluateVitaExtraLab;
+
     KDSSRuleEngine.evaluate = function (key, value, gender = 'K', referenceText = '') {
       const missing = value === null || value === undefined || value === '' || (typeof value !== 'number' && isNaN(Number(value)));
       if (!missing && (key === 'creatinine' || key === 'alt') && isPregnantNow()) return pregnancyCreatinineAltEvaluate(key, Number(value));
+      if (!missing) { const extra = evaluateVitaExtraLab(key, value, gender, referenceText); if (extra) return extra; }
       if (missing || !window.VitaLabEvidence || !VitaLabEvidence.handles(key)) {
         return KDSSRuleEngine.evaluateLegacy(key, missing ? null : value, gender, referenceText);
       }

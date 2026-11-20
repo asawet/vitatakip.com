@@ -18,8 +18,12 @@
     d3: /25.?oh|vitamin d|d vitamini/i, b12: /b12/i, ferritin: /ferritin/i, mg: /magnezyum/i, ca: /kalsiyum/i,
     zinc: /çinko|cinko/i, creatinine: /kreatinin|egfr/i, folate: /folat/i, alt: /\balt\b/i,
     hb: /hemogram|hemoglobin|tam kan/i, mcv: /hemogram|mcv|tam kan/i, crp: /\bcrp\b/i,
-    rbcFolate: /eritrosit folat|rbc folat/i, hcy: /homosistein/i
+    rbcFolate: /eritrosit folat|rbc folat/i, hcy: /homosistein/i,
+    rbc: /hemogram|tam kan/i, hct: /hemogram|tam kan|hematokrit/i, wbc: /hemogram|tam kan|lökosit/i, plt: /hemogram|tam kan|trombosit/i,
+    rdw: /hemogram|tam kan|\brdw/i, tsh: /\btsh\b|tiroid/i, hba1c: /hba1c|a1c/i, glucose: /açlık kan şeker|glukoz|glikoz/i
   };
+  /* Extra CBC / thyroid / metabolic markers: names and units from the shared registry */
+  (window.VITA_EXTRA_LAB_DEFS || []).forEach(function (d) { LAB_NAMES[d.key] = d.label; LAB_UNITS[d.key] = d.unit; });
 
   /* Tahlil sonucuna göre hekimle konuşulabilecek ek incelemeler (low / high) */
   var FOLLOW_UP = {
@@ -68,6 +72,35 @@
     alt: {
       high: { tests: ["AST, GGT, ALP, bilirubin", "Karaciğer ultrasonu (hekim kararıyla)", "Hepatit paneli (hekim kararıyla)", "Kullanılan ilaç/takviyelerin gözden geçirilmesi"], why: "Karaciğer enzim yüksekliğinin nedeni araştırılır." }
     },
+    tsh: {
+      low: { tests: ["Serbest T4 (sT4) ve serbest T3", "Kullanılan tiroid ilacının gözden geçirilmesi"], why: "Düşük TSH tiroidin fazla çalıştığını veya ilaç dozunun yüksek olduğunu gösterebilir." },
+      high: { tests: ["Serbest T4 (sT4)", "Anti-TPO (hekim kararıyla)", "Ferritin, B12, D vitamini"], why: "Yüksek TSH tiroid yetersizliğine işaret edebilir; demir, B12 ve D vitamini durumu birlikte değerlendirilir." }
+    },
+    hba1c: {
+      high: { tests: ["Açlık kan şekeri", "Lipid profili", "Kreatinin / eGFR ve idrarda albümin"], why: "HbA1c yüksekliği prediyabet/diyabet açısından hekim değerlendirmesi gerektirir." }
+    },
+    glucose: {
+      high: { tests: ["HbA1c", "Açlık kan şekeri tekrarı (8–12 saat açlıkla)", "Lipid profili"], why: "Tek bir yüksek açlık şekeri tekrar ölçüm ve HbA1c ile doğrulanır." },
+      low: { tests: ["Açlık kan şekeri tekrarı", "Kullanılan şeker düşürücü ilaçların gözden geçirilmesi"], why: "Düşük kan şekerinin nedeni değerlendirilir." }
+    },
+    rdw: {
+      high: { tests: ["Ferritin, demir, TIBC", "Vitamin B12 ve folat", "Periferik yayma"], why: "Yüksek RDW, alyuvar boyutlarında farklılık demektir; karma (demir + B12/folat) eksikliği MCV'yi normal gösterebilir." }
+    },
+    wbc: {
+      high: { tests: ["Hemogram tekrarı ve periferik yayma", "CRP"], why: "Lökosit yüksekliği enfeksiyon/enflamasyon gibi nedenlerle olabilir; ferritin yorumunu da etkiler." },
+      low: { tests: ["Hemogram tekrarı ve periferik yayma", "Vitamin B12 ve folat"], why: "Düşük lökosit sayısının nedeni değerlendirilir." }
+    },
+    plt: {
+      high: { tests: ["Hemogram tekrarı ve periferik yayma", "Ferritin, demir", "CRP"], why: "Trombosit yüksekliği demir eksikliği veya enflamasyonla ilişkili olabilir." },
+      low: { tests: ["Hemogram tekrarı ve periferik yayma", "Vitamin B12 ve folat"], why: "Düşük trombosit sayısının nedeni değerlendirilir." }
+    },
+    rbc: {
+      high: { tests: ["Hemogram tekrarı (yeterli su içerek)", "Hematokrit"], why: "Susuzluk eritrosit sayısını geçici olarak yükseltebilir; kalıcıysa nedeni araştırılır." }
+    },
+    hct: {
+      high: { tests: ["Hemogram tekrarı (yeterli su içerek)"], why: "Susuzluk hematokriti geçici olarak yükseltebilir." },
+      low: { tests: ["Ferritin, demir, TIBC", "Vitamin B12 ve folat"], why: "Düşük hematokrit anemiyle birlikte değerlendirilir." }
+    },
     creatinine: {
       high: { tests: ["Kreatinin / eGFR tekrarı", "Tam idrar tahlili", "İdrarda albümin/kreatinin oranı", "Elektrolitler (Na, K)", "Sistatin C ve böbrek ultrasonu (hekim kararıyla)"], why: "Böbrek işlevindeki azalmanın kalıcı olup olmadığı ve nedeni değerlendirilir.", keep: true }
     }
@@ -104,25 +137,50 @@
   }
   function norm(s) { return canon(s).toLocaleLowerCase("tr-TR").replace(/\s+/g, " ").trim(); }
 
-  /* Güncel tahlil + en son arşiv kaydı (güncel değer arşivin üstüne yazar) */
+  function dmy(iso) { return iso ? String(iso).split("-").reverse().join(".") : ""; }
+
+  /* 90-day merged panel: each biomarker's most recent value across all saved labs
+     (a partial follow-up lab no longer hides earlier results). Unsaved form values fill
+     only biomarkers that have no saved measurement in the window. */
   function collectLabs() {
     var out = {};
-    var hist = (typeof state !== "undefined" && Array.isArray(state.labHistory)) ? state.labHistory.slice() : [];
-    hist.sort(function (a, b) { return (b.timestamp || 0) - (a.timestamp || 0); });
-    var latest = hist[0] || null;
+    var merged = null;
+    try { merged = window.VitaLabInsights && VitaLabInsights.getMergedActiveLabs ? VitaLabInsights.getMergedActiveLabs() : null; } catch (_) { merged = null; }
     Object.keys(LAB_NAMES).forEach(function (k) {
+      var m = merged && merged.labs[k];
+      var v = m ? num(m.value) : null;
+      if (v !== null) {
+        /* ref: the lab range printed on the SAME report the value came from (an older merged value keeps its own range) */
+        var recRef = m.record && m.record.references && m.record.references[k];
+        out[k] = { value: v, date: m.date || null, older: !!m.older, prev: m.prev || null, source: m.older && m.date ? dmy(m.date) : "güncel", ref: recRef ? String(recRef).trim() : "" };
+        return;
+      }
       var cur = typeof state !== "undefined" && state.labValues ? num(state.labValues[k]) : null;
-      var arc = latest ? num(latest[k]) : null;
-      if (cur !== null) out[k] = { value: cur, source: "güncel" };
-      else if (arc !== null) out[k] = { value: arc, source: "arşiv" + (latest.date ? " · " + latest.date : "") };
+      if (cur !== null) out[k] = { value: cur, date: null, older: false, prev: null, source: "güncel", ref: String((state.labReferences && state.labReferences[k]) || "").trim() };
     });
     return out;
   }
 
-  function evalLab(key, value) {
+  /* A suggested test already answered by a NORMAL result in the merged 90-day panel → muted note instead of a request */
+  function normalCoverage(testName, labs) {
+    labs = labs || collectLabs();
+    var keys = Object.keys(labs);
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      if (!COVERED_BY[k] || !COVERED_BY[k].test(testName)) continue;
+      var ev = evalLab(k, labs[k].value, labs[k].ref);
+      if (ev.low || ev.high || ev.borderline) return null;
+      return { key: k, test: canon(testName), value: labs[k].value, date: labs[k].date,
+        text: "Son 90 günde normal ölçüldü" + (labs[k].date ? " (" + dmy(labs[k].date) + ": " + String(labs[k].value).replace(".", ",") + ")" : "") };
+    }
+    return null;
+  }
+
+  /* refOverride: the value's own lab range (from collectLabs); falls back to the current form's ranges */
+  function evalLab(key, value, refOverride) {
     try {
       var gender = (state.user && state.user.gender) || "K";
-      var ref = (state.labReferences && state.labReferences[key]) || "";
+      var ref = refOverride !== undefined ? (refOverride || "") : ((state.labReferences && state.labReferences[key]) || "");
       var r = KDSSRuleEngine.evaluate(key, value, gender, ref) || {};
       var low = !!(r.isLow || r.status === "below_ref");
       var high = !!(r.isHigh || r.status === "above_ref");
@@ -153,7 +211,7 @@
     /* A) Tahlile göre */
     var labGroups = [];
     enteredKeys.forEach(function (k) {
-      var ev = evalLab(k, labs[k].value);
+      var ev = evalLab(k, labs[k].value, labs[k].ref);
       var dir = ev.low ? "low" : (ev.high ? "high" : null);
       var rule = dir && FOLLOW_UP[k] && FOLLOW_UP[k][dir];
       if (!rule) return;
@@ -180,7 +238,7 @@
     labGroups.sort(function (a, b) { return (b.critical ? 1 : 0) - (a.critical ? 1 : 0); });
 
     /* B) Belirtiye göre */
-    var symMap = {}, order = [], droppedCovered = 0;
+    var symMap = {}, order = [], droppedCovered = 0, normalNotes = [], noteSeen = {};
     selectedSymptomMetas().forEach(function (meta) {
       var name = meta.symptomName || meta.medicalName;
       String(meta.suggestedLab || "").split(",").forEach(function (raw) {
@@ -188,7 +246,12 @@
         if (!t) return;
         var n = norm(t);
         if (seen[n]) return;
-        if (isCovered(t)) { droppedCovered++; return; }
+        if (isCovered(t)) {
+          droppedCovered++;
+          var nc = normalCoverage(t, labs);
+          if (nc && !noteSeen[nc.key]) { noteSeen[nc.key] = true; normalNotes.push(nc); }
+          return;
+        }
         if (!symMap[n]) { symMap[n] = { name: canon(t), symptoms: [] }; order.push(n); }
         if (symMap[n].symptoms.indexOf(name) === -1) symMap[n].symptoms.push(name);
       });
@@ -200,7 +263,7 @@
     var hasAnyLab = enteredKeys.length > 0;
     var baseline = (!hasAnyLab && symTests.length) ? BASELINE.filter(function (t) { return !seen[norm(t)] && !symMap[norm(t)]; }) : [];
 
-    return { labGroups: labGroups, symTests: symTests, baseline: baseline, droppedCovered: droppedCovered, hasAnyLab: hasAnyLab, hasSymptoms: selectedSymptomMetas().length > 0 };
+    return { labGroups: labGroups, symTests: symTests, baseline: baseline, droppedCovered: droppedCovered, normalNotes: normalNotes, hasAnyLab: hasAnyLab, hasSymptoms: selectedSymptomMetas().length > 0 };
   }
 
   function plainText(m) {
@@ -262,7 +325,8 @@
           '<div class="dt-list">' + m.symTests.slice(VISIBLE).map(rowHtml).join("") + '</div></details>';
       }
       html += '</div>';
-      if (m.droppedCovered) html += '<p class="dt-note">Girdiğiniz tahlillerle örtüşen ' + m.droppedCovered + ' test listeden çıkarıldı.</p>';
+      if (m.normalNotes.length) html += m.normalNotes.map(function (n) { return '<p class="dt-note">' + esc(n.test) + ': ' + esc(n.text) + '</p>'; }).join("");
+      else if (m.droppedCovered) html += '<p class="dt-note">Girdiğiniz tahlillerle örtüşen ' + m.droppedCovered + ' test listeden çıkarıldı.</p>';
       html += '</div>';
     }
 
@@ -303,7 +367,7 @@
   /* Sadeleştirilmiş Klinik Analiz görünümü (js/clinical-simple.js) için ortak yardımcılar */
   window.VitaClinicalData = {
     collectLabs: collectLabs, evalLab: evalLab, canon: canon, norm: norm, LAB_NAMES: LAB_NAMES, LAB_UNITS: LAB_UNITS,
-    selectedSymptomMetas: selectedSymptomMetas, FOLLOW_UP: FOLLOW_UP,
+    selectedSymptomMetas: selectedSymptomMetas, FOLLOW_UP: FOLLOW_UP, normalCoverage: normalCoverage, dmy: dmy,
     isCovered: function (testName) { var keys = Object.keys(collectLabs()); return keys.some(function (k) { return COVERED_BY[k] && COVERED_BY[k].test(testName); }); }
   };
   window.computeDoctorTests = compute;

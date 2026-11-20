@@ -18,9 +18,38 @@
         return Math.max(0, Math.round((Date.now() - t) / 86400000));
       }
 
+      /* Sort by lab (sample) date, not by save time: an older PDF uploaded later must not become "latest". */
+      function recordTime(r) {
+        const t = r && r.date ? Date.parse(`${r.date}T00:00:00`) : NaN;
+        return Number.isFinite(t) ? t : Number(r?.timestamp || 0);
+      }
       function sortedRecords() {
         return (Array.isArray(state.labHistory) ? state.labHistory : []).slice()
-          .sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
+          .sort((a, b) => (recordTime(b) - recordTime(a)) || (Number(b?.timestamp || 0) - Number(a?.timestamp || 0)));
+      }
+
+      /* 90-DAY MERGED PANEL: for each biomarker, the most recent valid value within `windowDays`
+         of the newest lab date (today if no dated lab). Shared by Klinik Analiz, doctor report and
+         NeyimVar test suggestions. `older: true` when the value comes from an earlier lab than the newest one. */
+      function getMergedActiveLabs(windowDays = FRESH_DAYS_DEFAULT) {
+        const records = sortedRecords();
+        const newest = records.find(r => r && r.date) || null;
+        const anchor = newest ? Date.parse(`${newest.date}T00:00:00`) : Date.now();
+        const cutoff = anchor - windowDays * 86400000;
+        const out = {};
+        LAB_HISTORY_METRICS.forEach(metric => {
+          const series = seriesFor(metric, records);
+          const idx = series.findIndex(s => !s.date || Date.parse(`${s.date}T00:00:00`) >= cutoff);
+          if (idx === -1) return;
+          const cur = series[idx];
+          const prev = series[idx + 1] || null;
+          out[metric.key] = {
+            value: cur.value, date: cur.date, record: cur.record,
+            older: Boolean(newest && cur.date && cur.date !== newest.date),
+            prev: prev ? { value: prev.value, date: prev.date } : null
+          };
+        });
+        return { labs: out, newestDate: newest ? newest.date : null, windowDays };
       }
 
       /* Her gösterge için tarih sırasına göre ölçüm serisi (en yeni önce) */
@@ -69,6 +98,16 @@
           else if (ev.status === "below_ref") direction = (ev.referenceUsed === "lab" || lvl === "low_likely") ? "low" : "borderline";
           else if (ev.status === "above_ref") direction = ev.referenceUsed === "lab" ? "high" : "normal";
           return { direction, status: ev.status, source: ev.referenceUsed === "lab" ? "lab" : "app", reference: ev.reference, statusText: ev.statusText, message: ev.message, evidence: ev };
+        }
+        // Extra CBC / thyroid / metabolic markers
+        if (typeof evaluateVitaExtraLab === "function") {
+          const x = evaluateVitaExtraLab(key, value, gender, ref);
+          if (x) {
+            const direction = x.status === "urgent" ? (x.isLow ? "low" : "high") : (x.isLow ? "low" : (x.isHigh ? (x.isBorderline ? "borderline" : "high") : "normal"));
+            let reference = ref;
+            if (x.referenceSource !== "lab") { try { reference = getVitaAppLabReference(key, gender); } catch (_) { reference = ""; } }
+            return { direction, status: x.status, source: x.referenceSource, reference, statusText: x.statusText, message: x.status === "urgent" ? x.statusText : "" };
+          }
         }
         // Kreatinin / ALT: laboratuvar referansı (birim uyumluysa) → VitaTakip genel eşiği
         try {
@@ -223,6 +262,51 @@
         if (dir("zinc") === "low" && dir("ferritin") === "low") {
           add("Çinko ve ferritin birlikte düşük", "Yetersiz alım veya emilim sorunlarıyla birlikte görülebilir; beslenme düzeni ve emilimi etkileyen durumlar hekimle gözden geçirilmelidir.");
         }
+        /* ---- Cross-biomarker correlations (90-day window; stale markers ignored) ---- */
+        const cur = k => (by[k]?.present && !by[k].stale ? by[k] : null);
+        const num = k => (cur(k) ? Number(cur(k).value) : null);
+        // "above_ref"/"below_ref" with the general (app) range is mapped to direction "normal" by classify(); still counts here
+        const hi = k => Boolean(cur(k) && (dir(k) === "high" || cur(k).status === "above_ref" || cur(k).evidence?.refStatus === "above"));
+        const lo = k => Boolean(cur(k) && (dir(k) === "low" || cur(k).status === "below_ref" || cur(k).evidence?.refStatus === "below" || (dir(k) === "borderline" && cur(k).status !== "above_ref")));
+        const tags = (() => { try { const r = sortedRecords()[0]; return Array.isArray(r?.contextTags) ? r.contextTags : []; } catch (_) { return []; } })();
+        // B12 & folate axis: functional deficiency, megaloblastic tendency
+        if ((lo("b12") || dir("b12") === "borderline") && hi("hcy")) {
+          add("B12 düşük/sınırda + homosistein yüksek", "Homosistein yüksekliği B12 veya folatın hücre düzeyinde yetersiz kaldığını (işlevsel eksiklik) düşündürebilir; serum B12 sınırdayken bu bulgu önem kazanır. Metilmalonik asit (MMA) ve folat hekimle değerlendirilebilir.");
+        }
+        if (num("mcv") !== null && num("mcv") > 100) {
+          add("MCV 100 fL üzerinde (makrositoz)", `MCV ${fmtNum(num("mcv"))} fL: alyuvarlar büyük. Megaloblastik eğilim açısından B12 ve folat durumu önceliklidir; alkol, karaciğer, tiroid ve bazı ilaçlar da neden olabilir.${!cur("b12") || !cur("folate") ? " B12 veya folat ölçümü yoksa hekiminize sorun." : ""}`);
+        }
+        // Anemia differentiation: mixed deficiency hidden behind a normal MCV
+        if (hi("rdw") && cur("mcv") && dir("mcv") === "normal") {
+          add("RDW-CV yüksek, MCV normal: karma eksiklik olasılığı", "Alyuvar boyutları arasında farklılık var ama ortalama boyut (MCV) normal. Demir eksikliği (küçük hücre) ile B12/folat eksikliği (büyük hücre) birlikteyken birbirini maskeleyip MCV'yi normal gösterebilir (mikst anemi). Ferritin, B12 ve folat birlikte değerlendirilmelidir.");
+        } else if (hi("rdw") && lo("ferritin")) {
+          add("RDW-CV yüksek + ferritin düşük", "Yüksek RDW ile düşük ferritin birlikte erken demir eksikliğini düşündürür; hemoglobin henüz düşmemiş olabilir.");
+        }
+        // Vitamin D & cofactor axis
+        if (lo("d3") && lo("mg")) {
+          add("D vitamini ve magnezyum birlikte düşük", "Magnezyum, D vitamininin aktif biçimine dönüşmesi için gereklidir; düşükken D vitamini beklenen ölçüde yükselmeyebilir. Birlikte hekimle değerlendirilmeli.");
+        } else if (lo("d3") && cur("mg") && dir("mg") === "normal") {
+          add("D vitamini düşük, magnezyum referans içinde", "Magnezyum D vitamini aktivasyonu için gerekli bir yardımcıdır; şu an referans içinde görünüyor.");
+        }
+        // Inflammation masking (WBC as well as CRP)
+        if (hi("wbc") && cur("ferritin") && !(has("crp") && by.crp.evidence?.refStatus === "above")) {
+          add("Lökosit yüksek: ferritin yorumu", "Lökosit yüksekliği enfeksiyon veya enflamasyona işaret edebilir. Ferritin bir akut faz reaktanıdır; enflamasyon sırasında yükselerek altta yatan demir eksikliğini gizleyebilir. Enflamasyon geçtikten sonra tekrar ölçüm hekimle konuşulabilir.");
+        }
+        // Thyroid & micronutrients
+        if (cur("tsh") && dir("tsh") !== "normal") {
+          const cof = ["ferritin", "d3", "b12", "zinc"].map(k => cur(k) ? `${by[k].label} ${fmtNum(by[k].value)} (${DIR_TEXT[dir(k)] || dir(k)})` : `${by[k]?.label || k}: ölçülmedi`);
+          add(`TSH ${dir("tsh") === "low" ? "düşük" : "yüksek"}: tiroid ve mikro besinler`, `TSH referans dışında. Tiroid işlevi ile demir (ferritin), D vitamini, B12 ve çinko durumu birbirini etkileyebilir; yorgunluk gibi belirtilerde birlikte değerlendirilir. Durum: ${cof.join("; ")}. Serbest T4 ve tiroid antikorları hekim kararıyla istenebilir.`);
+        }
+        // Hydration / hemoconcentration
+        const hbHigh = cur("hb") && (dir("hb") === "high" || by.hb.evidence?.refStatus === "above");
+        const hctHighNormal = (() => { const v = num("hct"); if (v === null) return false; const male = (state.user?.gender || "K") === "E"; return v >= (male ? 48 : 43); })();
+        if (hbHigh && (hi("rbc") || hi("hct") || hctHighNormal) && !tags.includes("Su içerek gittim")) {
+          add("Hemoglobin ve kırmızı kan hücreleri yüksek: su durumu", `${tags.includes("Susuzdum") ? "Tahlile susuz gittiğinizi işaretlediniz. " : ""}Yeterli su içmeden verilen tahlillerde hemoglobin ve kırmızı kan hücreleri geçici olarak yüksek görünebilir; hekiminizle sıvı alımı durumunuzu paylaşın. Yükseklik yeterli su alımıyla tekrarlanan tahlilde de sürerse nedeni hekimce araştırılır.`);
+        }
+        // Metabolic
+        if (hi("hba1c") || hi("glucose")) {
+          add("Kan şekeri göstergeleri yüksek", `${cur("hba1c") ? `HbA1c %${fmtNum(num("hba1c"))}` : ""}${cur("hba1c") && cur("glucose") ? ", " : ""}${cur("glucose") ? `açlık glukozu ${fmtNum(num("glucose"))} mg/dL` : ""}. Prediyabet veya diyabet açısından hekim değerlendirmesi gerekir. Metformin kullananlarda B12 düzeyi de izlenmelidir.`);
+        }
         if (lowKeys.length >= 3) {
           add(`${lowKeys.length} değer birlikte düşük`,
             `${lowKeys.map(lowLabel).join(", ")} birlikte referansın altında. Beslenme yetersizliği, emilim sorunları (çölyak, mide asidini azaltan ilaçlar, metformin), kronik kayıp veya genel bir hastalık durumu birlikte düşüklüğe yol açabilir; tek tek takviye aramak yerine nedenin hekimce araştırılması uygundur.`);
@@ -252,7 +336,9 @@
         if (stale.length) dataNotes.push(`${stale.join(", ")} ölçümü 6 aydan eski; güncel durumu yansıtmayabilir.`);
         if (["ferritin", "b12", "folate"].some(has) && !has("hb")) dataNotes.push("Hemogram (Hb, MCV) girilmedi; ferritin, B12 ve folat yorumu hemogram ile çok daha güvenilir olur.");
 
-        return { markers, entered: markers.filter(m => m.present), missing: markers.filter(m => !m.present), patterns, trendNotes, dataNotes, egfr };
+        // Optional extra markers (CBC/thyroid/metabolic) are not listed as "missing" when not entered
+        const optionalKeys = new Set(window.VITA_EXTRA_LAB_KEYS || []);
+        return { markers, entered: markers.filter(m => m.present), missing: markers.filter(m => !m.present && !optionalKeys.has(m.key)), patterns, trendNotes, dataNotes, egfr };
       }
 
       function hasAnyLab() { return buildPanel().some(m => m.present); }
@@ -307,6 +393,7 @@
         return `<ul class="list-disc pl-4 space-y-0.5">${a.trendNotes.map(t => `<li>${esc(t)}</li>`).join("")}</ul>`;
       }
 
-      return { analyze, buildPanel, hasAnyLab, promptBlock, labsHtml, relationsHtml, trendHtml, cdssInputs, contextValues, latestRaw, FRESH_DAYS_DEFAULT };
+      return { analyze, buildPanel, hasAnyLab, promptBlock, labsHtml, relationsHtml, trendHtml, cdssInputs, contextValues, latestRaw, getMergedActiveLabs, sortedRecords, FRESH_DAYS_DEFAULT };
     })();
     window.VitaLabInsights = VitaLabInsights;
+    window.getMergedActiveLabs = VitaLabInsights.getMergedActiveLabs;

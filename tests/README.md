@@ -2,6 +2,17 @@
 
 Gerçek Chrome ile (puppeteer-core) uygulamayı açıp kullanıcı gibi dener.
 
+## Playwright paketi (`e2e/`) — commit öncesi zorunlu
+Beş kritik akış: gezinme ve konsol hataları, ayarların localStorage kalıcılığı, e-Nabız PDF ayrıştırma ve
+düşük/normal/yüksek gösterimi, geçersiz dosya ve hatalı giriş uyarıları, JSON yedek → depolamayı silme → geri yükleme.
+```
+cd tests/e2e
+npm install
+npx playwright test        # başsız; yerel Google Chrome kullanılır, site 8081'de otomatik sunulur
+```
+Tarayıcı indirilmez (`channel: "chrome"`). Node 26 için Playwright 1.64 ve üzeri gerekir.
+Sentetik e-Nabız raporları: `fixtures/ornek-enabiz-A.pdf`, `-B.pdf` (yeniden üretmek için `node fixtures/make-enabiz-fixtures.mjs`).
+
 ## Hazırlık
 1. Node.js 20+ kurulu olsun, bu klasörde: `npm i puppeteer-core`
 2. Siteyi yerelde sunun (depo kökünde): `npx serve -l 8080 .`

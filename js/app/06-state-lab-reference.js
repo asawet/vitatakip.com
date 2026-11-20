@@ -40,8 +40,26 @@ let currentAuthMode = "login";
     const ALL_VITA_LAB_KEYS = [
       "d3", "b12", "ferritin", "iron", "tsat", "crp", "mg", "hba1c",
       "alt", "creatinine", "ca", "rbc", "hgb", "hb", "hct", "mcv",
-      "folate", "zinc", "tsh", "ft4", "rbcFolate", "hcy"
+      "folate", "zinc", "tsh", "ft4", "rbcFolate", "hcy",
+      "wbc", "plt", "rdw", "glucose"
     ];
+
+    /* Single registry for the 8 high-frequency CBC / thyroid / metabolic markers (all optional).
+       ref/maleRef: general adult comparison ranges (not diagnostic); the lab's own range wins when entered.
+       plausible: input sanity bounds. units: accepted unit spellings (lower-case) for reference text. */
+    const VITA_EXTRA_LAB_DEFS = [
+      { key: "rbc", inputId: "inputLabRbc", label: "Eritrosit (RBC)", short: "RBC", unit: "10^6/µL", ref: "4,0–5,2 10^6/µL", maleRef: "4,5–5,9 10^6/µL", range: [4.0, 5.2], maleRange: [4.5, 5.9], plausible: [1, 9], units: ["10^6/ul", "10^6/µl", "10^12/l", "milyon/ul", "m/ul"], placeholder: "Örn: 4.9", group: "Hemogram" },
+      { key: "hct", inputId: "inputLabHct", label: "Hematokrit (HCT)", short: "HCT", unit: "%", ref: "%36–46", maleRef: "%40–52", range: [36, 46], maleRange: [40, 52], plausible: [10, 75], units: ["%"], placeholder: "Örn: 42", group: "Hemogram" },
+      { key: "wbc", inputId: "inputLabWbc", label: "Lökosit (WBC)", short: "WBC", unit: "10^3/µL", ref: "4,0–10,0 10^3/µL", range: [4.0, 10.0], plausible: [0.5, 100], units: ["10^3/ul", "10^3/µl", "10^9/l", "bin/ul", "k/ul"], placeholder: "Örn: 7.2", group: "Hemogram" },
+      { key: "plt", inputId: "inputLabPlt", label: "Trombosit (PLT)", short: "PLT", unit: "10^3/µL", ref: "150–400 10^3/µL", range: [150, 400], plausible: [5, 2000], units: ["10^3/ul", "10^3/µl", "10^9/l", "bin/ul", "k/ul"], placeholder: "Örn: 250", group: "Hemogram" },
+      { key: "rdw", inputId: "inputLabRdw", label: "RDW-CV", short: "RDW-CV", unit: "%", ref: "%11,5–14,5", range: [11.5, 14.5], plausible: [8, 40], units: ["%"], placeholder: "Örn: 12.8", group: "Hemogram" },
+      { key: "tsh", inputId: "inputLabTsh", label: "TSH (Tiroid Stimülan Hormon)", short: "TSH", unit: "mIU/L", ref: "0,4–4,0 mIU/L", range: [0.4, 4.0], plausible: [0.005, 150], units: ["miu/l", "uiu/ml", "µiu/ml", "miu/ml", "mu/l"], placeholder: "Örn: 2.1", group: "Tiroid" },
+      { key: "hba1c", inputId: "inputLabHba1c", label: "HbA1c", short: "HbA1c", unit: "%", ref: "%4,0–5,6", range: [4.0, 5.6], plausible: [3, 20], units: ["%"], placeholder: "Örn: 5.4", group: "Metabolik" },
+      { key: "glucose", inputId: "inputLabGlucose", label: "Glukoz (Açlık Kan Şekeri)", short: "Glukoz", unit: "mg/dL", ref: "70–99 mg/dL", range: [70, 99], plausible: [20, 1000], units: ["mg/dl"], placeholder: "Örn: 88", group: "Metabolik" }
+    ];
+    const VITA_EXTRA_LAB_KEYS = VITA_EXTRA_LAB_DEFS.map(d => d.key);
+    window.VITA_EXTRA_LAB_DEFS = VITA_EXTRA_LAB_DEFS;
+    window.VITA_EXTRA_LAB_KEYS = VITA_EXTRA_LAB_KEYS;
 
     function safeStructuredClone(value) {
       if (value === null || value === undefined || typeof value !== "object") {
@@ -177,6 +195,9 @@ let currentAuthMode = "login";
       rbcFolate: { name: "Eritrosit folatı", value: "≥140 ng/mL", unit: "ng/mL" },
       hcy: { name: "Homosistein", value: "5–15 µmol/L", unit: "µmol/L" }
     };
+    VITA_EXTRA_LAB_DEFS.forEach(d => {
+      VITA_LAB_APP_REFERENCE_META[d.key] = { name: d.label, value: d.ref, ...(d.maleRef ? { maleValue: d.maleRef } : {}), unit: d.unit };
+    });
 
     function getVitaAppLabReference(key, gender = state.user?.gender || "K") {
       const meta = VITA_LAB_APP_REFERENCE_META[key];
@@ -252,6 +273,7 @@ let currentAuthMode = "login";
       if (clean) state.labReferences[key] = clean;
       else delete state.labReferences[key];
       const inputMap = { d3: "inputLabD3", b12: "inputLabB12", ferritin: "inputLabFerritin", mg: "inputLabMg", ca: "inputLabCalcium", zinc: "inputLabZinc", creatinine: "inputLabCreatinine", folate: "inputLabFolate", alt: "inputLabAlt", hb: "inputLabHb", mcv: "inputLabMcv", crp: "inputLabCrp", rbcFolate: "inputLabRbcFolate", hcy: "inputLabHcy" };
+      VITA_EXTRA_LAB_DEFS.forEach(d => { inputMap[d.key] = d.inputId; });
       if (inputMap[key]) updateVitaLabLiveFeedback(inputMap[key], key);
       if (typeof saveLabDraft === "function") saveLabDraft();
     }
@@ -408,6 +430,7 @@ let currentAuthMode = "login";
       invalidateClinicalAnalysisCache({ clearDOM: true });
 
       const labInputs = ["inputLabD3", "inputLabB12", "inputLabFerritin", "inputLabMg", "inputLabCalcium", "inputLabZinc", "inputLabCreatinine", "inputLabFolate", "inputLabAlt", "inputLabHb", "inputLabMcv", "inputLabCrp", "inputLabRbcFolate", "inputLabHcy", "inputLabRef-rbcFolate", "inputLabRef-hcy", "inputLabRef-d3", "inputLabRef-b12", "inputLabRef-ferritin", "inputLabRef-mg", "inputLabRef-ca", "inputLabRef-zinc", "inputLabRef-creatinine", "inputLabRef-folate", "inputLabRef-alt", "inputLabRef-hb", "inputLabRef-mcv", "inputLabRef-crp"];
+      VITA_EXTRA_LAB_DEFS.forEach(d => labInputs.push(d.inputId, `inputLabRef-${d.key}`));
       labInputs.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = "";

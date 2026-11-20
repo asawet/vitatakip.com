@@ -26,11 +26,11 @@
 <!-- Uses Inter when already available; otherwise falls back immediately to the system UI font. -->
 <!-- Font Awesome 6 CDN -->
 <!-- build:css -->
-<link rel="stylesheet" href="./css/app.css?v=043b643b25">
-<script defer src="./js/app.1.js?v=043b643b25"></script>
-<script defer src="./js/app.2.js?v=043b643b25"></script>
-<script defer src="./js/app.3.js?v=043b643b25"></script>
-<script defer src="./js/app.4.js?v=043b643b25"></script>
+<link rel="stylesheet" href="./css/app.css?v=095fe12c99">
+<script defer src="./js/app.1.js?v=095fe12c99"></script>
+<script defer src="./js/app.2.js?v=095fe12c99"></script>
+<script defer src="./js/app.3.js?v=095fe12c99"></script>
+<script defer src="./js/app.4.js?v=095fe12c99"></script>
 <!-- /build:css -->
 <!-- Chart.js loads only if a trend chart is needed. -->
 <!-- PDF.js loads only when a user selects a PDF for analysis. -->
@@ -499,8 +499,8 @@
 </div>
 </div>
 <!-- Laboratuvar Kan Tahlili Verileri & Tahlil Tarihi Giriş Kartı -->
-<div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-7 space-y-5">
-<div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
+<div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 sm:p-6 space-y-3" id="labNewEntryCard">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
 <div class="flex items-center gap-2.5">
 <span class="w-7 h-7 rounded-xl bg-teal-100 text-teal-700 text-xs font-black flex items-center justify-center">
 <i class="fa-solid fa-vials"></i>
@@ -509,11 +509,22 @@
 <h2 class="text-sm font-bold text-navy-900">Yeni tahlil</h2>
 </div>
 </div>
-<div class="flex flex-wrap items-center gap-2">
+<div class="flex flex-wrap items-center gap-2" id="labHeroActions">
 <button class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-teal-600 to-medTeal-600 hover:from-teal-700 hover:to-medTeal-700 text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm" onclick="if(window.SoundEffects) SoundEffects.playClick(); openENabizModal()" type="button">
 <i class="fa-solid fa-file-pdf text-amber-300"></i>
 <span>e-Nabız Tahlil PDF'i Yükle</span>
 </button>
+</div>
+</div>
+<details class="vita-prelab-inline" id="labPrelabGuide">
+<summary><span class="flex items-center gap-2"><i class="fa-solid fa-droplet text-sky-600" aria-hidden="true"></i>Kan vermeye mi gideceksin?</span><i class="fa-solid fa-chevron-down vita-manual-chev" aria-hidden="true"></i></summary>
+<div data-prelab-guide></div>
+</details>
+<!-- Manual entry: collapsed by default so history and trend stay reachable on mobile -->
+<details class="vita-manual-entry" id="labManualEntry">
+<summary class="vita-manual-summary"><span class="flex items-center gap-2"><i class="fa-solid fa-keyboard text-teal-600" aria-hidden="true"></i>PDF'in yok mu? Değerleri elle gir</span><i class="fa-solid fa-chevron-down vita-manual-chev" aria-hidden="true"></i></summary>
+<div class="vita-manual-body space-y-3">
+<div class="flex flex-wrap items-center gap-2">
 <div class="flex items-center gap-1.5 bg-teal-50 px-2.5 py-1 rounded-xl border border-teal-200">
 <label class="text-[11px] font-bold text-teal-950 flex items-center gap-1">
 <i class="fa-solid fa-calendar-day text-teal-600"></i> Tarih:
@@ -521,8 +532,7 @@
 <input class="text-xs font-bold px-2 py-0.5 rounded-lg border border-teal-300 bg-white text-navy-900 focus:outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer" id="inputLabDate" type="date"/>
 </div>
 </div>
-</div>
-<div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3">
+<div class="grid grid-cols-2 gap-2 vita-lab-grid" id="labManualGrid">
 <!-- 1. D Vitamini -->
 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
 <label class="text-[11px] font-bold text-slate-700 block truncate" title="D Vitamini (25-OH D3 / Hidroksi)">D Vitamini (25-OH D3 / Hidroksi)</label>
@@ -659,7 +669,73 @@
 </div>
 <details class="mt-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5" data-legacy-lab-range-editor><summary class="cursor-pointer list-none text-[10px] font-semibold text-slate-500 flex items-center justify-between gap-2"><span>Laboratuvar aralığını ekle (isteğe bağlı)</span><i class="fa-solid fa-chevron-down text-[9px]" aria-hidden="true"></i></summary><label class="mt-2 block text-[10px] font-semibold text-slate-600" for="inputLabRef-hcy">Rapordaki referans aralığı</label><input autocomplete="off" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-700 focus:border-teal-500 focus:outline-none" id="inputLabRef-hcy" maxlength="100" oninput="handleLabReferenceChange('hcy', this.value)" placeholder="Örn. raporda yazan aralık" type="text"/></details>
 </div>
+<!-- 15-22. Hemogram, tiroid ve metabolik ek göstergeler (isteğe bağlı) -->
+<div class="bg-slate-50 p-3 rounded-xl border border-slate-200" id="labCard-rbc" data-extra-lab="rbc">
+<label class="text-[11px] font-bold text-slate-700 block truncate" title="Eritrosit sayısı (RBC — tam kan sayımı)" for="inputLabRbc">Eritrosit (RBC)</label>
+<div class="relative mt-1">
+<input class="w-full bg-white text-xs font-bold rounded-lg px-2.5 py-1.5 border border-slate-300 focus:outline-none focus:border-teal-500" id="inputLabRbc" placeholder="Örn: 4.9" type="text" inputmode="decimal" autocomplete="off"/>
+<span class="absolute right-2 top-1.5 text-[10px] text-slate-400 font-semibold">10⁶/µL</span>
 </div>
+<details class="mt-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5" data-legacy-lab-range-editor><summary class="cursor-pointer list-none text-[10px] font-semibold text-slate-500 flex items-center justify-between gap-2"><span>Laboratuvar aralığını ekle (isteğe bağlı)</span><i class="fa-solid fa-chevron-down text-[9px]" aria-hidden="true"></i></summary><label class="mt-2 block text-[10px] font-semibold text-slate-600" for="inputLabRef-rbc">Rapordaki referans aralığı</label><input autocomplete="off" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-700 focus:border-teal-500 focus:outline-none" id="inputLabRef-rbc" maxlength="100" oninput="handleLabReferenceChange('rbc', this.value)" placeholder="Örn. raporda yazan aralık" type="text"/></details>
+</div>
+<div class="bg-slate-50 p-3 rounded-xl border border-slate-200" id="labCard-hct" data-extra-lab="hct">
+<label class="text-[11px] font-bold text-slate-700 block truncate" title="Hematokrit (HCT — tam kan sayımı)" for="inputLabHct">Hematokrit (HCT)</label>
+<div class="relative mt-1">
+<input class="w-full bg-white text-xs font-bold rounded-lg px-2.5 py-1.5 border border-slate-300 focus:outline-none focus:border-teal-500" id="inputLabHct" placeholder="Örn: 42" type="text" inputmode="decimal" autocomplete="off"/>
+<span class="absolute right-2 top-1.5 text-[10px] text-slate-400 font-semibold">%</span>
+</div>
+<details class="mt-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5" data-legacy-lab-range-editor><summary class="cursor-pointer list-none text-[10px] font-semibold text-slate-500 flex items-center justify-between gap-2"><span>Laboratuvar aralığını ekle (isteğe bağlı)</span><i class="fa-solid fa-chevron-down text-[9px]" aria-hidden="true"></i></summary><label class="mt-2 block text-[10px] font-semibold text-slate-600" for="inputLabRef-hct">Rapordaki referans aralığı</label><input autocomplete="off" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-700 focus:border-teal-500 focus:outline-none" id="inputLabRef-hct" maxlength="100" oninput="handleLabReferenceChange('hct', this.value)" placeholder="Örn. raporda yazan aralık" type="text"/></details>
+</div>
+<div class="bg-slate-50 p-3 rounded-xl border border-slate-200" id="labCard-wbc" data-extra-lab="wbc">
+<label class="text-[11px] font-bold text-slate-700 block truncate" title="Lökosit / beyaz küre sayısı (WBC)" for="inputLabWbc">Lökosit (WBC)</label>
+<div class="relative mt-1">
+<input class="w-full bg-white text-xs font-bold rounded-lg px-2.5 py-1.5 border border-slate-300 focus:outline-none focus:border-teal-500" id="inputLabWbc" placeholder="Örn: 7.2" type="text" inputmode="decimal" autocomplete="off"/>
+<span class="absolute right-2 top-1.5 text-[10px] text-slate-400 font-semibold">10³/µL</span>
+</div>
+<details class="mt-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5" data-legacy-lab-range-editor><summary class="cursor-pointer list-none text-[10px] font-semibold text-slate-500 flex items-center justify-between gap-2"><span>Laboratuvar aralığını ekle (isteğe bağlı)</span><i class="fa-solid fa-chevron-down text-[9px]" aria-hidden="true"></i></summary><label class="mt-2 block text-[10px] font-semibold text-slate-600" for="inputLabRef-wbc">Rapordaki referans aralığı</label><input autocomplete="off" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-700 focus:border-teal-500 focus:outline-none" id="inputLabRef-wbc" maxlength="100" oninput="handleLabReferenceChange('wbc', this.value)" placeholder="Örn. raporda yazan aralık" type="text"/></details>
+</div>
+<div class="bg-slate-50 p-3 rounded-xl border border-slate-200" id="labCard-plt" data-extra-lab="plt">
+<label class="text-[11px] font-bold text-slate-700 block truncate" title="Trombosit sayısı (PLT)" for="inputLabPlt">Trombosit (PLT)</label>
+<div class="relative mt-1">
+<input class="w-full bg-white text-xs font-bold rounded-lg px-2.5 py-1.5 border border-slate-300 focus:outline-none focus:border-teal-500" id="inputLabPlt" placeholder="Örn: 250" type="text" inputmode="decimal" autocomplete="off"/>
+<span class="absolute right-2 top-1.5 text-[10px] text-slate-400 font-semibold">10³/µL</span>
+</div>
+<details class="mt-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5" data-legacy-lab-range-editor><summary class="cursor-pointer list-none text-[10px] font-semibold text-slate-500 flex items-center justify-between gap-2"><span>Laboratuvar aralığını ekle (isteğe bağlı)</span><i class="fa-solid fa-chevron-down text-[9px]" aria-hidden="true"></i></summary><label class="mt-2 block text-[10px] font-semibold text-slate-600" for="inputLabRef-plt">Rapordaki referans aralığı</label><input autocomplete="off" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-700 focus:border-teal-500 focus:outline-none" id="inputLabRef-plt" maxlength="100" oninput="handleLabReferenceChange('plt', this.value)" placeholder="Örn. raporda yazan aralık" type="text"/></details>
+</div>
+<div class="bg-slate-50 p-3 rounded-xl border border-slate-200" id="labCard-rdw" data-extra-lab="rdw">
+<label class="text-[11px] font-bold text-slate-700 block truncate" title="Eritrosit dağılım genişliği (RDW-CV, yüzde)" for="inputLabRdw">RDW-CV</label>
+<div class="relative mt-1">
+<input class="w-full bg-white text-xs font-bold rounded-lg px-2.5 py-1.5 border border-slate-300 focus:outline-none focus:border-teal-500" id="inputLabRdw" placeholder="Örn: 12.8" type="text" inputmode="decimal" autocomplete="off"/>
+<span class="absolute right-2 top-1.5 text-[10px] text-slate-400 font-semibold">%</span>
+</div>
+<details class="mt-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5" data-legacy-lab-range-editor><summary class="cursor-pointer list-none text-[10px] font-semibold text-slate-500 flex items-center justify-between gap-2"><span>Laboratuvar aralığını ekle (isteğe bağlı)</span><i class="fa-solid fa-chevron-down text-[9px]" aria-hidden="true"></i></summary><label class="mt-2 block text-[10px] font-semibold text-slate-600" for="inputLabRef-rdw">Rapordaki referans aralığı</label><input autocomplete="off" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-700 focus:border-teal-500 focus:outline-none" id="inputLabRef-rdw" maxlength="100" oninput="handleLabReferenceChange('rdw', this.value)" placeholder="Örn. raporda yazan aralık" type="text"/></details>
+</div>
+<div class="bg-slate-50 p-3 rounded-xl border border-slate-200" id="labCard-tsh" data-extra-lab="tsh">
+<label class="text-[11px] font-bold text-slate-700 block truncate" title="TSH (Tiroid Stimülan Hormon)" for="inputLabTsh">TSH</label>
+<div class="relative mt-1">
+<input class="w-full bg-white text-xs font-bold rounded-lg px-2.5 py-1.5 border border-slate-300 focus:outline-none focus:border-teal-500" id="inputLabTsh" placeholder="Örn: 2.1" type="text" inputmode="decimal" autocomplete="off"/>
+<span class="absolute right-2 top-1.5 text-[10px] text-slate-400 font-semibold">mIU/L</span>
+</div>
+<details class="mt-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5" data-legacy-lab-range-editor><summary class="cursor-pointer list-none text-[10px] font-semibold text-slate-500 flex items-center justify-between gap-2"><span>Laboratuvar aralığını ekle (isteğe bağlı)</span><i class="fa-solid fa-chevron-down text-[9px]" aria-hidden="true"></i></summary><label class="mt-2 block text-[10px] font-semibold text-slate-600" for="inputLabRef-tsh">Rapordaki referans aralığı</label><input autocomplete="off" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-700 focus:border-teal-500 focus:outline-none" id="inputLabRef-tsh" maxlength="100" oninput="handleLabReferenceChange('tsh', this.value)" placeholder="Örn. raporda yazan aralık" type="text"/></details>
+</div>
+<div class="bg-slate-50 p-3 rounded-xl border border-slate-200" id="labCard-hba1c" data-extra-lab="hba1c">
+<label class="text-[11px] font-bold text-slate-700 block truncate" title="HbA1c (3 aylık ortalama kan şekeri)" for="inputLabHba1c">HbA1c</label>
+<div class="relative mt-1">
+<input class="w-full bg-white text-xs font-bold rounded-lg px-2.5 py-1.5 border border-slate-300 focus:outline-none focus:border-teal-500" id="inputLabHba1c" placeholder="Örn: 5.4" type="text" inputmode="decimal" autocomplete="off"/>
+<span class="absolute right-2 top-1.5 text-[10px] text-slate-400 font-semibold">%</span>
+</div>
+<details class="mt-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5" data-legacy-lab-range-editor><summary class="cursor-pointer list-none text-[10px] font-semibold text-slate-500 flex items-center justify-between gap-2"><span>Laboratuvar aralığını ekle (isteğe bağlı)</span><i class="fa-solid fa-chevron-down text-[9px]" aria-hidden="true"></i></summary><label class="mt-2 block text-[10px] font-semibold text-slate-600" for="inputLabRef-hba1c">Rapordaki referans aralığı</label><input autocomplete="off" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-700 focus:border-teal-500 focus:outline-none" id="inputLabRef-hba1c" maxlength="100" oninput="handleLabReferenceChange('hba1c', this.value)" placeholder="Örn. raporda yazan aralık" type="text"/></details>
+</div>
+<div class="bg-slate-50 p-3 rounded-xl border border-slate-200" id="labCard-glucose" data-extra-lab="glucose">
+<label class="text-[11px] font-bold text-slate-700 block truncate" title="Glukoz (Açlık Kan Şekeri)" for="inputLabGlucose">Glukoz (açlık)</label>
+<div class="relative mt-1">
+<input class="w-full bg-white text-xs font-bold rounded-lg px-2.5 py-1.5 border border-slate-300 focus:outline-none focus:border-teal-500" id="inputLabGlucose" placeholder="Örn: 88" type="text" inputmode="decimal" autocomplete="off"/>
+<span class="absolute right-2 top-1.5 text-[10px] text-slate-400 font-semibold">mg/dL</span>
+</div>
+<details class="mt-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5" data-legacy-lab-range-editor><summary class="cursor-pointer list-none text-[10px] font-semibold text-slate-500 flex items-center justify-between gap-2"><span>Laboratuvar aralığını ekle (isteğe bağlı)</span><i class="fa-solid fa-chevron-down text-[9px]" aria-hidden="true"></i></summary><label class="mt-2 block text-[10px] font-semibold text-slate-600" for="inputLabRef-glucose">Rapordaki referans aralığı</label><input autocomplete="off" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs text-slate-700 focus:border-teal-500 focus:outline-none" id="inputLabRef-glucose" maxlength="100" oninput="handleLabReferenceChange('glucose', this.value)" placeholder="Örn. raporda yazan aralık" type="text"/></details>
+</div>
+</div>
+<div class="vita-ctx-host" data-lab-ctx-host id="manualLabContextTags"></div>
 <!-- Tahlil Kaydet & Sesli Okuma Barı -->
 <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
 <span class="text-[11px] text-slate-600 flex items-center gap-1.5">
@@ -677,6 +753,8 @@
 </button>
 </div>
 </div>
+</div>
+</details>
 </div>
 <!-- Kayıtlı Kan Tahlili Geçmişim (Arşiv Akordeonu) -->
 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
@@ -2615,6 +2693,7 @@ Verileri Sil
 <p class="text-[10px] text-slate-500 italic">
 <i class="fa-solid fa-circle-info text-teal-600 mr-1"></i> Satırdaki sayısal referans aralığı otomatik algılanır ve arşive aktarılır. Bazı PDF düzenlerinde eşleşme hatalı olabilir; önizlemede kontrol edin. Değer veya referans bulunamadığında sistem tahminde bulunmaz.
         </p>
+<div class="vita-ctx-host" data-lab-ctx-host id="pdfLabContextTags"></div>
 <div class="pt-2 flex flex-col sm:flex-row items-center justify-end gap-2">
 <button class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer" onclick="if(window.SoundEffects) SoundEffects.playClick(); resetPdfDropzone()" type="button">
             Farklı Belge Yükle

@@ -1426,6 +1426,7 @@
       if (labs.crp !== null && labs.crp !== undefined) filledLabs.push(`CRP: ${labs.crp}`);
       if (labs.rbcFolate !== null && labs.rbcFolate !== undefined) filledLabs.push(`Eritrosit folatı: ${labs.rbcFolate}`);
       if (labs.hcy !== null && labs.hcy !== undefined) filledLabs.push(`Homosistein: ${labs.hcy}`);
+      (window.VITA_EXTRA_LAB_DEFS || []).forEach(d => { if (labs[d.key] !== null && labs[d.key] !== undefined) filledLabs.push(`${d.short}: ${labs[d.key]}`); });
 
       if (filledLabs.length > 0) {
         if (labDateBadge) labDateBadge.textContent = latestSaved ? `Son Tahlil: ${latestSaved.date}` : "Güncel Kayıt";
@@ -1442,7 +1443,8 @@
       ["inputLabD3", "d3"], ["inputLabB12", "b12"], ["inputLabFerritin", "ferritin"],
       ["inputLabMg", "mg"], ["inputLabCalcium", "ca"], ["inputLabZinc", "zinc"],
       ["inputLabCreatinine", "creatinine"], ["inputLabFolate", "folate"], ["inputLabAlt", "alt"],
-      ["inputLabHb", "hb"], ["inputLabMcv", "mcv"], ["inputLabCrp", "crp"], ["inputLabRbcFolate", "rbcFolate"], ["inputLabHcy", "hcy"]
+      ["inputLabHb", "hb"], ["inputLabMcv", "mcv"], ["inputLabCrp", "crp"], ["inputLabRbcFolate", "rbcFolate"], ["inputLabHcy", "hcy"],
+      ...(window.VITA_EXTRA_LAB_DEFS || []).map(d => [d.inputId, d.key])
     ];
     // Kullanıcının elle boşalttığı tahlil alanları: boşaltılan alanın kayıttan da silinmesi için izlenir.
     const labFieldTouched = new Set();
@@ -1456,8 +1458,45 @@
       ["inputLabRef-d3", "d3"], ["inputLabRef-b12", "b12"], ["inputLabRef-ferritin", "ferritin"],
       ["inputLabRef-mg", "mg"], ["inputLabRef-ca", "ca"], ["inputLabRef-zinc", "zinc"],
       ["inputLabRef-creatinine", "creatinine"], ["inputLabRef-folate", "folate"], ["inputLabRef-alt", "alt"],
-      ["inputLabRef-hb", "hb"], ["inputLabRef-mcv", "mcv"], ["inputLabRef-crp", "crp"], ["inputLabRef-rbcFolate", "rbcFolate"], ["inputLabRef-hcy", "hcy"]
+      ["inputLabRef-hb", "hb"], ["inputLabRef-mcv", "mcv"], ["inputLabRef-crp", "crp"], ["inputLabRef-rbcFolate", "rbcFolate"], ["inputLabRef-hcy", "hcy"],
+      ...(window.VITA_EXTRA_LAB_DEFS || []).map(d => [`inputLabRef-${d.key}`, d.key])
     ];
+
+    /* Optional 1-click lab context tags. Persisted as record.contextTags (string[]); old records simply lack it. */
+    const VITA_LAB_CONTEXT_TAGS = ["Su içerek gittim", "Susuzdum", "Aç karnına", "Takviye kullanıyordum"];
+    const VITA_LAB_CONTEXT_EXCLUSIVE = { "Su içerek gittim": "Susuzdum", "Susuzdum": "Su içerek gittim" };
+    const vitaPendingLabContextTags = new Set();
+    function sanitizeLabContextTags(tags) {
+      return Array.isArray(tags) ? [...new Set(tags.filter(t => VITA_LAB_CONTEXT_TAGS.includes(t)))] : [];
+    }
+    function labContextBadgesHtml(tags) {
+      const clean = sanitizeLabContextTags(tags);
+      return clean.length ? `<span class="vita-ctx-badges">${clean.map(t => `<span class="vita-ctx-badge">${escapeHtmlText(t)}</span>`).join("")}</span>` : "";
+    }
+    function renderLabContextChips() {
+      document.querySelectorAll("[data-lab-ctx-host]").forEach(host => {
+        host.innerHTML = `<span class="vita-ctx-label">Tahlil koşulları <small>(isteğe bağlı)</small></span><span class="vita-ctx-row">${VITA_LAB_CONTEXT_TAGS.map(t => {
+          const on = vitaPendingLabContextTags.has(t);
+          return `<button type="button" class="vita-ctx-chip${on ? " is-on" : ""}" aria-pressed="${on}" data-lab-ctx="${escapeHtmlText(t)}">${on ? '<i class="fa-solid fa-check" aria-hidden="true"></i> ' : ""}${escapeHtmlText(t)}</button>`;
+        }).join("")}</span>`;
+      });
+    }
+    function toggleLabContextTag(tag) {
+      if (!VITA_LAB_CONTEXT_TAGS.includes(tag)) return;
+      if (vitaPendingLabContextTags.has(tag)) vitaPendingLabContextTags.delete(tag);
+      else { vitaPendingLabContextTags.add(tag); if (VITA_LAB_CONTEXT_EXCLUSIVE[tag]) vitaPendingLabContextTags.delete(VITA_LAB_CONTEXT_EXCLUSIVE[tag]); }
+      renderLabContextChips();
+    }
+    document.addEventListener("click", e => {
+      const chip = e.target && e.target.closest ? e.target.closest("[data-lab-ctx]") : null;
+      if (chip) toggleLabContextTag(chip.getAttribute("data-lab-ctx"));
+    });
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", renderLabContextChips, { once: true });
+    else renderLabContextChips();
+    window.sanitizeLabContextTags = sanitizeLabContextTags;
+    window.labContextBadgesHtml = labContextBadgesHtml;
+    window.toggleLabContextTag = toggleLabContextTag;
+    window.VITA_LAB_CONTEXT_TAGS = VITA_LAB_CONTEXT_TAGS;
 
     function saveLabDraft() {
       if (!activeUserId) return;
@@ -1550,6 +1589,7 @@
         rbcFolate: getParsedLabInput("inputLabRbcFolate"),
         hcy: getParsedLabInput("inputLabHcy")
       };
+      (window.VITA_EXTRA_LAB_DEFS || []).forEach(d => { values[d.key] = getParsedLabInput(d.inputId); });
       if (Object.values(values).every(value => value === null)) {
         showToast("Boş Sonuç", "Lütfen en az bir tahlil değeri giriniz.", "warning");
         return;
@@ -1577,6 +1617,7 @@
         date: dateVal,
         ...values,
         references: recordReferences,
+        contextTags: [...vitaPendingLabContextTags],
         applicationReferences: getVitaAppLabReferenceMap(genderAtTest),
         genderAtTest,
         timestamp: new Date(`${dateVal}T${new Date().toTimeString().slice(0, 8)}`).getTime() || Date.now(),
@@ -1614,6 +1655,7 @@
         const existingIndex = state.labHistory.findIndex(item => item.date === cleanRecord.date);
         if (existingIndex >= 0) {
           cleanRecord.id = state.labHistory[existingIndex].id;
+          if (!(cleanRecord.contextTags || []).length && Array.isArray(state.labHistory[existingIndex].contextTags)) cleanRecord.contextTags = state.labHistory[existingIndex].contextTags.slice();
           state.labHistory[existingIndex] = cleanRecord;
         } else state.labHistory.push(cleanRecord);
       } else {
@@ -1636,6 +1678,8 @@
         invalidateClinicalAnalysisCache({ clearDOM: true });
       }
       clearLabDraft();
+      vitaPendingLabContextTags.clear();
+      renderLabContextChips();
       VITATAKIP_LAB_DRAFT_FIELDS.forEach(([id]) => {
         const input = document.getElementById(id);
         if (input) input.value = "";
@@ -1683,6 +1727,7 @@
         rbcFolate: getParsedLabInput("inputLabRbcFolate"),
         hcy: getParsedLabInput("inputLabHcy")
       };
+      (window.VITA_EXTRA_LAB_DEFS || []).forEach(d => { enteredValues[d.key] = getParsedLabInput(d.inputId); });
       const hasAnyEnteredValue = Object.values(enteredValues).some(v => v !== null && v !== undefined && Number.isFinite(v));
 
       const enteredRefs = {};
@@ -1729,7 +1774,9 @@
           crp: pickLabValue("crp"),
           rbcFolate: pickLabValue("rbcFolate"),
           hcy: pickLabValue("hcy"),
+          ...Object.fromEntries((window.VITA_EXTRA_LAB_DEFS || []).map(d => [d.key, pickLabValue(d.key)])),
           references: { ...(baseRecord?.references || {}), ...enteredRefs },
+          contextTags: vitaPendingLabContextTags.size ? [...vitaPendingLabContextTags] : (Array.isArray(baseRecord?.contextTags) ? baseRecord.contextTags.slice() : []),
           applicationReferences: typeof getVitaAppLabReferenceMap === "function" ? getVitaAppLabReferenceMap(genderAtTest) : {},
           genderAtTest,
           timestamp: baseRecord?.timestamp || new Date(`${dateVal}T${new Date().toTimeString().slice(0, 8)}`).getTime() || Date.now(),
@@ -1737,7 +1784,7 @@
         };
 
         // Tüm değerleri boşalan kayıt arşivde tutulmaz (tam temizlik).
-        const recordIsEmpty = ["d3", "b12", "ferritin", "mg", "ca", "zinc", "creatinine", "folate", "alt", "hb", "mcv", "crp", "rbcFolate", "hcy"]
+        const recordIsEmpty = ["d3", "b12", "ferritin", "mg", "ca", "zinc", "creatinine", "folate", "alt", "hb", "mcv", "crp", "rbcFolate", "hcy", ...(window.VITA_EXTRA_LAB_KEYS || [])]
           .every(k => mergedRecord[k] === null || mergedRecord[k] === undefined);
         if (recordIsEmpty) {
           if (existingIndex >= 0) state.labHistory.splice(existingIndex, 1);
@@ -1837,7 +1884,8 @@
     }
 
     function parseLabReferenceRange(reference) {
-      const text = String(reference || "").trim().replace(/[–—−]/g, "-").replace(/,/g, ".");
+      // Drop exponent-style count units ("10^3/µL", "x10^9/L", "10*6/uL") so their digits are not read as range bounds
+      const text = String(reference || "").trim().replace(/(?:[x×]\s*)?10\s*(?:\^|\*\*?|e)\s*\d+/gi, " ").replace(/[–—−]/g, "-").replace(/,/g, ".");
       if (!text) return null;
       const nums = text.match(/\d+(?:\.\d+)?/g)?.map(Number).filter(Number.isFinite) || [];
       if ((/<=|≤|<|less than|under/i.test(text)) && nums.length === 1) return { min: null, max: nums[0], comparator: "lt" };
@@ -1920,7 +1968,8 @@
       { key: "mcv", label: "MCV", unit: "fL" },
       { key: "crp", label: "CRP", unit: "mg/L" },
       { key: "rbcFolate", label: "Eritrosit folatı", unit: "ng/mL" },
-      { key: "hcy", label: "Homosistein", unit: "µmol/L" }
+      { key: "hcy", label: "Homosistein", unit: "µmol/L" },
+      ...(window.VITA_EXTRA_LAB_DEFS || []).map(d => ({ key: d.key, label: d.label, unit: d.unit }))
     ];
 
     function getLabHistoryMetric(record, metric) {
@@ -2102,7 +2151,7 @@
                 <span class="flex h-[68px] w-[68px] shrink-0 flex-col items-center justify-center rounded-xl bg-navy-900 text-white text-center">${formatRecordDate(record.date)}</span>
                 <span class="min-w-0 flex-1">
                   <span class="block text-xs font-black text-navy-900">Tahlil sonuçları</span>
-                  <span class="mt-0.5 block text-[10px] text-slate-500">${record.timeLabel ? `Kayıt saati: ${escapeHtmlText(record.timeLabel)}` : "Kayıtlı laboratuvar ölçümleri"}</span>
+                  <span class="mt-0.5 block text-[10px] text-slate-500">${record.timeLabel ? `Kayıt saati: ${escapeHtmlText(record.timeLabel)}` : "Kayıtlı laboratuvar ölçümleri"}</span>${labContextBadgesHtml(record.contextTags)}
                   <span class="mt-2 flex flex-wrap gap-1.5">${statusPill("within", true).replace("Normal", `${normalResults} Normal`)}${statusPill("outside", true).replace("Referans dışı", `${outResults} Referans dışı`)}</span>
                 </span>
                 <i aria-hidden="true" class="fa-solid ${expanded ? "fa-chevron-up" : "fa-chevron-down"} text-slate-500 text-xs" data-lab-record-chevron></i>

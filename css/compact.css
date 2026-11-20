@@ -67,3 +67,52 @@
 .vg-tag-done{background:#dcfce7;color:#166534}
 .vg-tag-next{background:#ccfbf1;color:#115e59}
 @media (prefers-reduced-motion:reduce){.vg-progress-bar{transition:none}}
+
+/* Tahlillerim: collapsible manual entry + compact 2/3/5-column parameter grid */
+.vita-manual-entry{border:1px solid #e2e8f0;border-radius:1rem;background:#fff}
+.vita-manual-summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.7rem .9rem;cursor:pointer;font-size:.8rem;font-weight:700;color:#0f2b46;border-radius:1rem;min-height:44px}
+.vita-manual-summary::-webkit-details-marker{display:none}
+.vita-manual-summary:hover{background:#f8fafc}
+.vita-manual-summary:focus-visible{outline:2px solid #14b8a6;outline-offset:2px}
+.vita-manual-chev{font-size:.7rem;color:#0f766e;transition:transform .2s}
+.vita-manual-entry[open] .vita-manual-chev{transform:rotate(180deg)}
+.vita-manual-entry[open] .vita-manual-summary{border-bottom:1px solid #f1f5f9;border-radius:1rem 1rem 0 0}
+.vita-manual-body{padding:.75rem .9rem .9rem}
+.vita-lab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+@media (min-width:640px){.vita-lab-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1024px){.vita-lab-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.vita-lab-grid>div{padding:.5rem .6rem;border-radius:1rem}
+.vita-lab-grid label{font-size:10.5px}
+.vita-lab-grid input[id^="inputLab"]{padding:.3rem 2.6rem .3rem .55rem;font-size:.75rem}
+.vita-lab-grid .relative>span{top:.3rem;font-size:9.5px}
+
+/* Lab context tags (PDF modal + manual save) and badges (history, report) */
+.vita-ctx-host{display:flex;flex-direction:column;gap:.35rem;margin:.25rem 0 .1rem}
+.vita-ctx-host:empty{display:none}
+.vita-ctx-label{font-size:11px;font-weight:700;color:#334155}
+.vita-ctx-label small{font-weight:500;color:#94a3b8}
+.vita-ctx-row{display:flex;flex-wrap:wrap;gap:.4rem}
+.vita-ctx-chip{min-height:32px;padding:.3rem .75rem;border-radius:999px;border:1px solid #cbd5e1;background:#fff;color:#334155;font-size:11.5px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s}
+.vita-ctx-chip:hover{border-color:#14b8a6}
+.vita-ctx-chip.is-on{background:#ccfbf1;border-color:#0d9488;color:#115e59}
+.vita-ctx-chip:focus-visible{outline:2px solid #14b8a6;outline-offset:2px}
+.vita-ctx-badges{display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.35rem}
+.vita-ctx-badge{display:inline-block;font-size:9.5px;font-weight:600;color:#475569;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:999px;padding:0 .45rem;line-height:1.5}
+.rs-ctx{margin:.25rem 0 .4rem;font-size:11px;color:#64748b;display:flex;flex-wrap:wrap;align-items:center;gap:.35rem}
+.rs-ctx .vita-ctx-badges{margin-top:0}
+
+/* Pre-lab guide: inline helper on Tahlillerim + card in Klinik Analiz */
+.vita-prelab-inline{border:1px solid #bae6fd;background:#f0f9ff;border-radius:1rem}
+.vita-prelab-inline>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.6rem .9rem;cursor:pointer;font-size:.78rem;font-weight:700;color:#0c4a6e;min-height:44px}
+.vita-prelab-inline>summary::-webkit-details-marker{display:none}
+.vita-prelab-inline[open] .vita-manual-chev{transform:rotate(180deg)}
+.vita-prelab-inline>div{padding:0 .9rem .8rem}
+.vs-prelab-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.45rem}
+.vs-prelab-list li{display:flex;gap:.55rem;align-items:flex-start;font-size:12.5px;line-height:1.45;color:#334155}
+.vs-prelab-list i{color:#0284c7;width:1rem;text-align:center;margin-top:.15rem;flex-shrink:0}
+.vs-prelab-foot{margin:.6rem 0 0;font-size:11px;font-style:italic;color:#64748b}
+
+/* Cross-biomarker relations card: neutral (not a safety warning) */
+.vs-rel{background:#f8fafc;border-color:#e2e8f0}
+.vs-rel .vs-warn-t{color:#0f2b46}
+.vs-rel-foot{margin:.5rem 0 0;font-size:11px;color:#94a3b8}

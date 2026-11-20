@@ -865,3 +865,18 @@ html[data-theme="dark"] .vita-mobile-nav{background:#0f172a!important}
 html[data-theme="dark"] .vita-mobile-nav button[aria-current="page"]{background:linear-gradient(180deg,rgba(20,184,166,.10) 0%,rgba(20,184,166,.18) 100%)}
 }
 }
+html[data-theme="dark"] .vs-date-tag{color:#94a3b8;background:#18233a}
+html[data-theme="dark"] .vs-normal-note{color:#94a3b8}
+html[data-theme="dark"] .vita-manual-entry{background:#111a2e;border-color:#243149}
+html[data-theme="dark"] .vita-manual-summary{color:#e2e8f0}
+html[data-theme="dark"] .vita-manual-summary:hover{background:#18233a}
+html[data-theme="dark"] .vita-manual-entry[open] .vita-manual-summary{border-bottom-color:#243149}
+html[data-theme="dark"] .vita-ctx-label{color:#cbd5e1}
+html[data-theme="dark"] .vita-ctx-chip{background:#111a2e;border-color:#334155;color:#cbd5e1}
+html[data-theme="dark"] .vita-ctx-chip.is-on{background:#134e4a;border-color:#14b8a6;color:#ccfbf1}
+html[data-theme="dark"] .vita-ctx-badge{background:#18233a;border-color:#243149;color:#94a3b8}
+html[data-theme="dark"] .vita-prelab-inline{background:#0c1a2e;border-color:#1e3a5f}
+html[data-theme="dark"] .vita-prelab-inline>summary{color:#bae6fd}
+html[data-theme="dark"] .vs-prelab-list li{color:#cbd5e1}
+html[data-theme="dark"] .vs-rel{background:#111a2e;border-color:#243149}
+html[data-theme="dark"] .vs-rel .vs-warn-t{color:#e2e8f0}

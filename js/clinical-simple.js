@@ -46,9 +46,11 @@
   function fmt(n) { return String(Math.round(n * 100) / 100).replace(".", ","); }
   function D() { return window.VitaClinicalData; }
 
-  function refText(key) {
+  /* lab: the merged entry from collectLabs — its own report's range wins over the current form's */
+  function refText(key, lab) {
     try {
-      var own = state.labReferences && state.labReferences[key];
+      if (lab && lab.ref) return String(lab.ref);
+      var own = !lab && state.labReferences && state.labReferences[key];
       if (own) return String(own);
       if (typeof getVitaAppLabReference === "function") return String(getVitaAppLabReference(key, (state.user && state.user.gender) || "K"));
     } catch (_) {}
@@ -85,25 +87,24 @@
 
     var rows = [];
     Object.keys(labs).forEach(function (k) {
-      var ev = d.evalLab(k, labs[k].value);
+      var ev = d.evalLab(k, labs[k].value, labs[k].ref);
       var dir = ev.low ? "low" : (ev.high ? "high" : (ev.borderline ? "border" : "ok"));
       var extra = "";
       if (k === "creatinine" && egfr !== null) {
         extra = " · eGFR " + egfr;
         if (egfr < 60 && dir === "ok") dir = "high";
       }
-      rows.push({ key: k, name: d.LAB_NAMES[k], value: labs[k].value, unit: d.LAB_UNITS[k], extra: extra, dir: dir, critical: ev.critical, source: labs[k].source, ref: refText(k) });
+      rows.push({ key: k, name: d.LAB_NAMES[k], value: labs[k].value, unit: d.LAB_UNITS[k], extra: extra, dir: dir, critical: ev.critical, source: labs[k].source,
+        date: labs[k].date || null, older: !!labs[k].older, ref: refText(k, labs[k]) });
     });
-    /* Önceki ölçüm (aynı değer için bir önceki kayıt): gelişim bilgisi bu sayfada gösterilir */
-    var hist = (Array.isArray(state.labHistory) ? state.labHistory.slice() : []).filter(function (r) { return r && r.date; })
-      .sort(function (a, b) { return new Date(b.date + "T00:00:00").getTime() - new Date(a.date + "T00:00:00").getTime(); });
+    /* Önceki ölçüm: aynı göstergenin bir önceki ölçümü (birleştirilmiş 90 günlük panelden) */
     var improved = [];
     rows.forEach(function (r) {
-      var withVal = hist.filter(function (h) { var n = Number(String(h[r.key]).replace(",", ".")); return h[r.key] !== null && h[r.key] !== undefined && h[r.key] !== "" && isFinite(n); });
-      if (withVal.length < 2) return;
-      var prevV = Number(String(withVal[1][r.key]).replace(",", "."));
-      var range = parseRangeText(refText(r.key));
-      r.prev = { value: prevV, date: withVal[1].date };
+      var pv = labs[r.key] && labs[r.key].prev;
+      if (!pv || !isFinite(Number(pv.value))) return;
+      var prevV = Number(pv.value);
+      var range = parseRangeText(refText(r.key, labs[r.key]));
+      r.prev = { value: prevV, date: pv.date || "" };
       var prevOut = range ? (prevV < range[0] || prevV > range[1]) : false;
       var distOf = function (v) { return !range ? 0 : (v < range[0] ? range[0] - v : (v > range[1] ? v - range[1] : 0)); };
       var dNow = distOf(Number(r.value)), dPrev = distOf(prevV);
@@ -134,13 +135,21 @@
       });
     });
 
-    /* Belirtiler: yalnızca ad + olası eksikler; testleri birleşik listeye gider */
+    /* Belirtiler: yalnızca ad + olası eksikler; testleri birleşik listeye gider.
+       Son 90 günde normal ölçülmüş testler istenmez; soluk bir notla gösterilir. */
+    var normalNotes = [], noteSeen = {};
     var syms = d.selectedSymptomMetas().map(function (m) {
       var nutrients = (Array.isArray(m.nutrients) ? m.nutrients : []).map(function (n) { return NUTRIENT_LABEL[n] || n; });
       var name = m.symptomName || m.medicalName;
       /* Belirti başına en önemli 2 test (listenin başındakiler) */
       String(m.suggestedLab || "").split(",").map(function (s) { return s.trim(); })
-        .filter(function (t) { return t && !d.isCovered(t); })
+        .filter(function (t) {
+          if (!t) return false;
+          if (!d.isCovered(t)) return true;
+          var nc = d.normalCoverage ? d.normalCoverage(t, labs) : null;
+          if (nc && !noteSeen[nc.key]) { noteSeen[nc.key] = true; normalNotes.push(nc); }
+          return false;
+        })
         .slice(0, 2)
         .forEach(function (t) { addTest(t, name, false); });
       return { name: name, nutrients: nutrients };
@@ -209,7 +218,7 @@
       var crpV = labs.crp ? labs.crp.value : null, hbV = labs.hb ? labs.hb.value : null;
       rows.forEach(function (r) {
         var R = null;
-        try { R = ev2.evaluate(r.key, r.value, { gender: gnd, age: ageNum, crp: crpV, hb: hbV, reference: (state.labReferences && state.labReferences[r.key]) || "" }); } catch (_) {}
+        try { R = ev2.evaluate(r.key, r.value, { gender: gnd, age: ageNum, crp: crpV, hb: hbV, reference: (labs[r.key] && labs[r.key].ref) || "" }); } catch (_) {}
         if (!R || R.status !== "urgent") return;
         var stem = r.name.toLocaleLowerCase("tr-TR").split(" ")[0];
         var dup = safety.concat(kidney).some(function (s) { return s.title.toLocaleLowerCase("tr-TR").indexOf(stem) > -1; });
@@ -221,7 +230,7 @@
 
     var recall = state.lastCDSS && state.lastCDSS.recallInfo && state.lastCDSS.recallInfo.dateFormatted ? String(state.lastCDSS.recallInfo.dateFormatted) : "";
 
-    return { rows: rows, bad: bad, ok: ok, syms: syms, tests: tests, hasLab: rows.length > 0, safety: safety, recall: recall, improved: improved };
+    return { rows: rows, bad: bad, ok: ok, syms: syms, tests: tests, normalNotes: normalNotes, hasLab: rows.length > 0, safety: safety, recall: recall, improved: improved };
   }
 
   /* Uzun, büyük harfli güvenlik başlıklarını tek satırlık sade cümleye çevir */
@@ -288,6 +297,18 @@
     return html + '</section>';
   }
 
+  /* Subtle date tag when a merged value comes from an earlier lab than the newest one */
+  function dateTag(r) {
+    return r.older && r.date ? ' <span class="vs-date-tag" title="Bu değer daha önceki bir tahlilden">' + esc(r.date.split("-").reverse().join(".")) + '</span>' : "";
+  }
+
+  function normalNotesHtml(m) {
+    if (!m.normalNotes || !m.normalNotes.length) return "";
+    return '<div class="vs-normal-notes">' + m.normalNotes.map(function (n) {
+      return '<p class="vs-normal-note"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> <b>' + esc(n.test) + '</b>: ' + esc(n.text) + '</p>';
+    }).join("") + '</div>';
+  }
+
   function valuesHtml(m) {
     if (!m.hasLab) return "";
     var html = '<section class="vs-card"><h3 class="vs-h"><i class="fa-solid fa-flask-vial" aria-hidden="true"></i> Değerlerim</h3>';
@@ -299,7 +320,7 @@
       }
       html += '<details class="vs-val' + (r.critical ? " vs-val-crit" : "") + '"><summary>' +
         '<span class="vs-val-name">' + esc(r.name) + (window.VitaSourceInfo ? VitaSourceInfo.button(r.key, r.name) : "") + '</span>' +
-        '<span class="vs-val-num">' + esc(fmt(r.value)) + ' <small>' + esc(r.unit) + esc(r.extra) + '</small></span>' +
+        '<span class="vs-val-num">' + esc(fmt(r.value)) + ' <small>' + esc(r.unit) + esc(r.extra) + '</small>' + dateTag(r) + '</span>' +
         '<span class="vs-chip ' + chip[1] + '">' + chip[0] + '</span><i class="fa-solid fa-chevron-down vs-chev" aria-hidden="true"></i></summary>' +
         '<div class="vs-val-body">';
       if (adv && adv.meaning) html += '<p>' + esc(adv.meaning) + '</p>';
@@ -312,11 +333,43 @@
     });
     if (m.ok.length) {
       html += '<div class="vs-okrow"><span class="vs-ok-title">Normal</span>' + m.ok.map(function (r) {
-        return '<span class="vs-okchip">' + esc(r.name) + ' <b>' + esc(fmt(r.value)) + '</b>' + (window.VitaSourceInfo ? VitaSourceInfo.button(r.key, r.name) : "") + '</span>';
+        return '<span class="vs-okchip">' + esc(r.name) + ' <b>' + esc(fmt(r.value)) + '</b>' + dateTag(r) + (window.VitaSourceInfo ? VitaSourceInfo.button(r.key, r.name) : "") + '</span>';
       }).join("") + '</div>';
     }
     html += '</section>';
     return html;
+  }
+
+  /* Pre-lab preparation micro-guide (shared by Klinik Analiz card and the Tahlillerim helper) */
+  var PRELAB_ITEMS = [
+    ["fa-moon", "8–12 saat açlık", "Genellikle akşam 19.00–20.00'den sonra yemek yemeyin."],
+    ["fa-glass-water", "Sabah su için", "Kan vermeden önce yeterli su içmek önemlidir; susuzluk hemoglobin ve kırmızı kan hücrelerini olduğundan yüksek gösterebilir."],
+    ["fa-ban", "Çay ve kahve içmeyin", "Sabah yalnızca sade su tüketin."],
+    ["fa-capsules", "Takviyeler", "Demir, B12 veya biotin gibi takviyeleri tahlilden önce kesip kesmeyeceğinizi hekiminize danışın."]
+  ];
+  function prelabListHtml() {
+    return '<ul class="vs-prelab-list">' + PRELAB_ITEMS.map(function (it) {
+      return '<li><i class="fa-solid ' + it[0] + '" aria-hidden="true"></i><span><b>' + esc(it[1]) + ':</b> ' + esc(it[2]) + '</span></li>';
+    }).join("") + '</ul><p class="vs-prelab-foot">Hekiminizin özel talimatları her zaman önceliklidir.</p>';
+  }
+  function prelabCardHtml() {
+    return '<section class="vs-card vs-prelab" id="vsPrelab"><h3 class="vs-h"><i class="fa-solid fa-droplet" aria-hidden="true"></i> Kan Vermeye Gitmeden Önce</h3>' + prelabListHtml() + '</section>';
+  }
+  function fillPrelabHosts() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-prelab-guide]"), function (el) { if (!el.innerHTML) el.innerHTML = prelabListHtml(); });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fillPrelabHosts, { once: true }); else fillPrelabHosts();
+
+  /* Cross-biomarker observations from VitaLabInsights (90-day merged panel); each one collapsible */
+  function relationsCardHtml(m) {
+    var pats = [];
+    try { pats = window.VitaLabInsights ? VitaLabInsights.analyze().patterns : []; } catch (_) { pats = []; }
+    if (!m.hasLab || !pats.length) return "";
+    var html = '<section class="vs-card" id="vsRelations"><h3 class="vs-h"><i class="fa-solid fa-link" aria-hidden="true"></i> Tahliller arası ilişkiler <span class="vs-count">' + pats.length + '</span></h3>';
+    pats.forEach(function (p) {
+      html += '<details class="vs-warn vs-rel"><summary><span class="vs-warn-t">' + esc(p.title) + '</span><i class="fa-solid fa-chevron-down vs-chev" aria-hidden="true"></i></summary><div class="vs-warn-body">' + esc(p.text) + '</div></details>';
+    });
+    return html + '<p class="vs-rel-foot">Kural tabanlı ön gözlemlerdir; tanı koymaz, nihai karar hekime aittir.</p></section>';
   }
 
   function symptomsHtml(m) {
@@ -341,7 +394,10 @@
   }
 
   function testsHtml(m) {
-    if (!m.tests.length) return m.recall ? '<section class="vs-card vs-card-slim">' + recallHtml(m) + '</section>' : "";
+    if (!m.tests.length) {
+      var notes = normalNotesHtml(m);
+      return (m.recall || notes) ? '<section class="vs-card vs-card-slim">' + notes + recallHtml(m) + '</section>' : "";
+    }
     var VISIBLE = 6;
     var row = function (t) {
       return '<div class="vs-test"><span class="vs-test-name">' + esc(t.name) + '</span>' +
@@ -354,7 +410,7 @@
       html += '<details class="vs-more"><summary>Diğer ' + (m.tests.length - VISIBLE) + ' test <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>' +
         m.tests.slice(VISIBLE).map(row).join("") + '</details>';
     }
-    return html + recallHtml(m) + '</section>';
+    return html + normalNotesHtml(m) + recallHtml(m) + '</section>';
   }
 
   function plainText(m) {
@@ -374,8 +430,8 @@
     var m;
     try { m = build(); } catch (e) { console.warn("[VitaTakip] clinical-simple:", e); return; }
     current = m;
-    /* Sıra: özet → güvenlik uyarıları → değerlerim → belirtiler → testler (+ hatırlatma) */
-    host.innerHTML = summaryHtml(m) + safetyHtml(m) + valuesHtml(m) + (window.VitaRecheck ? VitaRecheck.cardHtml(m) : "") + (window.VitaAgeStage ? VitaAgeStage.cardHtml() : "") + symptomsHtml(m) + testsHtml(m);
+    /* Sıra: özet → güvenlik uyarıları → değerlerim → tahliller arası ilişkiler → belirtiler → testler (+ hatırlatma) */
+    host.innerHTML = summaryHtml(m) + safetyHtml(m) + valuesHtml(m) + relationsCardHtml(m) + (window.VitaRecheck ? VitaRecheck.cardHtml(m) : "") + (window.VitaAgeStage ? VitaAgeStage.cardHtml() : "") + symptomsHtml(m) + testsHtml(m) + prelabCardHtml();
     host.classList.remove("hidden");
   }
 

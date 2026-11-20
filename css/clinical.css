@@ -243,3 +243,9 @@
 .lt-t-low{color:#c2410c;font-weight:800}.lt-t-high{color:#0369a1;font-weight:800}.lt-t-ok{color:#15803d;font-weight:800}
 .lt-sumtxt{margin:8px 0 0;font-size:11.5px;line-height:1.45;color:#475569}
 .lt-legal{margin:6px 0 0;padding-top:6px;border-top:1px dashed #e2e8f0;font-size:10.5px;line-height:1.45;color:#94a3b8}
+/* 90-day merged panel: date tag for values from an earlier lab + muted 'measured normal' notes */
+.vs-date-tag{display:inline-block;margin-left:4px;font-size:10px;font-weight:500;color:#64748b;background:#f1f5f9;border-radius:6px;padding:0 5px;vertical-align:middle}
+.vs-normal-notes{margin-top:8px;display:flex;flex-direction:column;gap:2px}
+.vs-normal-note{margin:0;font-size:12px;color:#64748b}
+.vs-normal-note i{color:#0d9488;font-size:11px}
+.rs-tbl small.rs-date{font-size:10px;color:#94a3b8}

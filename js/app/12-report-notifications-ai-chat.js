@@ -339,6 +339,11 @@ function getDoctorReportMode() {
       ];
 
       const units = { d3: "ng/mL", b12: "pg/mL", ferritin: "ng/mL", mg: "mg/dL", ca: "mg/dL", zinc: "µg/dL", creatinine: "mg/dL", folate: "ng/mL", alt: "U/L", hb: "g/dL", mcv: "fL", crp: "mg/L", rbcFolate: "ng/mL", hcy: "µmol/L" };
+      (window.VITA_EXTRA_LAB_DEFS || []).forEach(d => {
+        labs[d.key] = resolveLabVal(d.key);
+        list.push({ name: d.label, val: labs[d.key], ref: reportReference(d.key), key: d.key });
+        units[d.key] = d.unit;
+      });
       const crpNum = parseLabNumericValue(labs.crp);
       const hbNum = parseLabNumericValue(labs.hb);
 
@@ -3240,7 +3245,7 @@ YANIT BİÇİMİ (zorunlu): Sıradan bir kullanıcının anlayacağı sade dille
           return out;
         };
         const blocks = chosen.map(topic => {
-          const shortA = brief(topic.assessment, dense ? 1 : 2, dense ? 120 : 190);
+          const shortA = brief(topic.assessment, dense ? 1 : 2, dense ? 120 : 170);
           const shortO = brief(topic.optimization, 1, dense ? 90 : 130);
           const hasMore = /<[a-z][^>]*>/i.test(String(topic.assessment)) || shortA !== String(topic.assessment).replace(/\s+/g, " ").trim() || shortO !== String(topic.optimization).replace(/\s+/g, " ").trim();
           return `<div class="vita-ai-topic"><div class="vita-ai-t">${esc(topic.title)}</div><div>${shortA}</div><div class="vita-ai-tip">→ ${shortO}</div>` +

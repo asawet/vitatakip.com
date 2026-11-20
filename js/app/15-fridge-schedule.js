@@ -286,7 +286,7 @@ function renderFridgeScheduleSheet() {
         check("Sekiz su bardağı işaret kutusu mevcut", document.querySelectorAll(".fridge-water-cup").length === 8);
         check("IndexedDB yerel veritabanı ve PDF tarama logu mevcut", typeof openVitaIndexedDB === "function" && typeof persistVitaExtendedData === "function" && typeof logVitaPdfScan === "function" && typeof getVitaPdfScanLogs === "function");
         check("IndexedDB desteklenmiyorsa fallback dalı mevcut", /window\.indexedDB/.test(openVitaIndexedDB.toString()) && /safeLocalStorageSetItem/.test(logVitaPdfScan.toString()));
-        check("Canlı tahlil geri bildirimi bağlandı", typeof installVitaLabLiveFeedback === "function" && typeof updateVitaLabLiveFeedback === "function" && VITA_LAB_INPUTS.length === 14);
+        check("Canlı tahlil geri bildirimi bağlandı", typeof installVitaLabLiveFeedback === "function" && typeof updateVitaLabLiveFeedback === "function" && VITA_LAB_INPUTS.length === 14 + (window.VITA_EXTRA_LAB_KEYS || []).length);
         check("PDF ayrıştırma referans aralığı desenini içeriyor", /genericReference/.test(parseReconstructedLabLines.toString()) && /labeledReference/.test(parseReconstructedLabLines.toString()));
         (window.VitaLabEvidence ? VitaLabEvidence.selfTests() : []).forEach(r => check(r.name, r.passed, r.detail));
         check("PWA: manifest ve \"Uygulamayı Cihaza Yükle\" mevcut, APK indirme kartı yok; eGFR hesaplayıcı mevcut", !document.getElementById("vitaInstallSection") && Boolean(document.querySelector("link[rel=manifest]")) && Boolean(window.VitaPwaInstall) && Boolean(document.getElementById("pwaInstallSettingsBtn")) && typeof openEgfrCalculator === "function");

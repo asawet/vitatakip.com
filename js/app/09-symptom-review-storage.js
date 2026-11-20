@@ -496,7 +496,17 @@ function checkPendingSymptomReviews() {
     function isVitaLabReferenceCompatible(key, referenceText) {
       const text = String(referenceText || "").toLowerCase().replace(/[μµ]/g, "u").replace(/\s+/g, "");
       if (!text) return false;
-      const units = ["ng/ml", "ug/ml", "ug/dl", "pg/ml", "mg/dl", "mmol/l", "nmol/l", "pmol/l", "umol/l", "ug/l", "u/l", "iu/l", "g/dl", "g/l", "fl", "mg/l", "meq/l"];
+      const extraDef = (window.VITA_EXTRA_LAB_DEFS || []).find(d => d.key === key);
+      if (extraDef) {
+        if (extraDef.units.some(u => text.includes(u.replace(/[μµ]/g, "u")))) return true;
+        if (key === "tsh" && /m?iu\/l|mu\/l/.test(text)) return true;
+        if (/(ng|pg|ug|mg|g)\/(ml|dl|l)|mmol\/l|nmol\/l|pmol\/l|umol\/l|\bfl\b/.test(text) && key !== "glucose") return false;
+        const r = parseVitaLabReferenceRange(referenceText);
+        if (!r) return false;
+        const [lo, hi] = extraDef.plausible;
+        return (!Number.isFinite(r.min) || (r.min >= lo * 0.2 && r.min <= hi)) && (!Number.isFinite(r.max) || (r.max >= lo && r.max <= hi * 1.5));
+      }
+      const units =["ng/ml", "ug/ml", "ug/dl", "pg/ml", "mg/dl", "mmol/l", "nmol/l", "pmol/l", "umol/l", "ug/l", "u/l", "iu/l", "g/dl", "g/l", "fl", "mg/l", "meq/l"];
       const detected = units.find(unit => text.includes(unit));
       const allowed = {
         d3: ["ng/ml", "nmol/l"], b12: ["pg/ml", "ng/l", "pmol/l"], ferritin: ["ng/ml", "ug/l", "pmol/l"], mg: ["mg/dl", "mmol/l", "meq/l"],
@@ -536,7 +546,8 @@ function checkPendingSymptomReviews() {
       ["inputLabMg", "mg"], ["inputLabCalcium", "ca"], ["inputLabZinc", "zinc"],
       ["inputLabCreatinine", "creatinine"], ["inputLabFolate", "folate"], ["inputLabAlt", "alt"],
       ["inputLabHb", "hb"], ["inputLabMcv", "mcv"], ["inputLabCrp", "crp"],
-      ["inputLabRbcFolate", "rbcFolate"], ["inputLabHcy", "hcy"]
+      ["inputLabRbcFolate", "rbcFolate"], ["inputLabHcy", "hcy"],
+      ...(window.VITA_EXTRA_LAB_DEFS || []).map(d => [d.inputId, d.key])
     ];
 
     /* Ölçülebilir (fizyolojik olarak mümkün) değer aralıkları. Referans aralığı DEĞİLDİR: yalnızca yazım/birim
@@ -549,6 +560,7 @@ function checkPendingSymptomReviews() {
       crp: [0, 1000, "mg/L"], hba1c: [2, 25, "%"], tsh: [0.001, 500, "mIU/L"], ft4: [0.05, 15, "ng/dL"],
       rbcFolate: [20, 3000, "ng/mL"], hcy: [1, 400, "µmol/L"]
     };
+    (window.VITA_EXTRA_LAB_DEFS || []).forEach(d => { VITA_LAB_PLAUSIBLE_RANGES[d.key] = [d.plausible[0], d.plausible[1], d.unit]; });
     function isVitaLabValuePlausible(key, value) {
       const range = VITA_LAB_PLAUSIBLE_RANGES[key];
       if (value === null || value === undefined) return true;

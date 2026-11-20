@@ -231,6 +231,7 @@ function checkMidnightReset(userId) {
       const record = vitaSanitizeJsonValue(raw);
       Object.assign(record, sanitizeImportedLabValues(raw));
       record.references = sanitizeImportedLabReferences(raw.references);
+      if (raw.contextTags !== undefined) record.contextTags = typeof window.sanitizeLabContextTags === "function" ? window.sanitizeLabContextTags(raw.contextTags) : [];
       if (record.applicationReferences && typeof record.applicationReferences !== "object") delete record.applicationReferences;
       record.genderAtTest = raw.genderAtTest === "E" ? "E" : "K";
       record.id = typeof raw.id === "string" ? raw.id.slice(0, 80) : `lab_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -472,7 +473,15 @@ function checkMidnightReset(userId) {
         mcv: { code: "787-2", display: "MCV [Entitic volume] by Automated count", unit: "fL", label: "MCV" },
         crp: { code: "1988-5", display: "C reactive protein [Mass/volume] in Serum or Plasma", unit: "mg/L", label: "CRP" },
         rbcFolate: { code: "2282-2", display: "Folate [Mass/volume] in Red Blood Cells", unit: "ng/mL", label: "Eritrosit folatı" },
-        hcy: { code: "13965-9", display: "Homocysteine [Moles/volume] in Serum or Plasma", unit: "umol/L", label: "Homosistein" }
+        hcy: { code: "13965-9", display: "Homocysteine [Moles/volume] in Serum or Plasma", unit: "umol/L", label: "Homosistein" },
+        rbc: { code: "789-8", display: "Erythrocytes [#/volume] in Blood by Automated count", unit: "10*6/uL", label: "Eritrosit (RBC)" },
+        hct: { code: "4544-3", display: "Hematocrit [Volume Fraction] of Blood by Automated count", unit: "%", label: "Hematokrit" },
+        wbc: { code: "6690-2", display: "Leukocytes [#/volume] in Blood by Automated count", unit: "10*3/uL", label: "Lökosit (WBC)" },
+        plt: { code: "777-3", display: "Platelets [#/volume] in Blood by Automated count", unit: "10*3/uL", label: "Trombosit (PLT)" },
+        rdw: { code: "788-0", display: "Erythrocyte distribution width [Ratio] by Automated count", unit: "%", label: "RDW-CV" },
+        tsh: { code: "3016-3", display: "Thyrotropin [Units/volume] in Serum or Plasma", unit: "m[IU]/L", label: "TSH" },
+        hba1c: { code: "4548-4", display: "Hemoglobin A1c/Hemoglobin.total in Blood", unit: "%", label: "HbA1c" },
+        glucose: { code: "1558-6", display: "Fasting glucose [Mass/volume] in Serum or Plasma", unit: "mg/dL", label: "Açlık glukozu" }
       };
       const patientReference = `urn:uuid:${patientId}`;
       const addObservation = ({ code, display, value, unit, categoryCode, date, referenceText, note }) => {
@@ -785,7 +794,13 @@ function checkMidnightReset(userId) {
         mcv: [["fl", "fL"]],
         crp: [["mg/l", "mg/L"], ["mg/dl", "mg/dL"]],
         rbcFolate: [["nmol/l", "nmol/L"], ["ng/ml", "ng/mL"]],
-        hcy: [["umol/l", "µmol/L"], ["µmol/l", "µmol/L"]]
+        hcy: [["umol/l", "µmol/L"], ["µmol/l", "µmol/L"]],
+        rbc: [["10^12/l", "10^12/L"], ["10^6/ul", "10^6/µL"]],
+        wbc: [["10^9/l", "10^9/L"], ["10^3/ul", "10^3/µL"]],
+        plt: [["10^9/l", "10^9/L"], ["10^3/ul", "10^3/µL"]],
+        hct: [["%", "%"]], rdw: [["%", "%"]], hba1c: [["%", "%"]],
+        tsh: [["uiu/ml", "µIU/mL"], ["miu/l", "mIU/L"], ["miu/ml", "mIU/mL"]],
+        glucose: [["mg/dl", "mg/dL"]]
       }[key] || [];
       for (const [token, displayUnit] of paramUnits) {
         if (lineNorm.includes(token)) {
@@ -803,14 +818,23 @@ function checkMidnightReset(userId) {
         { key: "mg", name: "Magnezyum (Mg / Serum)", unit: "mg/dL", inputId: "inputLabMg", keywords: ["magnezyum", "magnesium", "serum mg"] },
         { key: "ca", name: "Kalsiyum (Ca / Total)", unit: "mg/dL", inputId: "inputLabCalcium", keywords: ["kalsiyum", "calcium", "total ca", "serum ca"] },
         { key: "zinc", name: "Çinko (Zn)", unit: "µg/dL", inputId: "inputLabZinc", keywords: ["cinko", "zinc", "serum zn"] },
-        { key: "creatinine", name: "Kreatinin (CREA / Böbrek)", unit: "mg/dL", inputId: "inputLabCreatinine", keywords: ["kreatinin", "creatinine", "serum crea", "crea"] },
+        { key: "creatinine", name: "Kreatinin (CREA / Böbrek)", unit: "mg/dL", inputId: "inputLabCreatinine", keywords: ["kreatinin", "creatinine", "serum crea", "crea"], exclude: ["spot", "idrar", "urine", "albumin", "albümin", "kreat.", "/kreat", "oran", "ratio", "gfr", "klirens", "clearance", "kinaz", "kinase"] },
         { key: "folate", name: "Folat / Folik Asit (B9)", unit: "ng/mL", inputId: "inputLabFolate", keywords: ["folat", "folate", "folik asit", "folic acid", "vitamin b9", "b9"], exclude: ["eritrosit", "rbc folat", "red cell", "red blood cell", "alyuvar"] },
         { key: "alt", name: "ALT (Alanin Aminotransferaz)", unit: "U/L", inputId: "inputLabAlt", keywords: ["alanin aminotransferaz", "alanine aminotransferase", "sgpt", "serum alt", "alt (sgpt)", "alt"] },
         { key: "hb", name: "Hemoglobin (Hb / HGB)", unit: "g/dL", inputId: "inputLabHb", keywords: ["hemoglobin (hgb)", "hemoglobin", "hgb"], exclude: ["a1c", "hba1", "glikoz", "glycos", "glycat", "ortalama", "mean", "mch", "konsantrasyon", "concentration", "idrar"] },
         { key: "mcv", name: "MCV (Ortalama Eritrosit Hacmi)", unit: "fL", inputId: "inputLabMcv", keywords: ["mcv", "ortalama eritrosit hacmi"], exclude: ["mchc"] },
         { key: "crp", name: "CRP (C-Reaktif Protein)", unit: "mg/L", inputId: "inputLabCrp", keywords: ["c-reaktif protein", "c reaktif protein", "c-reactive protein", "crp (c-reaktif", "crp", "hs-crp"], exclude: [] },
         { key: "rbcFolate", name: "Eritrosit Folatı", unit: "ng/mL", inputId: "inputLabRbcFolate", keywords: ["eritrosit folat", "rbc folat", "red cell folate", "red blood cell folate", "alyuvar folat"], exclude: [] },
-        { key: "hcy", name: "Homosistein", unit: "µmol/L", inputId: "inputLabHcy", keywords: ["homosistein", "homocysteine", "homosisteyin"], exclude: [] }
+        { key: "hcy", name: "Homosistein", unit: "µmol/L", inputId: "inputLabHcy", keywords: ["homosistein", "homocysteine", "homosisteyin"], exclude: [] },
+        /* Extra CBC / thyroid / metabolic markers. boundary: short codes must match as whole words (RBC ≠ NRBC). */
+        { key: "rbc", name: "Eritrosit (RBC)", unit: "10^6/µL", inputId: "inputLabRbc", boundary: true, keywords: ["eritrosit sayisi", "eritrosit (rbc)", "rbc (eritrosit)", "red blood cell", "rbc", "eritrosit"], exclude: ["folat", "folate", "dagilim", "hacmi", "hacim", "ortalama", "mch", "mcv", "rdw", "nrbc", "sedim", "esr", "idrar", "sediment", "hemoglobin"] },
+        { key: "hct", name: "Hematokrit (HCT)", unit: "%", inputId: "inputLabHct", boundary: true, keywords: ["hematokrit", "hematocrit", "hct", "htc"], exclude: ["mchc"] },
+        { key: "wbc", name: "Lökosit (WBC)", unit: "10^3/µL", inputId: "inputLabWbc", boundary: true, keywords: ["lokosit sayisi", "lokosit (wbc)", "wbc (lokosit)", "white blood cell", "wbc", "lokosit", "beyaz kure"], exclude: ["idrar", "esteraz", "sediment", "gaita", "urine"] },
+        { key: "plt", name: "Trombosit (PLT)", unit: "10^3/µL", inputId: "inputLabPlt", boundary: true, keywords: ["trombosit sayisi", "trombosit (plt)", "plt (trombosit)", "platelet", "plt", "trombosit"], exclude: ["mpv", "pdw", "pct", "dagilim", "hacmi", "hacim", "ortalama", "trombokrit", "plcr", "p-lcr", "buyuk"] },
+        { key: "rdw", name: "RDW-CV", unit: "%", inputId: "inputLabRdw", keywords: ["rdw-cv", "rdw cv", "rdw (cv)", "rdw_cv", "rdw"], exclude: ["rdw-sd", "rdw sd", "rdw (sd)", "rdw_sd", " fl", "(fl)"] },
+        { key: "tsh", name: "TSH (Tiroid Stimülan Hormon)", unit: "mIU/L", inputId: "inputLabTsh", boundary: true, keywords: ["tiroid stimulan hormon", "tiroid stimule edici hormon", "thyroid stimulating hormone", "tirotropin", "tsh"], exclude: ["reseptor", "receptor", "trab", "antikor", "antibod"] },
+        { key: "hba1c", name: "HbA1c", unit: "%", inputId: "inputLabHba1c", keywords: ["hba1c", "hb a1c", "hemoglobin a1c", "glikozile hemoglobin", "glikolize hemoglobin", "glike hemoglobin", "a1c"], exclude: ["mmol/mol", "ifcc", "ortalama glukoz", "eag"] },
+        { key: "glucose", name: "Glukoz (Açlık Kan Şekeri)", unit: "mg/dL", inputId: "inputLabGlucose", keywords: ["aclik kan sekeri", "aclik glukoz", "aclik plazma glukozu", "glukoz (aclik)", "fasting glucose", "glukoz", "glucose", "glikoz"], exclude: ["idrar", "urine", "tokluk", "ogtt", "yukleme", "tolerans", "hba1c", "a1c", "glikozile", "glikolize", "glike", "ortalama", "beyin", "bos "] }
       ];
 
       temporarilyParsedPdfDate = extractPdfReportDate(lines);
@@ -846,6 +870,7 @@ function checkMidnightReset(userId) {
             const nKw = normalizeTurkishText(kw);
             if (nKw === "alt") return /\balt\b/.test(normalizedLine);
             if (nKw === "hgb" || nKw === "mcv" || nKw === "crp") return new RegExp(`\\b${nKw}\\b`).test(normalizedLine);
+            if (param.boundary && nKw.length <= 4) return new RegExp(`(^|[^a-z0-9])${nKw}([^a-z0-9]|$)`).test(normalizedLine);
             return normalizedLine.includes(nKw);
           });
           if (matchKw) {
@@ -863,6 +888,7 @@ function checkMidnightReset(userId) {
               .replace(/\b25\s*[-–]?\s*(?:oh|hidroksi)\b/gi, " ")
               .replace(/\b(?:vit(?:amin)?\s*)?(?:b\s*[-–]?\s*12|b\s*[-–]?\s*9|d\s*[-–]?\s*3)\b/gi, " ")
               .replace(/\b\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}\b/g, " ")
+              .replace(/(?:x\s*)?10\s*(?:\^|\*\*|e)\s*\d+\s*\/\s*[a-zµμ]+/gi, " ")
               .replace(/\b(?:[01]?\d|2[0-3]):[0-5]\d(?::[0-5]\d)?\b/g, " ")
               .replace(/\b(?:ref(?:erans)?\.?|referans|normal|range|aral(?:ı|i)k|reference)\b/gi, " ");
             const nums = valueLine.match(/\b\d+(?:[.,]\d+)?\b/g);
@@ -872,6 +898,8 @@ function checkMidnightReset(userId) {
               if (param.key === "hb" && val > 35 && val <= 250) {
                 val = Math.round((val / 10) * 10) / 10;
               }
+              // HCT reported as a fraction (0.478 L/L) → percent
+              if (param.key === "hct" && val > 0.1 && val < 1) val = Math.round(val * 1000) / 10;
               if (!isNaN(val)) {
                 detected[param.key] = {
                   ...param,

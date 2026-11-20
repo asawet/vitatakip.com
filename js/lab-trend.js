@@ -23,6 +23,12 @@
     d3: [20, 50], b12: [200, 900], ferritin: [15, 150], hb: [12, 16], mg: [1.8, 2.3], folate: [4, 20],
     ca: [8.6, 10.2], zinc: [70, 120], creatinine: [0.6, 1.2], alt: [7, 35], mcv: [80, 100], crp: [0, 5], rbcFolate: [140, 1000], hcy: [5, 15]
   };
+  /* Extra CBC / thyroid / metabolic markers from the shared registry */
+  var EXTRA_COLORS = ["#b91c1c", "#0369a1", "#64748b", "#a21caf", "#c2410c", "#0f766e", "#7e22ce", "#ca8a04"];
+  (window.VITA_EXTRA_LAB_DEFS || []).forEach(function (d, i) {
+    META.push({ key: d.key, name: d.short, unit: d.unit, color: EXTRA_COLORS[i % EXTRA_COLORS.length] });
+    FALLBACK_RANGE[d.key] = d.range;
+  });
 
   var selectedKey = null;
   var closed = true; /* varsayılan: kapalı */

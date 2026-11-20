@@ -10,7 +10,10 @@
       {key:'unexplained_swelling',icon:'fa-person-circle-exclamation text-amber-600',note:'Şişlik tek başına vitamin eksikliği anlamına gelmez; nefes darlığı varsa acil yardım alın.'},
       {key:'sun_sensitive_rash',icon:'fa-sun text-amber-500',note:'Döküntülerin dermatolojik ve ilaçla ilişkili farklı nedenleri olabilir.'},
       {key:'hair_loss',icon:'fa-hand-sparkles text-teal-600',note:'Saç dökülmesi tek başına vitamin eksikliğini göstermez.'},
-      {key:'dark_nail_change',icon:'fa-magnifying-glass text-slate-600',note:'Yeni, değişen veya genişleyen koyu çizgi dermatoloji değerlendirmesi gerektirebilir.'}
+      {key:'dark_nail_change',icon:'fa-magnifying-glass text-slate-600',note:'Yeni, değişen veya genişleyen koyu çizgi dermatoloji değerlendirmesi gerektirebilir.'},
+      {key:'morning_fatigue',icon:'fa-moon text-indigo-500',note:'Uyku düzeni, stres ve tiroid gibi pek çok neden yorgunluğa yol açabilir.'},
+      {key:'restless_legs',icon:'fa-person-walking text-teal-600',note:'Demir depoları düşükken sık görülür; ilaçlar da etkileyebilir.'},
+      {key:'pallor_dark_circles',icon:'fa-eye text-rose-500',note:'Solgunluk kansızlıkla ilişkili olabilir; göz altı morluğu genetik veya uykusuzlukla da olur.'}
     ];
     const visualForSymptom={
       burning_tongue:'tongue',

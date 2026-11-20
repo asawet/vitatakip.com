@@ -96,12 +96,14 @@
     if (m.rows.length) {
       var order = m.bad.concat(m.ok);
       h += '<section class="rs-sec"><h2>Tahlil bulguları <small>' + (latest[0] ? "(" + dmy(latest[0].date) + (latest[1] ? " · önceki " + dmy(latest[1].date) : "") + ")" : "") + '</small></h2>' +
+        (latest[0] && window.labContextBadgesHtml && (latest[0].contextTags || []).length ? '<p class="rs-ctx">Tahlil koşulları (' + esc(dmy(latest[0].date)) + '): ' + labContextBadgesHtml(latest[0].contextTags) + '</p>' : "") +
         '<table class="rs-tbl"><thead><tr><th>Test</th><th>Sonuç</th><th>Referans</th><th>Durum</th><th>Önceki</th></tr></thead><tbody>' +
         order.map(function (r) {
           var mk = MARK[r.dir] || MARK.ok;
-          return '<tr class="' + (r.dir === "ok" ? "" : "rs-abn") + '"><td>' + esc(r.name) + '</td><td><b>' + esc(M.fmt(r.value)) + '</b> <small>' + esc(r.unit) + '</small></td>' +
-            '<td>' + esc(String(r.ref || "—").replace(/\s*(mg\/dL|ng\/mL|pg\/mL|g\/dL|µg\/dL|U\/L|fL|mg\/L|\(gebelik\))/g, " $1").replace(/\s+/g, " ").replace(/\s?(mg\/dL|ng\/mL|pg\/mL|g\/dL|µg\/dL|U\/L|fL|mg\/L)/, "")) + '</td>' +
-            '<td class="' + mk[1] + '">' + mk[0] + '</td><td>' + (r.prev ? esc(M.fmt(r.prev.value)) : "—") + '</td></tr>';
+          return '<tr class="' + (r.dir === "ok" ? "" : "rs-abn") + '"><td>' + esc(r.name) + '</td><td><b>' + esc(M.fmt(r.value)) + '</b> <small>' + esc(r.unit) + '</small>' +
+            (r.older && r.date ? ' <small class="rs-date">' + esc(dmy(r.date)) + '</small>' : "") + '</td>' +
+            '<td>' + esc(String(r.ref || "—").replace(/\s*(?<![A-Za-zµ])(mg\/dL|ng\/mL|pg\/mL|g\/dL|µg\/dL|U\/L|fL|mg\/L|\(gebelik\))/g, " $1").replace(/\s+/g, " ").replace(/\s?(?<![A-Za-zµ])(mg\/dL|ng\/mL|pg\/mL|g\/dL|µg\/dL|U\/L|fL|mg\/L)/, "")) + '</td>' +
+            '<td class="' + mk[1] + '">' + mk[0] + '</td><td>' + (r.prev ? esc(M.fmt(r.prev.value)) + (r.prev.date ? ' <small class="rs-date">' + esc(dmy(r.prev.date)) + '</small>' : "") : "—") + '</td></tr>';
         }).join("") + '</tbody></table>' +
         (typeof isPregnantNow === "function" && isPregnantNow() ? '<p class="rs-note">Gebelikte eGFR formülleri geçerli olmadığından hesaplanmadı.</p>'
           : (state.lastCDSS && state.lastCDSS.egfrResult ? '<p class="rs-note">eGFR (CKD-EPI 2021): <b>' + esc(state.lastCDSS.egfrResult.egfr) + '</b> mL/dk/1,73 m² (Evre ' + esc(state.lastCDSS.egfrResult.stage) + ')</p>' : "")) + '</section>';
