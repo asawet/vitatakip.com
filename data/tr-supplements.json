@@ -1,0 +1,460 @@
+{
+ "_meta": {
+  "surum": 1,
+  "olusturma": "2026-11-14",
+  "not": "Yalnızca vitamin, mineral, omega-3 ve gıda takviyeleri. Barkodlar uygulamanın önceki sürümünden aktarıldı; doğrulanmamış olabilir. Kullanıcının taradığı barkodlar ayrı önbellekte öğrenilir."
+ },
+ "items": [
+  {
+   "urunAdi": "Ocean Vitamin D3 1000 IU",
+   "marka": "Orzaks",
+   "etkenMadde": "Kolekalsiferol (Vitamin D3)",
+   "form": "Oral Damla / Sprey",
+   "dozaj": "1000 IU (25 mcg) / puf",
+   "kutuAdedi": 130,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Tok (Yağlı Kahvaltı İle)"
+  },
+  {
+   "urunAdi": "VeNatura D3K2 Damla",
+   "marka": "VeNatura",
+   "etkenMadde": "Vitamin D3 (Kolekalsiferol) + Vitamin K2 (Menakuinon-7)",
+   "form": "Oral Damla (Zeytinyağı Bazlı)",
+   "dozaj": "1000 IU D3 + 25 mcg K2 / damla",
+   "kutuAdedi": 200,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Tok (Yağlı Öğünle)"
+  },
+  {
+   "urunAdi": "Ocean D3K2 Damla",
+   "marka": "Orzaks",
+   "etkenMadde": "Kolekalsiferol + Menakuinon-7 (MK-7)",
+   "form": "Damla (20 ml)",
+   "dozaj": "1000 IU D3 + 22.5 mcg K2 / damla",
+   "kutuAdedi": 400,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "barcode": "0339840330085",
+   "urunAdi": "Solgar Vitamin D3 1000 IU",
+   "marka": "Solgar",
+   "etkenMadde": "Vitamin D3 (Kolekalsiferol)",
+   "form": "Yumuşak Kapsül",
+   "dozaj": "1000 IU (25 mcg)",
+   "kutuAdedi": 100,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "urunAdi": "Magnimore Plus",
+   "marka": "Tab İlaç",
+   "etkenMadde": "ATA-Mg (Asetil Taurat) + Malat + Bisglisinat + B6 (P-5-P)",
+   "form": "Tablet",
+   "dozaj": "105 mg Elementel Magnezyum",
+   "kutuAdedi": 60,
+   "gunlukDoz": 2,
+   "zamanBloku": "Akşam",
+   "aclikDurumu": "Tok (Yatmadan Önce)"
+  },
+  {
+   "urunAdi": "VeNatura Magnezyum Malat",
+   "marka": "VeNatura",
+   "etkenMadde": "Magnezyum Malat",
+   "form": "Tablet",
+   "dozaj": "200 mg Elementel Magnezyum",
+   "kutuAdedi": 60,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Tok (Hücresel Enerji İçin)"
+  },
+  {
+   "urunAdi": "VeNatura Magnezyum Bisglisinat",
+   "marka": "VeNatura",
+   "etkenMadde": "Magnezyum Bisglisinat",
+   "form": "Tablet",
+   "dozaj": "110 mg Elementel Magnezyum",
+   "kutuAdedi": 60,
+   "gunlukDoz": 1,
+   "zamanBloku": "Gece",
+   "aclikDurumu": "Tok (Kas & Uyku Onarımı)"
+  },
+  {
+   "urunAdi": "Ocean Extramag Üçlü Magnezyum",
+   "marka": "Orzaks",
+   "etkenMadde": "Magnezyum Sitrat + Malat + Bisglisinat",
+   "form": "Tablet",
+   "dozaj": "200 mg Elementel Magnezyum",
+   "kutuAdedi": 60,
+   "gunlukDoz": 1,
+   "zamanBloku": "Akşam",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "barcode": "0339840171084",
+   "urunAdi": "Solgar Magnesium with Vitamin B6",
+   "marka": "Solgar",
+   "etkenMadde": "Magnezyum Oksit + Piridoksin HCl (B6)",
+   "form": "Tablet",
+   "dozaj": "400 mg Mg + 25 mg B6 (3 tablette)",
+   "kutuAdedi": 100,
+   "gunlukDoz": 2,
+   "zamanBloku": "Akşam",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "urunAdi": "Ocean Methyl B12 1000 mcg",
+   "marka": "Orzaks",
+   "etkenMadde": "Metilkobalamin (Aktif Koenzim B12)",
+   "form": "Dilaltı Sprey / Damla",
+   "dozaj": "1000 mcg / puf",
+   "kutuAdedi": 100,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Aç (Dil Altında 45 sn Bekletilerek)"
+  },
+  {
+   "urunAdi": "New Life B12 Plus Dilaltı",
+   "marka": "New Life",
+   "etkenMadde": "Metilkobalamin + Folik Asit (Folat) + Biotin",
+   "form": "Dilaltı Tablet",
+   "dozaj": "1000 mcg B12 + 400 mcg Folat + 50 mcg Biotin",
+   "kutuAdedi": 60,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Aç"
+  },
+  {
+   "urunAdi": "VeNatura Metilkobalamin B12",
+   "marka": "VeNatura",
+   "etkenMadde": "Metilkobalamin",
+   "form": "Dilaltı Sprey",
+   "dozaj": "1000 mcg / puf",
+   "kutuAdedi": 100,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Aç"
+  },
+  {
+   "urunAdi": "Solgar B-Complex with Vitamin C",
+   "marka": "Solgar",
+   "etkenMadde": "Tiamin, Riboflavin, Niasin, B6, Folik Asit, B12 + C Vitamini",
+   "form": "Tablet",
+   "dozaj": "B Kompleks 50 mg dengeli formül",
+   "kutuAdedi": 100,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "urunAdi": "Nutraxin Biotin 5000 mcg",
+   "marka": "Nutraxin",
+   "etkenMadde": "D-Biotin (Vitamin B7)",
+   "form": "Tablet",
+   "dozaj": "5000 mcg",
+   "kutuAdedi": 60,
+   "gunlukDoz": 1,
+   "zamanBloku": "Öğle",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "urunAdi": "Ocean Plus 1200 mg Balık Yağı",
+   "marka": "Orzaks",
+   "etkenMadde": "Trigliserit Form Omega-3 (384 mg EPA, 252 mg DHA)",
+   "form": "Yumuşak Kapsül",
+   "dozaj": "1200 mg Balık Yağı (780 mg Toplam Omega-3)",
+   "kutuAdedi": 50,
+   "gunlukDoz": 1,
+   "zamanBloku": "Öğle",
+   "aclikDurumu": "Tok (Ana Öğün İle)"
+  },
+  {
+   "urunAdi": "Möller's Sıvı Omega-3 Morina Karaciğer Yağı",
+   "marka": "Möller's",
+   "etkenMadde": "Doğal Trigliserit Omega-3 (EPA + DHA + A, D, E Vitamini)",
+   "form": "Sıvı Şurup (250 ml)",
+   "dozaj": "1200 mg Doğal Omega-3 / 5 ml",
+   "kutuAdedi": 50,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "urunAdi": "Efa One Balık Yağı 1200 mg",
+   "marka": "New Life",
+   "etkenMadde": "Konsantre Trigliserit Omega-3 (EPA 500 mg, DHA 375 mg)",
+   "form": "Yumuşak Kapsül",
+   "dozaj": "1200 mg (1020 mg Aktif Omega-3)",
+   "kutuAdedi": 45,
+   "gunlukDoz": 1,
+   "zamanBloku": "Öğle",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "urunAdi": "Ocean Krill Oil 700 mg",
+   "marka": "Orzaks",
+   "etkenMadde": "Antarktika Krill Yağı (Fosfolipit bağlı EPA/DHA + Astaksantin)",
+   "form": "Kapsül",
+   "dozaj": "700 mg Saf Krill Yağı",
+   "kutuAdedi": 30,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "urunAdi": "Supradyn All Day",
+   "marka": "Bayer",
+   "etkenMadde": "13 Vitamin + 9 Mineral + Koenzim Q10",
+   "form": "Film Tablet",
+   "dozaj": "1 Tablet / Standart Günlük",
+   "kutuAdedi": 30,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "urunAdi": "Pharmaton Vitality Kapsül",
+   "marka": "Sanofi",
+   "etkenMadde": "Standardize Ginseng G115 + Vitamin ve Mineraller",
+   "form": "Yumuşak Kapsül",
+   "dozaj": "40 mg Ginseng G115 + Kompleks",
+   "kutuAdedi": 60,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "barcode": "0339840103078",
+   "urunAdi": "Solgar Formula VM-2000",
+   "marka": "Solgar",
+   "etkenMadde": "Yüksek Potensli Multivitamin ve Aminoasit Şelatlı Mineraller",
+   "form": "Tablet",
+   "dozaj": "1 Tablet / Günlük",
+   "kutuAdedi": 60,
+   "gunlukDoz": 1,
+   "zamanBloku": "Öğle",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "urunAdi": "Ocean Daily One Energy",
+   "marka": "Orzaks",
+   "etkenMadde": "12 Vitamin + 10 Mineral + Kore Ginsengi",
+   "form": "Tablet",
+   "dozaj": "1 Tablet / Günlük",
+   "kutuAdedi": 30,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "urunAdi": "Redoxon Üçlü Etki (C + D + Çinko)",
+   "marka": "Bayer",
+   "etkenMadde": "Vitamin C (1000 mg) + Vitamin D3 (400 IU) + Çinko (10 mg)",
+   "form": "Efervesan Tablet",
+   "dozaj": "1000 mg C Vitamini",
+   "kutuAdedi": 15,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Tok (Bol Suyla)"
+  },
+  {
+   "barcode": "0339840131484",
+   "urunAdi": "Solgar Ester-C Plus 1000 mg",
+   "marka": "Solgar",
+   "etkenMadde": "Kalsiyum Askorbat (Nötr pH Mide Dostu C Vitamini)",
+   "form": "Tablet",
+   "dozaj": "1000 mg Askorbik Asit Eşdeğeri",
+   "kutuAdedi": 30,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "urunAdi": "VeNatura Çinko Bisglisinat",
+   "marka": "VeNatura",
+   "etkenMadde": "Elementel Çinko (Bisglisinat Şelatı)",
+   "form": "Kapsül",
+   "dozaj": "15 mg Elementel Çinko",
+   "kutuAdedi": 60,
+   "gunlukDoz": 1,
+   "zamanBloku": "Gece",
+   "aclikDurumu": "Tok (Mide bulantısını önlemek için hafif atıştırmalık sonrası)"
+  },
+  {
+   "barcode": "0339840118096",
+   "urunAdi": "Solgar Gentle Iron 20 mg",
+   "marka": "Solgar",
+   "etkenMadde": "Demir Bisglisinat (Kabızlık ve mide tahrişi yapmayan form)",
+   "form": "Bitkisel Kapsül",
+   "dozaj": "20 mg Elementel Demir",
+   "kutuAdedi": 90,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Aç (C vitamini ile, çay/kahve/kalsiyumdan 2 saat ayrı)"
+  },
+  {
+   "urunAdi": "Osteocare Original",
+   "marka": "Vitabiotics",
+   "etkenMadde": "Kalsiyum + Magnezyum + Çinko + Vitamin D3",
+   "form": "Tablet",
+   "dozaj": "800 mg Ca + 300 mg Mg + 10 mg Zn + 400 IU D3 (2 tablette)",
+   "kutuAdedi": 30,
+   "gunlukDoz": 2,
+   "zamanBloku": "Akşam",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "urunAdi": "Solgar Calcium Magnesium with Vitamin D3",
+   "marka": "Solgar",
+   "etkenMadde": "Kalsiyum Sitrat + Magnezyum Oksit/Sitrat + Kolekalsiferol",
+   "form": "Tablet",
+   "dozaj": "1000 mg Ca + 400 mg Mg + 400 IU D3 (3 tablette)",
+   "kutuAdedi": 150,
+   "gunlukDoz": 2,
+   "zamanBloku": "Akşam",
+   "aclikDurumu": "Tok"
+  },
+  {
+   "urunAdi": "Nutraxin Collagen Plus",
+   "marka": "Nutraxin",
+   "etkenMadde": "Tip 1 ve Tip 3 Hidrolize Kolajen Peptitleri + C Vitamini + Hyaluronik Asit",
+   "form": "Tablet",
+   "dozaj": "1050 mg Kolajen Peptiti / Tablet",
+   "kutuAdedi": 30,
+   "gunlukDoz": 1,
+   "zamanBloku": "Gece",
+   "aclikDurumu": "Aç (Yatmadan Önce)"
+  },
+  {
+   "urunAdi": "Ocean Coenzyme Q10 100 mg",
+   "marka": "Orzaks",
+   "etkenMadde": "Koenzim Q10 (Ubikinon)",
+   "form": "Yumuşak Kapsül",
+   "dozaj": "100 mg Ubikinon",
+   "kutuAdedi": 30,
+   "gunlukDoz": 1,
+   "zamanBloku": "Sabah",
+   "aclikDurumu": "Tok (Yağlı Öğünle)"
+  },
+  {
+   "barcode": "8697595870112",
+   "urunAdi": "Ocean Vitamin D3 K2 Damla 20 mL",
+   "marka": "Orzax Ocean",
+   "etkenMadde": "Her damlada 1000 IU (25 mcg) Vitamin D3 (Kolekalsiferol) + 11.25 mcg Vitamin K2 (MK-7)",
+   "form": "Damla",
+   "dozaj": "1000 IU (25 mcg) D3 + 11.25 mcg K2",
+   "kutuAdedi": 400,
+   "gunlukDoz": 1
+  },
+  {
+   "barcode": "8697595870242",
+   "urunAdi": "Ocean Methyl B12 1000 mcg Dilaltı Sprey",
+   "marka": "Orzax Ocean",
+   "etkenMadde": "Her püskürtmede 1000 mcg Metilkobalamin (Aktif Koenzim B12)",
+   "form": "Dilaltı Sprey",
+   "dozaj": "1000 mcg Metilkobalamin",
+   "kutuAdedi": 60,
+   "gunlukDoz": 1
+  },
+  {
+   "barcode": "8697595871058",
+   "urunAdi": "Ocean Microfer Lipozomal Demir 30 Kapsül",
+   "marka": "Orzax Ocean",
+   "etkenMadde": "17 mg Lipozomal Demir Pirofosfat (Lipofer)",
+   "form": "Kapsül",
+   "dozaj": "17 mg Lipozomal Demir",
+   "kutuAdedi": 30,
+   "gunlukDoz": 1
+  },
+  {
+   "barcode": "8697595870082",
+   "urunAdi": "Ocean Plus 1200 mg Omega-3 50 Kapsül",
+   "marka": "Orzax Ocean",
+   "etkenMadde": "780 mg Toplam Omega-3 (384 mg EPA + 252 mg DHA Trigliserid Form)",
+   "form": "Yumuşak Kapsül",
+   "dozaj": "1200 mg Balık Yağı (780 mg Omega-3)",
+   "kutuAdedi": 50,
+   "gunlukDoz": 1
+  },
+  {
+   "barcode": "8697595872192",
+   "urunAdi": "Ocean Extramag Üçlü Magnezyum Kompleks 60 Tablet",
+   "marka": "Orzax Ocean",
+   "etkenMadde": "200 mg Elementel Magnezyum (Sitrat + Malat + Bisglisinat)",
+   "form": "Tablet",
+   "dozaj": "200 mg Elementel Magnezyum",
+   "kutuAdedi": 60,
+   "gunlukDoz": 1
+  },
+  {
+   "barcode": "8699546010110",
+   "urunAdi": "Supradyn All Day Koenzim Q10 30 Film Tablet",
+   "marka": "Bayer",
+   "etkenMadde": "13 Vitamin + 9 Mineral + Koenzim Q10 (B Kompleks, C, D3, Demir, Çinko, Magnezyum)",
+   "form": "Film Tablet",
+   "dozaj": "Multivitamin + Mineral + CoQ10",
+   "kutuAdedi": 30,
+   "gunlukDoz": 1
+  },
+  {
+   "barcode": "8699546020256",
+   "urunAdi": "Redoxon Üçlü Etki (C Vitamini + D3 + Çinko) 15 Efervesan",
+   "marka": "Bayer",
+   "etkenMadde": "1000 mg C Vitamini + 400 IU D Vitamini + 10 mg Çinko",
+   "form": "Efervesan Tablet",
+   "dozaj": "1000 mg C + 400 IU D3 + 10 mg Çinko",
+   "kutuAdedi": 15,
+   "gunlukDoz": 1
+  },
+  {
+   "urunAdi": "Venatura Magnezyum Bisglisinat & P5P 60 Kapsül",
+   "marka": "Venatura",
+   "etkenMadde": "Magnezyum Bisglisinat + Piridoksal 5'-Fosfat (Aktif B6 Vitamini)",
+   "form": "Kapsül",
+   "dozaj": "Magnezyum Bisglisinat + B6 (P5P)",
+   "kutuAdedi": 60,
+   "gunlukDoz": 1
+  },
+  {
+   "urunAdi": "Venatura Çinko Pikolinat 15 mg 60 Kapsül",
+   "marka": "Venatura",
+   "etkenMadde": "15 mg Çinko (Çinko Pikolinat)",
+   "form": "Kapsül",
+   "dozaj": "15 mg Çinko Pikolinat",
+   "kutuAdedi": 60,
+   "gunlukDoz": 1
+  },
+  {
+   "urunAdi": "Venatura Metilfolat (Quatrefolic 5-MTHF) 400 mcg",
+   "marka": "Venatura",
+   "etkenMadde": "400 mcg Folat (6S-5-Metiltetrahidrofolik asit, glukozamin tuzu)",
+   "form": "Tablet",
+   "dozaj": "400 mcg 5-MTHF Aktif Folat",
+   "kutuAdedi": 30,
+   "gunlukDoz": 1
+  },
+  {
+   "barcode": "033984017603",
+   "urunAdi": "Solgar Methylcobalamin 1000 mcg 30 Dilaltı Tablet",
+   "marka": "Solgar",
+   "etkenMadde": "1000 mcg Vitamin B12 (Metilkobalamin)",
+   "form": "Dilaltı Tablet",
+   "dozaj": "1000 mcg Metilkobalamin",
+   "kutuAdedi": 30,
+   "gunlukDoz": 1
+  },
+  {
+   "urunAdi": "Nature's Supreme Hidrolize Kolajen Peptit + C Vitamini",
+   "marka": "Nature's Supreme",
+   "etkenMadde": "Tip 1 ve Tip 3 Hidrolize Kolajen Peptitleri + C Vitamini + Hyaluronik Asit",
+   "form": "Saşe",
+   "dozaj": "10.000 mg Kolajen Peptit + 100 mg C Vitamini",
+   "kutuAdedi": 30,
+   "gunlukDoz": 1
+  }
+ ]
+}

@@ -1,0 +1,575 @@
+/* Ana sayfa: sade "Takviye ekle" penceresi, ilaç kalkanı ve barkod okuyucu (.vsa-* / .vsm-*) */
+
+/* ---------- Takviye ekle penceresi ---------- */
+.vsa-card{position:relative;width:100%;max-width:460px;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;background:#fff;border-radius:24px;padding:18px 18px 20px;box-shadow:0 25px 60px rgba(0,0,0,.4);border:1px solid #e2e8f0;font-size:13px}
+.vsa-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px}
+.vsa-head h3{margin:0;font-size:18px;font-weight:900;color:#0f172a}
+.vsa-head p{margin:3px 0 0;font-size:12px;color:#64748b}
+.vsa-x{width:34px;height:34px;flex:0 0 auto;border:0;border-radius:10px;background:#f1f5f9;color:#64748b;cursor:pointer}
+.vsa-x:hover{background:#e2e8f0}
+
+.vsa-find{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid #99f6e4;border-radius:18px;background:linear-gradient(180deg,#f0fdfa,#fff)}
+.vsa-search{position:relative}
+.vsa-search > i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:14px;pointer-events:none}
+.vsa-search input{width:100%;box-sizing:border-box;height:46px;padding:0 14px 0 38px;border:1.5px solid #cbd5e1;border-radius:14px;background:#fff;font-size:16px;font-weight:700;color:#0f172a}
+.vsa-search input:focus{outline:none;border-color:#14b8a6;box-shadow:0 0 0 4px rgba(20,184,166,.15)}
+.vsa-suggest{border:1px solid #e2e8f0;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 8px 24px rgba(15,23,42,.08)}
+.vsa-suggest.hidden{display:none}
+.vsa-sg{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:0;border-bottom:1px solid #f1f5f9;background:#fff;text-align:left;cursor:pointer}
+.vsa-sg:last-child{border-bottom:0}
+.vsa-sg:hover,.vsa-sg:focus-visible{background:#f0fdfa;outline:none}
+.vsa-sg-ico{width:30px;height:30px;flex:0 0 auto;border-radius:9px;background:#ccfbf1;color:#0f766e;display:flex;align-items:center;justify-content:center;font-size:13px}
+.vsa-sg-ico.rx{background:#e0e7ff;color:#4338ca}
+.vsa-sg-t{min-width:0;flex:1}
+.vsa-sg-t b{display:block;font-size:13px;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vsa-sg-t small{display:block;font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vsa-sg-tag{font-size:10px;font-weight:800;border-radius:999px;padding:2px 8px;background:#e0e7ff;color:#3730a3;white-space:nowrap}
+.vsa-sg-empty{padding:12px;font-size:12px;color:#64748b;display:flex;flex-direction:column;gap:6px}
+.vsa-sg-empty button{align-self:flex-start;border:1px solid #99f6e4;background:#f0fdfa;color:#0f766e;font-weight:800;font-size:12px;border-radius:10px;padding:6px 10px;cursor:pointer}
+
+.vsa-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vsa-btn{min-height:44px;border:1px solid #cbd5e1;border-radius:13px;background:#fff;color:#0f172a;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;padding:0 10px}
+.vsa-btn:hover{background:#f8fafc}
+.vsa-btn.vsa-btn-main{background:linear-gradient(90deg,#0f766e,#14b8a6);border-color:transparent;color:#fff}
+.vsa-btn.vsa-btn-main:hover{filter:brightness(1.06)}
+.vsa-btn.vsa-btn-stop{background:#e11d48;border-color:transparent;color:#fff;grid-column:1/-1}
+.vsa-btn.hidden{display:none}
+
+.vsa-cam{border-radius:16px;background:#020617;padding:8px;text-align:center}
+.vsa-cam.hidden{display:none}
+.vsa-cam-box{position:relative;border-radius:12px;overflow:hidden;background:#0f172a;min-height:200px;display:flex;align-items:center;justify-content:center}
+.vsa-cam-box video{width:100%;max-height:260px;object-fit:cover}
+.vsa-cam-box #addSupQrReader{width:100%}
+.vsa-cam-box #addSupQrReader video{width:100% !important;max-height:260px;object-fit:cover}
+.vsa-frame{position:absolute;inset:18% 12%;border:2px solid rgba(94,234,212,.9);border-radius:14px;box-shadow:0 0 0 999px rgba(2,6,23,.38);pointer-events:none}
+.vsa-frame::after{content:"";position:absolute;left:6%;right:6%;top:50%;height:2px;background:#2dd4bf;box-shadow:0 0 14px 4px rgba(45,212,191,.5);animation:vsaScan 1.8s ease-in-out infinite alternate}
+@keyframes vsaScan{from{top:12%}to{top:88%}}
+.vsa-cam p{margin:7px 0 2px;font-size:12px;color:#99f6e4;font-weight:700}
+.vsa-torch{position:absolute;right:10px;bottom:10px;width:40px;height:40px;border:0;border-radius:50%;background:rgba(15,23,42,.7);color:#fde68a;font-size:16px;cursor:pointer;z-index:3}
+.vsa-torch.on{background:#fbbf24;color:#451a03}
+.vsa-torch.hidden{display:none}
+
+.vsa-feedback{border-radius:12px;padding:9px 11px;font-size:12px;line-height:1.45;border:1px solid #bae6fd;background:#f0f9ff;color:#075985}
+.vsa-feedback.hidden{display:none}
+.vsa-fallback{border:1px solid #fcd34d;background:#fffbeb;border-radius:14px;padding:10px 12px;font-size:12px;color:#78350f}
+.vsa-fallback.hidden{display:none}
+.vsa-fallback p{margin:0 0 8px;font-weight:700}
+.vsa-fb-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vsa-legacy{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);opacity:0;pointer-events:none}
+
+.vsa-form{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+.vsa-row{display:grid;grid-template-columns:1fr 110px;gap:10px}
+.vsa-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vsa-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.vsa-field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.vsa-field > span{font-size:11.5px;font-weight:800;color:#475569}
+.vsa-field input,.vsa-field select{width:100%;box-sizing:border-box;height:42px;padding:0 11px;border:1.5px solid #e2e8f0;border-radius:12px;background:#f8fafc;font-size:15px;font-weight:600;color:#0f172a}
+.vsa-field input:focus,.vsa-field select:focus{outline:none;border-color:#14b8a6;background:#fff;box-shadow:0 0 0 3px rgba(20,184,166,.14)}
+.vsa-more{border:1px solid #e2e8f0;border-radius:14px;background:#f8fafc}
+.vsa-more > summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:11px 13px;font-size:13px;font-weight:800;color:#334155}
+.vsa-more > summary::-webkit-details-marker{display:none}
+.vsa-more > summary small{font-weight:600;color:#94a3b8}
+.vsa-more > summary i{font-size:11px;color:#94a3b8;transition:transform .2s}
+.vsa-more[open] > summary i{transform:rotate(180deg)}
+.vsa-more-body{display:flex;flex-direction:column;gap:10px;padding:0 13px 13px}
+.vsa-formbox{border:1px solid #99f6e4;border-radius:12px;background:#f0fdfa;padding:10px;display:flex;flex-direction:column;gap:8px}
+.vsa-formbox.hidden{display:none}
+.vsa-pills{display:flex;flex-wrap:wrap;gap:6px}
+.vsa-formline{display:flex;justify-content:space-between;font-size:12px;color:#475569}
+.vsa-formbox p{margin:0;font-size:11.5px;color:#0f766e;font-style:italic}
+.vsa-stock{border:1px solid #c7d2fe;border-radius:12px;background:#eef2ff;padding:10px}
+.vsa-stock-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px;font-weight:800;color:#312e81}
+.vsa-stock-head b{font-size:11px;background:#fff;border:1px solid #c7d2fe;border-radius:999px;padding:2px 8px}
+.vsa-live{margin-top:10px;border-radius:14px;padding:10px 12px;font-size:12px;line-height:1.45;border:1px solid #fcd34d;background:#fffbeb;color:#78350f}
+.vsa-live.hidden{display:none}
+.vsa-submit{width:100%;margin-top:12px;min-height:50px;border:0;border-radius:14px;background:linear-gradient(90deg,#0f766e,#14b8a6);color:#fff;font-size:15px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;box-shadow:0 10px 22px -8px rgba(13,148,136,.6)}
+.vsa-submit:active{transform:scale(.99)}
+@media (max-width:380px){.vsa-row{grid-template-columns:1fr 96px}.vsa-grid{grid-template-columns:1fr}}
+
+/* ---------- İlaç kontrolü çekmecesi ---------- */
+.vsd{border:1px solid #e2e8f0;border-radius:18px;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.05);overflow:hidden}
+.vsd-sum{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 14px}
+.vsd-sum::-webkit-details-marker{display:none}
+.vsd-ico{width:38px;height:38px;flex:0 0 auto;border-radius:12px;background:#ccfbf1;color:#0f766e;display:flex;align-items:center;justify-content:center;font-size:16px}
+.vsd-title{display:flex;flex-direction:column;min-width:0;flex:1}
+.vsd-title b{font-size:14px;color:#0f172a;font-weight:900}
+.vsd-title small{font-size:11.5px;color:#64748b;line-height:1.35}
+.vsd-cta{flex:0 0 auto;font-size:11px;font-weight:800;color:#0f766e;background:#f0fdfa;border:1px solid #99f6e4;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.vsd-chev{font-size:11px;color:#94a3b8;transition:transform .2s}
+.vsd[open] .vsd-chev{transform:rotate(180deg)}
+.vsd-body{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px;border-top:1px solid #f1f5f9;padding-top:12px;background:#f8fafc}
+.vsd-add{display:flex;gap:8px}
+.vsd-input{position:relative;flex:1;min-width:0}
+.vsd-input > i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;pointer-events:none}
+.vsd-input input{width:100%;box-sizing:border-box;height:44px;padding:0 12px 0 34px;border:1.5px solid #cbd5e1;border-radius:13px;background:#fff;font-size:15px;font-weight:600;color:#0f172a}
+.vsd-input input:focus{outline:none;border-color:#14b8a6;box-shadow:0 0 0 3px rgba(20,184,166,.15)}
+.vsd-btn{height:44px;flex:0 0 auto;border:0;border-radius:13px;padding:0 14px;display:flex;align-items:center;gap:7px;font-size:13px;font-weight:800;cursor:pointer}
+.vsd-btn-scan{background:linear-gradient(90deg,#0f766e,#14b8a6);color:#fff}
+.vsd-suggest{border:1px solid #e2e8f0;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 8px 24px rgba(15,23,42,.08)}
+.vsd-suggest.hidden{display:none}
+.vsd-label{font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#64748b}
+.vsd-legacy{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);opacity:0;pointer-events:none}
+/* Seçili ilaç grupları: daha küçük ve düzenli */
+#dailyProtocolQuickMedChips button{font-size:11.5px !important}
+#dailyProtocolQuickMedChips .misantha-depletion-tag{font-size:10.5px !important;padding:3px 8px !important}
+
+/* ---------- Barkod okuyucu (ilaç ekle): sade düzen ---------- */
+#barcodeScannerModal.vsm .vsm-hide{display:none !important}
+#barcodeScannerModal.vsm #barcodeScannerHeaderBar{background:linear-gradient(135deg,#0f172a,#312e81) !important;padding:14px 16px !important}
+#barcodeScannerModal.vsm #barcodeScannerHeaderBar .flex-wrap{display:none !important}
+#barcodeScannerModal.vsm #barcodeScannerTitle{font-size:17px;margin:0}
+#barcodeScannerModal.vsm #barcodeScannerSubtitle{margin-top:2px;font-size:12px;color:#c7d2fe}
+#barcodeScannerModal.vsm > section{max-width:480px}
+#barcodeScannerModal.vsm #scannerChannelPanelName{background:#fff;border-color:#c7d2fe}
+#barcodeScannerModal.vsm #scannerChannelPanelName > div:first-child span{display:none}
+#barcodeScannerModal.vsm #barcodeNameAutocompleteInput{height:46px;font-size:16px !important;border-radius:14px}
+#barcodeScannerModal.vsm #scannerChannelPanelCamera{padding:10px !important}
+#barcodeScannerModal.vsm #barcodeCameraPlaceholder p{display:none}
+#barcodeScannerModal.vsm #barcodeCameraPlaceholder{padding:14px 10px}
+#barcodeScannerModal.vsm #barcodeCameraPlaceholder i{font-size:30px}
+#barcodeScannerModal.vsm #barcodeStartCameraBtn{min-height:46px;width:100%;font-size:14px}
+#barcodeScannerModal.vsm #barcodeCameraViewport{position:relative}
+.vsm-online{display:flex;align-items:center;justify-content:center;gap:7px;width:calc(100% - 20px);margin:6px 10px 10px;min-height:40px;border:1px solid #c7d2fe;background:#eef2ff;color:#3730a3;border-radius:12px;font-size:12.5px;font-weight:800;cursor:pointer}
+/* Yapay zekâ kutu tanıma: sonuç kartı ve hemen altındaki ekleme düğmeleri (İlaç ekle + Takviye ekle) */
+.vita-ai-card{margin-top:10px;border:1.5px solid #5eead4;border-radius:16px;background:linear-gradient(180deg,#f0fdfa,#fff);padding:12px;color:#0f172a}
+.vita-ai-card.is-medication{border-color:#a5b4fc;background:linear-gradient(180deg,#eef2ff,#fff)}
+.vita-ai-card-head{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:900;color:#115e59}
+.vita-ai-card.is-medication .vita-ai-card-head{color:#3730a3}
+.vita-ai-card dl{margin:8px 0 0;display:grid;gap:3px}
+.vita-ai-card dl>div{display:grid;grid-template-columns:118px 1fr;gap:8px;font-size:12px;line-height:1.35}
+.vita-ai-card dt{color:#64748b;font-weight:700}
+.vita-ai-card dd{margin:0;font-weight:800;word-break:break-word}
+.vita-ai-card-note,.vita-ai-card-warn,.vita-ai-act-note{margin:8px 0 0;font-size:11px;line-height:1.45;color:#475569}
+.vita-ai-card-warn{color:#3730a3;font-weight:700}
+.vita-ai-actions{margin-top:10px;padding-top:10px;border-top:1px dashed #a5b4fc}
+.vita-ai-act-row{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px}
+.vita-ai-act{flex:1 1 180px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:8px 12px;border-radius:12px;border:1px solid transparent;font-size:13px;font-weight:900;cursor:pointer;transition:filter .15s,transform .1s}
+.vita-ai-act:active{transform:scale(.98)}
+.vita-ai-act-sup{background:linear-gradient(90deg,#0f766e,#14b8a6);color:#fff}
+.vita-ai-act-med{background:#4338ca;color:#fff}
+.vita-ai-act-ghost{background:#fff;border-color:#cbd5e1;color:#0f172a}
+.vita-ai-act:hover{filter:brightness(1.06)}
+@media (max-width:380px){.vita-ai-card dl>div{grid-template-columns:96px 1fr}}
+/* Vita AI sohbeti: sesle yazma göstergesi ve en alttaki tek satırlık onay bilgisi */
+.vita-mic-btn.is-listening{position:relative;animation:vitaMicPulse 1.1s ease-in-out infinite}
+.vita-mic-btn.is-listening::after{content:"";position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:999px;background:#ef4444;border:2px solid #fff;animation:vitaMicBlink 1s steps(2,start) infinite}
+@keyframes vitaMicPulse{0%,100%{box-shadow:0 0 0 0 rgba(225,29,72,.55)}50%{box-shadow:0 0 0 7px rgba(225,29,72,0)}}
+@keyframes vitaMicBlink{to{visibility:hidden}}
+.vita-voice-status.is-listening{color:#be123c;font-weight:700}
+.vita-consent-hint{display:flex;align-items:center;gap:6px;padding:3px 12px 5px;background:#fff;font-size:10px;line-height:1.3;color:#94a3b8;white-space:nowrap;overflow:hidden}
+.vita-consent-hint.hidden{display:none}
+.vita-consent-hint i{font-size:9px;flex:0 0 auto}
+.vita-consent-hint span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.vita-consent-hint button{flex:0 0 auto;margin-left:auto;padding:0 2px;border:0;background:none;color:#0f766e;font-size:10px;font-weight:800;text-decoration:underline;cursor:pointer}
+/* Ayarlar > Yapay zekâ: salt okunur aktif model ve veri paylaşım onayı */
+.vita-model-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.vita-model-label{font-size:11px;font-weight:800;color:#475569}
+.vita-model-note{flex-basis:100%;font-size:10px;color:#64748b}
+.vita-consent-card{margin-top:4px;padding:10px 12px;border:1px solid #fcd34d;border-radius:14px;background:#fffbeb;color:#451a03;font-size:11px;line-height:1.5;transition:box-shadow .3s}
+.vita-consent-card.vita-attention{box-shadow:0 0 0 3px rgba(20,184,166,.55)}
+.vita-consent-fine{margin:6px 0 0 30px;font-size:10px;color:#92400e}
+.vita-consent-status-row{margin:8px 0 0 30px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px}
+@media (prefers-reduced-motion:reduce){.vita-mic-btn.is-listening,.vita-mic-btn.is-listening::after{animation:none}}
+/* İlaç modülü: Bugün alınması gereken ilaçlar kartı */
+.vtm-card{margin-top:14px;border:1px solid #c7d2fe;border-radius:18px;background:linear-gradient(180deg,#eef2ff,#fff);padding:14px}
+.vtm-card.hidden{display:none}
+.vtm-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.vtm-head h2{margin:0;font-size:14px;font-weight:900;color:#1e1b4b;display:flex;align-items:center;gap:8px}
+.vtm-head h2 i{color:#4338ca}
+.vtm-counter{font-size:11px;font-weight:900;padding:3px 10px;border-radius:999px;background:#e0e7ff;color:#3730a3}
+.vtm-counter.is-complete{background:#dcfce7;color:#166534}
+.vtm-list{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
+.vtm-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #e0e7ff;border-radius:12px;background:#fff;transition:background .15s}
+.vtm-row input{width:22px;height:22px;flex:0 0 22px;accent-color:#16a34a;cursor:pointer}
+.vtm-row label{flex:1;min-width:0;display:flex;flex-direction:column;cursor:pointer}
+.vtm-row b{font-size:13px;color:#0f172a;word-break:break-word}
+.vtm-row small{font-size:11px;color:#64748b;font-weight:700}
+.vtm-row.is-taken{background:#f0fdf4;border-color:#bbf7d0}
+.vtm-row.is-taken b{color:#166534;text-decoration:line-through;text-decoration-color:rgba(22,101,52,.45)}
+.vtm-empty{padding:8px 10px;font-size:12px;color:#64748b}
+.vtm-note{margin:8px 0 0;font-size:11px;color:#475569}
+.vtm-note.hidden{display:none}
+.vtm-add{margin-top:10px;min-height:38px;padding:6px 12px;border:1px dashed #a5b4fc;border-radius:12px;background:#fff;color:#3730a3;font-size:12px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.vtm-add:hover{background:#eef2ff}
+/* Sade İlaç ekle penceresi */
+.vam-status{margin-top:8px;padding:9px 11px;border-radius:12px;font-size:12px;line-height:1.45;display:flex;flex-direction:column;gap:3px}
+.vam-status.hidden{display:none}
+.vam-status small{color:#475569;font-weight:600}
+.vam-info{background:#eef2ff;border:1px solid #c7d2fe;color:#1e1b4b}
+.vam-ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d}
+.vam-warn{background:#fffbeb;border:1px solid #fcd34d;color:#78350f}
+.vam-status .vam-src{font-size:11px;color:#475569}
+.vam-status .vam-warn{border:0;background:none;padding:0;font-size:11px;font-weight:800;color:#92400e}
+.vam-row{grid-template-columns:1fr 120px}
+.vam-row:has(#addMedTimeField.hidden){grid-template-columns:1fr}
+.vam-hint{margin:-4px 0 0;font-size:11px;color:#4338ca;font-weight:700}
+.vam-hint.hidden,.vsa-field.hidden{display:none}
+.vam-foot{margin:8px 2px 0;font-size:10.5px;color:#64748b;line-height:1.4}
+/* Ana sayfa üst düğmeleri: tek satırda iki sütun */
+#homeHeroActions .vh-act{min-height:44px;font-size:11.5px}
+@media (min-width:640px){#homeHeroActions{grid-template-columns:repeat(2,minmax(170px,auto))}}
+/* Takviye kartları: kartvizit görünümü + ayrıntı çekmecesi */
+.vsc-card{position:relative}
+.vsc-row{display:flex;align-items:center;gap:8px;min-height:40px}
+.vsc-main{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:2px 0;border:0;background:none;text-align:left;cursor:pointer}
+.vsc-name{font-size:13px;font-weight:900;line-height:1.25;word-break:break-word}
+.vsc-meta{display:flex;flex-wrap:wrap;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:#0369a1}
+.vsc-meta .fa-clock{font-size:10px}
+.vsc-flag{display:inline-flex;align-items:center;gap:3px;padding:0 6px;border-radius:999px;font-size:10px;font-weight:900;line-height:16px}
+.vsc-flag-stock{background:#fee2e2;color:#991b1b}
+.vsc-flag-ix{background:#fef3c7;color:#92400e}
+.vsc-chev,.vsc-del{flex:0 0 32px;height:32px;display:flex;align-items:center;justify-content:center;border:0;border-radius:10px;background:none;color:#94a3b8;cursor:pointer;font-size:12px}
+.vsc-chev:hover{background:#f1f5f9;color:#0f766e}
+.vsc-del:hover{background:#fff1f2;color:#e11d48}
+.vsc-chev i{transition:transform .2s}
+.vsc-card.is-open .vsc-chev i{transform:rotate(180deg)}
+.vsc-more{margin-top:6px;padding-top:6px;border-top:1px dashed #e2e8f0}
+.vsc-more.hidden{display:none}
+.vsc-more .misantha-stock-bar{margin-top:0}
+.vsc-instruction{margin:8px 0 0;padding:8px 10px;border-radius:10px;background:#fffbeb;border:1px solid #fde68a;font-size:12px;line-height:1.45;color:#334155}
+.vsc-instruction i{color:#d97706}
+@media (prefers-reduced-motion:reduce){.vsc-chev i{transition:none}}
+/* Takviye ekle: "Nasıl alacaksınız?" */
+.vsa-dose{margin:0;padding:10px 12px 12px;border:1.5px solid #99f6e4;border-radius:14px;background:#f0fdfa;display:flex;flex-direction:column;gap:8px;min-width:0}
+.vsa-dose legend{padding:0 6px;font-size:12px;font-weight:900;color:#115e59}
+.vsa-dose-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vsa-dose-preview{margin:0;padding:6px 10px;border-radius:10px;background:#fff;border:1px solid #ccfbf1;font-size:12.5px;font-weight:900;color:#0f766e}
+.vsa-dose-note{margin:0;font-size:10.5px;color:#64748b}
+.vsa-field small{font-weight:600;color:#94a3b8}
+/* Ayarlar: katlanabilir bölümler */
+.vst-section .vst-head{border-bottom:0 !important;padding-bottom:0 !important}
+.vst-section.vst-open .vst-head{border-bottom:1px solid #f1f5f9 !important;padding-bottom:10px !important}
+.vst-title{margin:0;flex:1;min-width:0}
+.vst-toggle{width:100%;display:flex;align-items:center;gap:10px;padding:2px 0;border:0;background:none;text-align:left;cursor:pointer;color:inherit}
+.vst-ico{flex:0 0 28px;height:28px;border-radius:9px;background:#f1f5f9;display:flex;align-items:center;justify-content:center}
+.vst-ico i{font-size:13px}
+.vst-text{flex:1;min-width:0;display:flex;flex-direction:column}
+.vst-name{font-size:13.5px;font-weight:900;color:#0b1f3a}
+.vst-summary{font-size:11px;font-weight:700;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vst-summary:empty{display:none}
+.vst-chev{flex:0 0 auto;color:#94a3b8;font-size:12px;transition:transform .2s}
+.vst-open .vst-chev{transform:rotate(180deg)}
+.vst-body{margin-top:12px}
+.vst-body[hidden]{display:none}
+.vst-section{padding-top:12px !important;padding-bottom:12px !important}
+@media (prefers-reduced-motion:reduce){.vst-chev{transition:none}}
+/* Geri bildirim: direkt gönderim durumu */
+.vita-fb-status.hidden{display:none}
+.vita-fb-ok{background:#ecfdf5;border-color:#6ee7b7;color:#065f46;animation:vitaFbIn .25s ease-out both}
+.vita-fb-ok i{color:#059669}
+.vita-fb-error{background:#fff1f2;border-color:#fda4af;color:#9f1239;animation:vitaFbIn .25s ease-out both}
+.vita-fb-actions{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+.vita-fb-actions button{min-height:36px;padding:6px 11px;border-radius:10px;border:1px solid #fda4af;background:#fff;color:#9f1239;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.vita-fb-actions button:hover{background:#ffe4e6}
+#btnSubmitVitaFeedback:disabled{opacity:.75;cursor:progress}
+@keyframes vitaFbIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.vita-fb-ok,.vita-fb-error{animation:none}}
+.vst-head{flex-wrap:nowrap !important}
+.vst-status{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:10px}
+.vst-status > div{display:flex;flex-wrap:wrap;gap:6px}
+/* "!" kullanım bilgisi ve Emniyet Kalkanı çekmecesi */
+.vsc-title{display:flex;align-items:flex-start;gap:6px;min-width:0}
+.vsc-main{cursor:pointer}
+.vsc-name{border:0;background:none;padding:0;text-align:left;cursor:pointer}
+.vsc-info{flex:0 0 22px;width:22px;height:22px;border-radius:999px;border:1.5px solid #f59e0b;background:#fffbeb;color:#b45309;font-size:12px;font-weight:900;line-height:1;cursor:pointer}
+.vsc-stock{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.vita-usage-pop{position:fixed;z-index:9995;padding:12px 34px 12px 12px;border-radius:14px;background:#fff;border:1px solid #fcd34d;box-shadow:0 12px 32px rgba(15,23,42,.25);font-size:12.5px;line-height:1.45;color:#1e293b}
+.vita-usage-pop p{margin:4px 0 0}
+.vita-usage-pop small{display:block;margin-top:6px;color:#64748b;font-weight:700}
+.vita-usage-pop button{position:absolute;top:6px;right:8px;width:24px;height:24px;border:0;background:none;font-size:18px;color:#94a3b8;cursor:pointer}
+.vsk{padding:0}
+.vsk-sum{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;list-style:none}
+.vsk-sum::-webkit-details-marker{display:none}
+.vsk-ico{flex:0 0 32px;height:32px;border-radius:10px;background:#e11d48;display:flex;align-items:center;justify-content:center}
+.vsk-text{flex:1;min-width:0;display:flex;flex-direction:column}
+.vsk-text b{font-size:13px}
+.vsk-text em{font-style:normal;color:#fecdd3}
+.vsk-text small{font-size:10.5px;color:#fda4af}
+.vsk-chev{transition:transform .2s}
+.vsk[open] .vsk-chev{transform:rotate(180deg)}
+.vsk-body{padding:0 14px 14px}
+/* ===== Genel düzen denetimi düzeltmeleri ===== */
+/* Takviye grup başlığı: "Tümü alındı" başlığın sağında, ayrı satır kaplamaz */
+.vsg-head{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;color:#334155;min-height:36px}
+.vsg-label{min-width:0}
+.vsg-count{font-size:10.5px;font-weight:800;color:#64748b;background:#f1f5f9;border-radius:999px;padding:1px 8px}
+.vsg-all{margin-left:auto;flex:0 0 auto;min-height:34px;padding:4px 10px;border-radius:10px;border:1px solid #6ee7b7;background:#ecfdf5;color:#047857;font-size:11px;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.vsg-all:hover{background:#d1fae5}
+/* Bugünkü ilaçlar: "!" kullanım bilgisi */
+.vtm-info{flex:0 0 28px;width:28px;height:28px;border-radius:999px;border:1.5px solid #f59e0b;background:#fffbeb;color:#b45309;font-size:13px;font-weight:900;cursor:pointer}
+/* Geri düğmesi: tek satır, yeterli dokunma alanı */
+.vbh-back{min-height:40px}
+#viewHeaderBar #currentViewTitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Tahliller: değer adları iki satıra sığar (kesilmez); giriş kutuları 40 px ve 16 px yazı (iPhone yakınlaştırmasın) */
+#view-labs label.truncate{white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;min-height:2.6em}
+#view-labs input[id^="inputLab"]{min-height:40px;font-size:16px}
+#view-labs #inputLabDate{min-height:40px;font-size:15px}
+#view-labs button[onclick*="openENabiz"],#view-labs button.px-3.py-1\.5{min-height:40px}
+/* Küçük dokunma alanları: belirti kontrolü, "Profili Düzenle" */
+.sdc-yes,.sdc-no{min-height:40px !important;padding-left:14px !important;padding-right:14px !important}
+.sdc-all{min-height:36px}
+.vst-head > button{min-height:40px}
+/* Alt menü yazıları okunur boyut */
+.vita-mobile-nav button span{font-size:10.5px !important;line-height:1.15}
+/* Yapay zekâ düğmesi: aşağı kaydırırken gizlenir; sayfa sonunda içeriği örtmemesi için alt boşluk */
+#vitaAiFab{transition:transform .25s ease,opacity .25s ease}
+#vitaAiFab.vita-fab-hidden{transform:translateY(140%) scale(.8);opacity:0;pointer-events:none}
+@media (max-width:767px){html body main{padding-bottom:calc(6.25rem + 50px + 64px + env(safe-area-inset-bottom)) !important}}
+@media (prefers-reduced-motion:reduce){#vitaAiFab{transition:none}}
+/* Üst bar: günlük özet göstergeleri simgesi + açılır panel */
+.vds-btn{position:relative;flex:0 0 auto;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid #334155;background:#1e293b;color:#5eead4;cursor:pointer;font-size:15px}
+.vds-btn:hover{background:#0f172a}
+.vds-btn[aria-expanded="true"]{border-color:#2dd4bf;box-shadow:0 0 0 2px rgba(45,212,191,.35)}
+.vds-badge{position:absolute;top:-6px;right:-6px;min-width:22px;height:18px;padding:0 4px;border-radius:999px;background:#14b8a6;color:#042f2e;font-size:9.5px;font-weight:900;line-height:18px;text-align:center;border:2px solid #0f172a}
+.vds-panel{position:fixed;right:12px;left:auto;z-index:60;width:min(380px,calc(100vw - 24px));padding:12px;border-radius:18px;background:#fff;border:1px solid #e2e8f0;box-shadow:0 18px 40px rgba(15,23,42,.28);color:#0f172a}
+.vds-panel.hidden{display:none}
+.vds-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.vds-head h2{margin:0;font-size:13px;font-weight:900;display:flex;align-items:center;gap:8px}
+.vds-head h2 i{color:#0d9488}
+.vds-close{width:36px;height:36px;border:0;border-radius:10px;background:#f1f5f9;color:#475569;cursor:pointer}
+.vds-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vds-grid > div{padding:12px !important}
+.vds-foot{margin:10px 2px 0;font-size:10.5px;color:#64748b}
+/* "Bugünkü ilaçlarım": takviye kartıyla aynı düzen */
+#todayMedsCard.vtm-card{margin-top:0;background:#fff;border-color:rgba(226,232,240,.8);padding:20px}
+@media (min-width:640px){#todayMedsCard.vtm-card{padding:24px}}
+#todayMedsCard .vtm-counter{display:inline-block;margin-top:10px}
+#todayMedsCard .vtm-counter.hidden{display:none}
+#todayMedsCard .vtm-row{display:block;padding:10px 12px}
+#todayMedsCard .vtm-row input[type=checkbox]{accent-color:#4f46e5}
+#todayMedsCard .vsc-main{cursor:pointer}
+.vtm-empty{padding:12px;border:1px dashed #c7d2fe;border-radius:14px;background:#f8fafc;font-size:12px;color:#475569;text-align:center}
+.vtm-empty i{color:#6366f1;margin-right:4px}
+/* İlaç ekle: alım saatleri + bildirim önerisi */
+.vam-clocks{display:flex;flex-wrap:wrap;gap:8px}
+.vam-clock{flex:1 1 90px;display:flex;flex-direction:column;gap:3px;font-size:10.5px;font-weight:800;color:#64748b}
+.vam-clock input{height:42px;padding:0 10px;border:1.5px solid #e2e8f0;border-radius:12px;background:#f8fafc;font-size:16px;font-weight:800;color:#0f172a}
+.vam-clock input:focus{outline:none;border-color:#6366f1;background:#fff}
+.vsa-field.hidden,#addMedTimeField.hidden{display:none}
+.vam-notif{margin:0;padding:8px 10px;border-radius:12px;background:#eef2ff;border:1px solid #c7d2fe;font-size:11.5px;color:#3730a3;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.vam-notif.hidden{display:none}
+.vam-notif button{margin-left:auto;min-height:34px;padding:4px 10px;border-radius:10px;border:0;background:#4f46e5;color:#fff;font-size:11px;font-weight:900;cursor:pointer}
+/* Profil fotoğrafı */
+.vpf-wrap{position:relative;flex:0 0 auto}
+.vpf-edit{position:absolute;right:-4px;bottom:-4px;width:22px;height:22px;border-radius:999px;border:2px solid #0f172a;background:#14b8a6;color:#042f2e;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.vpf-img{width:100%;height:100%;object-fit:cover;border-radius:999px;display:block}
+.vpf-has-photo{background:transparent !important;border-color:transparent !important}
+.vpf-row{display:flex;align-items:center;gap:14px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:16px;background:#f8fafc}
+.vpf-preview{flex:0 0 72px;width:72px;height:72px;border-radius:999px;overflow:hidden;background:#ccfbf1;color:#0f766e;display:flex;align-items:center;justify-content:center;font-size:26px;border:2px solid #fff;box-shadow:0 2px 8px rgba(15,23,42,.12)}
+.vpf-actions{min-width:0;display:flex;flex-direction:column;gap:6px}
+.vpf-actions b{font-size:12px;color:#0f172a}
+.vpf-actions b small{font-weight:600;color:#94a3b8}
+.vpf-btns{display:flex;flex-wrap:wrap;gap:6px}
+.vpf-btn{min-height:38px;padding:6px 12px;border-radius:10px;border:1px solid #14b8a6;background:#fff;color:#0f766e;font-size:12px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.vpf-btn-rm{border-color:#fecdd3;color:#be123c}
+.vpf-btn.hidden{display:none}
+.vpf-note{font-size:10.5px;color:#64748b}
+/* ===== Takviye Ekle: tam ekran sayfa ===== */
+.vsp-page{display:flex;flex-direction:column;gap:12px;padding-bottom:84px}
+.vsp-page.hidden{display:flex}
+.vsp-page .vsa-find{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:12px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.vsp-page .vsa-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vsp-card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:12px 12px 14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 2px rgba(15,23,42,.04);min-width:0;margin:0}
+.vsp-card.vsa-dose{border:1.5px solid #99f6e4;background:#f0fdfa}
+.vsp-card.vsa-dose legend{float:left;width:100%;padding:0;margin-bottom:2px;font-size:13px;font-weight:900;color:#115e59}
+.vsp-h{margin:0;font-size:13px;font-weight:900;color:#0f172a;display:flex;align-items:center;gap:8px}
+.vsp-h i{color:#0d9488}
+.vsp-hrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.vsp-badge{font-size:11px;font-weight:900;padding:3px 10px;border-radius:999px;background:#eef2ff;color:#3730a3}
+.vsp-field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.vsp-lbl{font-size:11.5px;font-weight:800;color:#475569}
+.vsp-lbl small{font-weight:600;color:#94a3b8}
+.vsp-field input:not([type=checkbox]),.vsp-field select{width:100%;box-sizing:border-box;height:44px;padding:0 12px;border:1.5px solid #e2e8f0;border-radius:12px;background:#f8fafc;font-size:16px;color:#0f172a}
+.vsp-field input:focus,.vsp-field select:focus{outline:none;border-color:#14b8a6;background:#fff;box-shadow:0 0 0 3px rgba(20,184,166,.14)}
+.vsp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vsp-step{display:flex;align-items:stretch;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;background:#f8fafc;overflow:hidden}
+.vsp-step input{flex:1;min-width:0;border:0 !important;background:transparent !important;text-align:center;font-weight:900;height:100% !important;-moz-appearance:textfield;box-shadow:none !important}
+.vsp-step input::-webkit-outer-spin-button,.vsp-step input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.vsp-stepbtn{flex:0 0 42px;border:0;background:#fff;color:#0f766e;font-size:20px;font-weight:900;cursor:pointer}
+.vsp-stepbtn:active{background:#ccfbf1}
+.vsp-seg{display:grid;grid-template-columns:1fr 1.6fr;gap:6px;padding:4px;border-radius:12px;background:#e2e8f0}
+.vsp-segbtn{min-height:38px;border:0;border-radius:9px;background:transparent;color:#334155;font-size:12px;font-weight:800;cursor:pointer}
+.vsp-segbtn.is-on{background:#fff;color:#0f766e;box-shadow:0 1px 3px rgba(15,23,42,.15)}
+.vsp-days,.vsp-vakits{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.vsp-days.hidden{display:none}
+.vsp-chip{min-height:38px;min-width:46px;padding:0 12px;border-radius:999px;border:1.5px solid #cbd5e1;background:#fff;color:#334155;font-size:12.5px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.vsp-chip.is-on{border-color:#0d9488;background:#0d9488;color:#fff}
+.vsp-clocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:6px}
+.vsp-clock{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:900;color:#115e59}
+.vsp-clock small{font-weight:700;color:#64748b}
+.vsp-clock input{height:42px;padding:0 10px;border:1.5px solid #99f6e4;border-radius:12px;background:#fff;font-size:16px;font-weight:800;color:#0f172a}
+.vsp-advice{display:flex;gap:8px;align-items:flex-start;padding:9px 11px;border-radius:12px;background:#ecfeff;border:1px solid #a5f3fc;font-size:12px;line-height:1.45;color:#155e75}
+.vsp-advice.hidden{display:none}
+.vsp-conflict{padding:10px 12px;border-radius:14px;background:#fff7ed;border:1.5px solid #fb923c;color:#7c2d12;font-size:12px;display:flex;flex-direction:column;gap:8px}
+.vsp-conflict.hidden{display:none}
+.vsp-conflict b i{color:#ea580c}
+.vsp-cf{display:flex;flex-wrap:wrap;align-items:center;gap:8px;line-height:1.4}
+.vsp-cf span{flex:1 1 200px}
+.vsp-cf button{min-height:34px;padding:4px 10px;border-radius:10px;border:0;background:#ea580c;color:#fff;font-size:11px;font-weight:900;cursor:pointer}
+.vsp-note{margin:0;font-size:10.5px;color:#64748b}
+.vsp-tpl summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;list-style:none;font-size:12.5px;font-weight:800;color:#334155}
+.vsp-tpl summary::-webkit-details-marker{display:none}
+.vsp-tpl summary small{font-weight:600;color:#94a3b8}
+.vsp-submitbar{position:sticky;bottom:calc(64px + 46px + env(safe-area-inset-bottom));z-index:20;padding:8px 0 0;background:linear-gradient(180deg,rgba(248,250,252,0),#f8fafc 40%)}
+@media (min-width:768px){.vsp-submitbar{bottom:12px}}
+.vsp-submitbar .vsa-submit{width:100%;min-height:50px}
+/* Gün rozetleri */
+.vday-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:999px;background:#ccfbf1;color:#115e59;font-size:11px;font-weight:900;text-transform:capitalize;margin-left:6px}
+.vday-badge--hero{margin-left:0;padding:4px 12px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.22);font-size:12px}
+
+/* Takviye Ekle: hızlı ekleme kısayolları, katlanır stok, düzenleme kipi */
+.vsp-quick{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.vsp-quick.hidden{display:none}
+.vsp-qlbl{font-size:11px;font-weight:900;color:#64748b;display:inline-flex;align-items:center;gap:4px;margin-right:2px}
+.vsp-qlbl i{color:#f59e0b}
+.vsp-qchip{max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:6px 11px;border-radius:999px;border:1px solid #99f6e4;background:#f0fdfa;color:#115e59;font-size:12px;font-weight:800;cursor:pointer;min-height:32px}
+.vsp-qchip:hover,.vsp-qchip:focus-visible{background:#ccfbf1;outline:none;box-shadow:0 0 0 2px #5eead4}
+.vsp-stockd>summary{cursor:pointer;list-style:none}
+.vsp-stockd>summary::-webkit-details-marker{display:none}
+.vsp-stockd:not([open]){gap:0}
+.vsp-sumr{display:inline-flex;align-items:center;gap:8px}
+.vsp-sumr .fa-chevron-down{color:#94a3b8;font-size:11px;transition:transform .2s}
+.vsp-stockd[open] .vsp-sumr .fa-chevron-down{transform:rotate(180deg)}
+.vsp-tpl.hidden,#addSupBoxBarcodeSection.hidden{display:none}
+
+/* Ana sayfa takviye kartı: düşük stok şeridi, "Bugün atla", düzenle */
+.vsc-low{display:flex;align-items:center;gap:8px;margin-top:6px;padding:6px 6px 6px 10px;border-radius:12px;background:#fffbeb;border:1px solid #fde68a;color:#92400e;font-size:11.5px;font-weight:800}
+.vsc-low.is-critical{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
+.vsc-low span{flex:1;min-width:0}
+.vsc-low button{flex:0 0 auto;border:0;border-radius:9px;padding:6px 10px;background:#0d9488;color:#fff;font-size:11.5px;font-weight:900;cursor:pointer;min-height:30px}
+.vsc-low button:hover{background:#0f766e}
+.vsc-skipped{display:flex;align-items:center;gap:8px;margin-top:6px;padding:5px 6px 5px 10px;border-radius:12px;background:#f1f5f9;color:#475569;font-size:11.5px;font-weight:800}
+.vsc-skipped span{flex:1;min-width:0}
+.vsc-skipped button{border:1px solid #cbd5e1;background:#fff;color:#334155;border-radius:9px;padding:5px 10px;font-size:11.5px;font-weight:900;cursor:pointer;min-height:30px}
+.vsc-card.is-skipped .vsc-name{color:#94a3b8;text-decoration:line-through}
+.vsc-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.vsc-act{display:inline-flex;align-items:center;gap:6px;border:1px solid #e2e8f0;background:#fff;color:#334155;border-radius:10px;padding:6px 11px;font-size:12px;font-weight:800;cursor:pointer;min-height:32px}
+.vsc-act:hover{background:#f8fafc;border-color:#cbd5e1}
+.vsc-act i{color:#0d9488}
+
+/* Takviye Ekle: şablon çipleri, ürüne özel form çipleri, dijital SS:DD saat, aç/tok etiketi */
+.vsp-tchips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.vsp-tchip{min-height:40px;padding:4px 6px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;color:#0f172a;font-size:12px;font-weight:800;cursor:pointer;line-height:1.2;overflow:hidden;text-overflow:ellipsis}
+.vsp-tchip:hover{border-color:#5eead4;background:#f0fdfa}
+.vsp-tchip.is-on{border-color:#0d9488;background:#ccfbf1;color:#115e59}
+.vsp-tpl summary small#vspTplChosen{color:#0f766e;font-weight:800}
+.vsp-forms{display:flex;flex-wrap:wrap;gap:6px}
+.vsp-fchip{min-height:36px;padding:0 12px;font-size:12px}
+.vsp-clocks.is-digital{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+.vsp-hm{display:flex;align-items:center;gap:4px;height:42px;padding:0 6px;border:1.5px solid #99f6e4;border-radius:12px;background:#fff;width:max-content}
+.vsp-hm:focus-within{border-color:#0d9488;box-shadow:0 0 0 3px rgba(13,148,136,.18)}
+.vsp-clock .vsp-hm input{width:2.6ch;height:34px;padding:0;border:0;border-radius:8px;background:#f0fdfa;text-align:center;font-size:18px;font-weight:900;color:#0f172a;font-variant-numeric:tabular-nums}
+.vsp-clock .vsp-hm input:focus{outline:none;background:#ccfbf1}
+.vsp-hm b{font-size:18px;color:#0f766e}
+.vsc-hunger{display:inline-flex;align-items:center;padding:0 7px;border-radius:999px;line-height:16px;font-size:10px;font-weight:900}
+.vsc-hunger--empty{background:#fef3c7;color:#92400e}
+.vsc-hunger--full{background:#dcfce7;color:#166534}
+.vsc-hunger--any{background:#f1f5f9;color:#475569}
+#settingsTimeModeRow .vsp-seg{grid-template-columns:1fr 1fr}
+
+/* Galeriden fotoğraf yükleme (Takviye Ekle / İlaç Ekle) */
+.vsa-uploads{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.vsa-upbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:4px 8px;border-radius:11px;border:1.5px dashed #94a3b8;background:#f8fafc;color:#334155;font-size:11.5px;font-weight:800;cursor:pointer;line-height:1.2}
+.vsa-upbtn:hover{border-color:#0d9488;color:#0f766e;background:#f0fdfa}
+.vsa-upbtn i{color:#0d9488}
+/* İlaç Ekle tam ekran sayfası */
+.vam-seg3{grid-template-columns:1fr 1.15fr 1.15fr}
+.vsp-field.hidden{display:none}
+.vam-page .vsa-dose-preview{margin:0}
+.vam-page .vam-foot{margin:0 4px}
+
+/* Ana sayfa kart başlıkları: başlık + gün rozeti; altında açıklama solda, "+ Ekle" düğmesi sağda (iki kartta simetrik) */
+.vcard-head{display:flex;flex-direction:column;gap:6px}
+.vcard-sub{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.vcard-sub p{flex:1 1 auto;min-width:0;margin:0;line-height:1.4}
+.vcard-sub .vcard-add{flex:0 0 auto;width:128px;min-height:38px;justify-content:center;white-space:nowrap}
+/* Bulunamayan barkod: "Yapay Zekâ ile Bul" / "Elle yaz" ve Ayarlar bağlantısı */
+.vam-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.vam-act{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:4px 12px;border-radius:10px;border:1px solid #cbd5e1;background:#fff;color:#334155;font-size:12px;font-weight:800;cursor:pointer}
+.vam-act-ai{background:#4f46e5;border-color:#4338ca;color:#fff}
+.vita-set-link{display:inline-flex;align-items:center;gap:5px;margin-left:2px;padding:3px 10px;border-radius:999px;border:1px solid #0d9488;background:#f0fdfa;color:#0f766e;font-size:11.5px;font-weight:900;cursor:pointer;vertical-align:middle}
+.vita-set-link:hover{background:#ccfbf1}
+.vsa-fb-hint{font-size:11.5px;color:#92400e;margin:4px 0 0}
+.vsa-fb-hint.hidden{display:none}
+/* Engellenmiş izin yönlendirme kartı */
+.vperm-slot.hidden{display:none}
+.vperm-help{margin-top:8px;padding:10px 12px;border-radius:14px;border:1px solid #fecdd3;background:#fff1f2;color:#881337;font-size:11.5px;line-height:1.5}
+.vperm-help > b{display:flex;align-items:center;gap:6px;font-size:12px}
+.vperm-help ol{margin:6px 0 8px;padding-left:18px;list-style:decimal}
+.vperm-recheck{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 12px;border-radius:10px;border:0;background:#e11d48;color:#fff;font-size:12px;font-weight:900;cursor:pointer}
+.vperm-recheck:hover{background:#be123c}
+
+/* Ana sayfa: Takviyelerim / İlaçlarım kaydırmalı sekmeleri */
+.vhs-wrap{display:flex;flex-direction:column;gap:8px}
+.vhs-dots{display:flex;gap:6px;justify-content:center}
+.vhs-dot{min-height:32px;padding:0 14px;border-radius:999px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-size:12px;font-weight:800;cursor:pointer}
+.vhs-dot.is-on{background:#0f766e;border-color:#0f766e;color:#fff}
+.vhs-viewport{overflow:hidden;transition:height .3s ease;border-radius:18px}
+.vhs-track{display:flex;align-items:flex-start;transition:transform .35s cubic-bezier(.2,.8,.2,1);will-change:transform}
+.vhs-pane{flex:0 0 100%;min-width:0}
+.vhs-pane > .vhs-card{margin:0 !important}
+.vhs-card{position:relative}
+.vhs-arrow{position:absolute;top:16px;z-index:2;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0;border-radius:50%;border:1px solid #c7d2fe;background:#eef2ff;color:#3730a3;font-size:11.5px;font-weight:900;cursor:pointer}
+.vhs-arrow:hover{background:#e0e7ff}
+.vhs-arrow--next{right:14px}
+.vhs-arrow span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.vhs-arrow i{font-size:14px}
+.vhs-arrow--prev{left:14px;border-color:#99f6e4;background:#f0fdfa;color:#0f766e}
+.vhs-card .vcard-head{padding-top:0}
+.vhs-card:not(.vhs-card--med) .vcard-head h2{padding-right:44px;min-height:38px}
+.vhs-card--med .vcard-head h2{padding-left:46px;min-height:38px}
+@media (prefers-reduced-motion:reduce){.vhs-track,.vhs-viewport,.vds-track{transition:none}}
+
+/* Günlük özet: Vitamin / İlaç sekmeleri ve skor halkaları */
+.vds-tabs{display:flex;align-items:center;justify-content:center;gap:6px;margin:-2px 0 10px}
+.vds-arrow{width:34px;height:34px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;color:#334155;cursor:pointer}
+.vds-arrow:disabled{opacity:.35;cursor:default}
+.vds-tabdot{min-height:32px;padding:0 14px;border-radius:999px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-size:12px;font-weight:800;cursor:pointer}
+.vds-tabdot.is-on{background:#0f766e;border-color:#0f766e;color:#fff}
+.vds-tabdot[data-sum-tab="1"].is-on{background:#4338ca;border-color:#4338ca}
+.vds-viewport{overflow:hidden}
+.vds-track{display:flex;align-items:flex-start;transition:transform .3s ease}
+.vds-pane{flex:0 0 100%;min-width:0;display:flex;flex-direction:column;gap:10px}
+.vds-ringrow{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:16px;background:#f8fafc;border:1px solid #e2e8f0}
+.vds-ringnote{margin:0;font-size:11.5px;font-weight:700;color:#475569;line-height:1.4}
+.vds-ring{--c:#0d9488;flex:0 0 auto;width:84px;height:84px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p) * 1%),#e2e8f0 0);display:flex;align-items:center;justify-content:center}
+.vds-ring--med{--c:#4f46e5}
+.vds-ring-in{width:66px;height:66px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.vds-ring-in b{font-size:17px;font-weight:900;color:#0f172a;line-height:1}
+.vds-ring-in small{font-size:8.5px;font-weight:800;color:#64748b;margin-top:2px;line-height:1.1;max-width:58px}
+.vds-grid--med{grid-template-columns:repeat(3,minmax(0,1fr))}
+.vds-mcard{display:flex;align-items:flex-start;justify-content:space-between;gap:4px;padding:10px !important;border-radius:14px;border:1px solid #e2e8f0;background:#fff}
+.vds-mcard span{display:block;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+.vds-mcard b{display:block;font-size:20px;font-weight:900;color:#0f172a;margin-top:2px}
+.vds-mcard small{display:block;font-size:9.5px;color:#64748b;font-weight:600;line-height:1.3;word-break:break-word}
+.vds-mcard i{font-size:13px;opacity:.8}
+.vds-mcard--am span,.vds-mcard--am i{color:#d97706}
+.vds-mcard--noon span,.vds-mcard--noon i{color:#0284c7}
+.vds-mcard--pm span,.vds-mcard--pm i{color:#4f46e5}
+
+/* Profil Düzenle: 3 aşamalı form */
+.vpst-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:16px 0 0;padding:0;list-style:none;counter-reset:none}
+.vpst-tab{width:100%;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:14px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-size:11px;font-weight:800;cursor:pointer;line-height:1.15}
+.vpst-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#e2e8f0;color:#334155;font-size:12px;font-weight:900}
+.vpst-tab.is-on{border-color:#0d9488;background:#f0fdfa;color:#0f766e}
+.vpst-tab.is-on .vpst-num{background:#0d9488;color:#fff}
+.vpst-tab.is-done .vpst-num{background:#99f6e4;color:#115e59}
+.vpst-panel.hidden{display:none}
+.vpst-title{margin:0;font-size:13px;font-weight:900;color:#0f172a;display:flex;align-items:center;gap:8px}
+.vpst-title i{color:#0d9488}
+.vpst-invalid{border-color:#e11d48 !important;box-shadow:0 0 0 3px rgba(225,29,72,.15)}
+.vpst-foot{position:sticky;bottom:-24px;margin:16px -24px -24px;padding:12px 24px 16px;background:#fff;border-top:1px solid #f1f5f9;display:flex;gap:8px;z-index:3}
+@media (min-width:640px){.vpst-foot{bottom:-32px;margin:16px -32px -32px;padding:12px 32px 20px}}
+.vpst-back{flex:0 0 auto;min-height:46px;padding:0 16px;border-radius:12px;border:1px solid #cbd5e1;background:#fff;color:#334155;font-size:13px;font-weight:800;cursor:pointer}
+.vpst-back.is-hidden{display:none}
+.vpst-next,.vpst-foot .vpst-save{flex:1 1 auto;min-height:46px;border-radius:12px;border:0;background:#0d9488;color:#fff;font-size:14px;font-weight:900;cursor:pointer}
+.vpst-next:hover{background:#0f766e}
+.vpst-foot .vpst-save.hidden,.vpst-next.hidden{display:none}
+
+/* Özet (Vitamin): VitaSkor halkada gösterildiği için ayrı VitaSkor kartı gizli (değer arka planda güncellenir) */
+#vdsPaneVitamin .vds-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+#vdsPaneVitamin .vds-grid > div:first-child{display:none}
+#vdsPaneVitamin .vds-grid > div{flex-direction:column-reverse;align-items:flex-start !important;gap:6px;padding:10px !important}
+#vdsPaneVitamin .vds-grid > div > div:last-child{width:28px !important;height:28px !important;font-size:12px !important;border-radius:10px !important}
+/* Profil 3. aşama: kalkan kutusunun kenarlığı (derlenmiş sınıflarda olmayan rose-200/80 yerine) */
+#profileStep3 > div.p-3.5{border:1px solid #fecdd3;background:#fff8f8}

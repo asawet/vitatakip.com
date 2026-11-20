@@ -1,0 +1,27 @@
+{
+  "id": "./",
+  "name": "VitaTakip — Sağlık, Tahlil ve Takviye Takibi",
+  "short_name": "VitaTakip",
+  "description": "Tahlil, belirti, ilaç ve takviye takibi. Veriler yalnızca bu cihazda saklanır; sunucu yoktur.",
+  "lang": "tr",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "categories": ["health", "medical", "lifestyle"],
+  "prefer_related_applications": false,
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Bugünkü takviyelerim", "short_name": "Takviyeler", "url": "./#view-home", "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Tahlillerim", "short_name": "Tahliller", "url": "./#view-labs", "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "NeyimVar? belirti kontrolü", "short_name": "NeyimVar?", "url": "./#view-neyim", "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

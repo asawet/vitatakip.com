@@ -1,0 +1,255 @@
+{
+ "_meta": {
+  "surum": 1,
+  "olusturma": "2026-11-14",
+  "not": "Yalnızca ilaçlar. Barkodsuz kayıtlar adla aranır; barkodlar kullanıcı taradıkça ilaç önbelleğinde öğrenilir."
+ },
+ "items": [
+  {
+   "urunAdi": "Levotiron 100 mcg",
+   "etkenMadde": "Levotiroksin Sodyum",
+   "kategori": "Tiroid"
+  },
+  {
+   "urunAdi": "Euthyrox 50 mcg",
+   "etkenMadde": "Levotiroksin Sodyum",
+   "kategori": "Tiroid"
+  },
+  {
+   "urunAdi": "Glifor 1000 mg",
+   "etkenMadde": "Metformin Hidroklorür",
+   "kategori": "Metformin"
+  },
+  {
+   "urunAdi": "Glucophage 850 mg",
+   "etkenMadde": "Metformin Hidroklorür",
+   "kategori": "Metformin"
+  },
+  {
+   "urunAdi": "Nexium 40 mg",
+   "etkenMadde": "Esomeprazol",
+   "kategori": "Mide Koruyucu (PPI)"
+  },
+  {
+   "urunAdi": "Pantpas 40 mg",
+   "etkenMadde": "Pantoprazol",
+   "kategori": "Mide Koruyucu (PPI)"
+  },
+  {
+   "urunAdi": "Lansor 30 mg",
+   "etkenMadde": "Lansoprazol",
+   "kategori": "Mide Koruyucu (PPI)"
+  },
+  {
+   "urunAdi": "Coumadin 5 mg",
+   "etkenMadde": "Varfarin Sodyum",
+   "kategori": "Kan Sulandırıcı (Antikoagülan)"
+  },
+  {
+   "urunAdi": "Coraspin 100 mg",
+   "etkenMadde": "Asetilsalisilik Asit",
+   "kategori": "Kan Sulandırıcı (Antiagregan)"
+  },
+  {
+   "urunAdi": "Eliquis 5 mg",
+   "etkenMadde": "Apiksaban",
+   "kategori": "Yeni Nesil Kan Sulandırıcı (DOAC)"
+  },
+  {
+   "urunAdi": "Delix 5 mg",
+   "etkenMadde": "Ramipril (ACE İnhibitörü)",
+   "kategori": "Tansiyon"
+  },
+  {
+   "urunAdi": "Fludex SR 1.5 mg",
+   "etkenMadde": "İndapamid (Tiazid Benzeri Diüretik)",
+   "kategori": "Diüretik"
+  },
+  {
+   "urunAdi": "Beloc ZOK 50 mg",
+   "etkenMadde": "Metoprolol Süksinat (Beta Bloker)",
+   "kategori": "Tansiyon & Kalp"
+  },
+  {
+   "urunAdi": "Fosamax 70 mg Haftalık",
+   "etkenMadde": "Alendronat Sodyum",
+   "kategori": "Kemik Erimesi (Bisfosfonat)"
+  },
+  {
+   "urunAdi": "Cipro 500 mg",
+   "etkenMadde": "Siprofloksasin (Florokinolon)",
+   "kategori": "Antibiyotik"
+  },
+  {
+   "urunAdi": "Tetradox 100 mg",
+   "etkenMadde": "Doksisiklin",
+   "kategori": "Antibiyotik (Tetrasiklin)"
+  },
+  {
+   "urunAdi": "Lipitor 20 mg",
+   "etkenMadde": "Atorvastatin",
+   "kategori": "Statin (Kolesterol)"
+  },
+  {
+   "urunAdi": "Crestor 10 mg",
+   "etkenMadde": "Rosuvastatin",
+   "kategori": "Statin (Kolesterol)"
+  },
+  {
+   "urunAdi": "Euthyrox 100 mcg 50 Tablet",
+   "etkenMadde": "100 mcg Levotiroksin Sodyum",
+   "kategori": "Reçeteli İlaç (Tiroid Hormon Preperatı)",
+   "form": "Tablet"
+  },
+  {
+   "barcode": "8699514010050",
+   "urunAdi": "Levotiron 100 mcg 100 Tablet",
+   "etkenMadde": "Levotiroksin Sodyum",
+   "kategori": "Reçeteli İlaç (Tiroid Hormonu)",
+   "form": "Tablet"
+  },
+  {
+   "barcode": "8699525090454",
+   "urunAdi": "Pantpas 40 mg 28 Enterik Kaplı Tablet",
+   "etkenMadde": "40 mg Pantoprazol (Proton Pompa İnhibitörü)",
+   "kategori": "Reçeteli İlaç (Mide Koruyucu / PPI)",
+   "form": "Enterik Kaplı Tablet"
+  },
+  {
+   "urunAdi": "Nexium 40 mg 28 Enterik Kaplı Pellet Tablet",
+   "etkenMadde": "40 mg Esomeprazol",
+   "kategori": "Reçeteli İlaç (Mide Koruyucu / PPI)",
+   "form": "Enterik Kaplı Tablet"
+  },
+  {
+   "urunAdi": "Glucophage 1000 mg 100 Film Tablet",
+   "etkenMadde": "1000 mg Metformin Hidroklorür",
+   "kategori": "Reçeteli İlaç (Oral Antidiyabetik)",
+   "form": "Film Tablet"
+  },
+  {
+   "barcode": "8699569090328",
+   "urunAdi": "Glifor 1000 mg 100 Film Tablet",
+   "etkenMadde": "1000 mg Metformin HCl",
+   "kategori": "Reçeteli İlaç (Oral Antidiyabetik)",
+   "form": "Film Tablet"
+  },
+  {
+   "barcode": "8699502010123",
+   "urunAdi": "Coumadin 5 mg 28 Tablet",
+   "etkenMadde": "5 mg Varfarin Sodyum",
+   "kategori": "Reçeteli İlaç (Oral Antikoagülan / Kan Sulandırıcı)",
+   "form": "Tablet"
+  },
+  {
+   "barcode": "8699546080106",
+   "urunAdi": "Coraspin 100 mg 30 Enterik Kaplı Tablet",
+   "etkenMadde": "100 mg Asetilsalisilik Asit",
+   "kategori": "Antiagregan / Kan Sulandırıcı İlaç",
+   "form": "Enterik Kaplı Tablet"
+  },
+  {
+   "barcode": "8699546090426",
+   "urunAdi": "Cipro 500 mg 14 Film Tablet",
+   "etkenMadde": "500 mg Siprofloksasin",
+   "kategori": "Reçeteli İlaç (Florokinolon Grubu Antibiyotik)",
+   "form": "Film Tablet"
+  },
+  {
+   "barcode": "8699522010158",
+   "urunAdi": "Monodoks 100 mg 14 Kapsül",
+   "etkenMadde": "100 mg Doksisiklin",
+   "kategori": "Reçeteli İlaç (Tetrasiklin Grubu Antibiyotik)",
+   "form": "Kapsül"
+  },
+  {
+   "urunAdi": "Fosamax 70 mg 4 Tablet",
+   "etkenMadde": "70 mg Alendronat Sodyum",
+   "kategori": "Reçeteli İlaç (Bisfosfonat / Osteoporoz)",
+   "form": "Tablet"
+  },
+  {
+   "barcode": "8699809010109",
+   "urunAdi": "Lasix 40 mg 12 Tablet",
+   "etkenMadde": "40 mg Furosemid",
+   "kategori": "Reçeteli İlaç (Loop Diüretik / İdrar Söktürücü)",
+   "form": "Tablet"
+  },
+  {
+   "barcode": "8699514090120",
+   "urunAdi": "Ator 20 mg 30 Film Tablet (Atorvastatin)",
+   "etkenMadde": "20 mg Atorvastatin Kalsiyum",
+   "kategori": "Reçeteli İlaç (Statin / Kolesterol Düşürücü)",
+   "form": "Film Tablet"
+  },
+  {
+   "barcode": "8699809010451",
+   "urunAdi": "Delix 5 mg 28 Çentikli Tablet (Ramipril)",
+   "etkenMadde": "5 mg Ramipril",
+   "kategori": "Reçeteli İlaç (ACE İnhibitörü / Antihipertansif)",
+   "form": "Tablet"
+  },
+  {
+   "barcode": "8699508090112",
+   "urunAdi": "Arveles 25 mg 20 Film Tablet",
+   "etkenMadde": "25 mg Deksketoprofen",
+   "kategori": "NSAİİ Ağrı Kesici & Antiinflamatuar İlaç",
+   "form": "Film Tablet"
+  },
+  {
+   "urunAdi": "Parol 500 mg Tablet",
+   "etkenMadde": "Parasetamol",
+   "kategori": "Ağrı kesici / ateş düşürücü"
+  },
+  {
+   "urunAdi": "Majezik 100 mg Film Tablet",
+   "etkenMadde": "Flurbiprofen",
+   "kategori": "Ağrı kesici (NSAİİ)"
+  },
+  {
+   "urunAdi": "Augmentin BID",
+   "etkenMadde": "Amoksisilin + Klavulanik asit",
+   "kategori": "Antibiyotik"
+  },
+  {
+   "urunAdi": "Devit-3",
+   "etkenMadde": "Kolekalsiferol (D3 vitamini)",
+   "kategori": "Vitamin D ilacı"
+  },
+  {
+   "urunAdi": "Benexol B12",
+   "etkenMadde": "B1 + B6 + B12 vitaminleri",
+   "kategori": "B vitamini ilacı"
+  },
+  {
+   "urunAdi": "Feramat",
+   "etkenMadde": "Demir",
+   "kategori": "Demir preparatı"
+  },
+  {
+   "urunAdi": "Ecopirin 100 mg",
+   "etkenMadde": "Asetilsalisilik asit",
+   "kategori": "Kan sulandırıcı (antiagregan)"
+  },
+  {
+   "urunAdi": "Nurofen",
+   "etkenMadde": "İbuprofen",
+   "kategori": "Ağrı kesici (NSAİİ)"
+  },
+  {
+   "urunAdi": "Apranax",
+   "etkenMadde": "Naproksen sodyum",
+   "kategori": "Ağrı kesici (NSAİİ)"
+  },
+  {
+   "urunAdi": "Concor",
+   "etkenMadde": "Bisoprolol",
+   "kategori": "Tansiyon / kalp (beta bloker)"
+  },
+  {
+   "urunAdi": "Norvasc",
+   "etkenMadde": "Amlodipin",
+   "kategori": "Tansiyon (kalsiyum kanal blokeri)"
+  }
+ ]
+}
