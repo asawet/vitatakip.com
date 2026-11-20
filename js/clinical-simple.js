@@ -95,7 +95,7 @@
         if (egfr < 60 && dir === "ok") dir = "high";
       }
       rows.push({ key: k, name: d.LAB_NAMES[k], value: labs[k].value, unit: d.LAB_UNITS[k], extra: extra, dir: dir, critical: ev.critical, source: labs[k].source,
-        date: labs[k].date || null, older: !!labs[k].older, ref: refText(k, labs[k]), refFallback: !(labs[k] && labs[k].ref) });
+        date: labs[k].date || null, older: !!labs[k].older, ref: refText(k, labs[k]), refFallback: !(labs[k] && labs[k].ref), refFrom: (labs[k] && labs[k].refFrom) || null });
     });
     /* Önceki ölçüm: aynı göstergenin bir önceki ölçümü (birleştirilmiş 90 günlük panelden) */
     var improved = [];
@@ -303,6 +303,7 @@
   }
   /* Fallback indicator: the report had no lab range for this value, the app's general range was used */
   function fallbackTag(r) {
+    if (r.refFrom) return ' <span class="vita-inherited-tag" data-inherited="' + esc(r.refFrom) + '" title="Bu tahlilde aralık yoktu; ' + esc(r.refFrom.split("-").reverse().join(".")) + ' tarihli tahlilinizdeki laboratuvar aralığı kullanıldı">önceki aralık</span>';
     return r.refFallback ? ' <span class="vita-fallback-tag" data-fallback="range" title="Raporda laboratuvar aralığı yok; VitaTakip genel karşılaştırma aralığı kullanıldı">genel aralık</span>' : "";
   }
 
@@ -332,7 +333,8 @@
       if (r.kidneyNote) html += '<p class="vs-safe-line"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> İlaç ve takviye (özellikle ağrı kesici ve mineral) kullanmadan önce hekime danışın.</p>';
       var an = window.VitaAgeStage ? VitaAgeStage.labNote(r.key, r.dir) : "";
       if (an) html += '<p class="vs-age">' + esc(an) + '</p>';
-      if (r.ref) html += r.refFallback
+      if (r.ref && r.refFrom) html += '<p class="vs-ref vita-inherited-note" data-inherited="' + esc(r.refFrom) + '">Bu tahlilde aralık yoktu; <b>' + esc(r.refFrom.split("-").reverse().join(".")) + '</b> tarihli tahlilinizdeki laboratuvar aralığı kullanıldı: <b>' + esc(r.ref) + '</b></p>';
+      else if (r.ref) html += r.refFallback
         ? '<p class="vs-ref vita-fallback-note" data-fallback="range">Raporda laboratuvar aralığı yok; VitaTakip genel karşılaştırma aralığı kullanıldı: <b>' + esc(r.ref) + '</b>. Kendi laboratuvarınızın aralığı farklı olabilir.</p>'
         : '<p class="vs-ref">Referans: ' + esc(r.ref) + '</p>';
       html += '</div></details>';

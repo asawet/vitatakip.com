@@ -976,12 +976,16 @@ function checkMidnightReset(userId) {
         </div>`;
 
       if (listContainer) {
-        const fallbackCount = keys.filter(k => !results[k].reference).length;
-        const fallbackBannerHtml = fallbackCount ? `
-          <div class="vita-fallback-banner" role="note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-            <span><b>${fallbackCount} değerin raporda laboratuvar aralığı yok.</b> Bu değerler VitaTakip'in genel karşılaştırma aralığıyla değerlendirilecek; aralığı raporunuzdan biliyorsanız ilgili kutuya yazabilirsiniz.</span>
-          </div>` : "";
         const appRef = k => { try { return typeof getVitaAppLabReference === "function" ? getVitaAppLabReference(k, state.user?.gender || "K") : ""; } catch (_) { return ""; } };
+        const inherited = k => (typeof window.findInheritedLabReference === "function" ? window.findInheritedLabReference(k, effectiveDate) : null);
+        const dmyTr = d => String(d || "").split("-").reverse().join(".");
+        const missing = keys.filter(k => !results[k].reference);
+        const inheritedCount = missing.filter(k => inherited(k)).length;
+        const fallbackCount = missing.length - inheritedCount;
+        const fallbackBannerHtml = missing.length ? `
+          <div class="vita-fallback-banner" role="note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <span><b>${missing.length} değerin raporda laboratuvar aralığı yok.</b>${inheritedCount ? ` ${inheritedCount} tanesi önceki tahlilinizdeki laboratuvar aralığıyla değerlendirilecek.` : ""}${fallbackCount ? ` ${fallbackCount} tanesi için VitaTakip'in genel karşılaştırma aralığı kullanılacak.` : ""} Aralığı raporunuzdan biliyorsanız ilgili kutuya yazabilirsiniz.</span>
+          </div>` : "";
         listContainer.innerHTML = dateBannerHtml + egfrBannerHtml + fallbackBannerHtml + keys.map(k => {
           const item = results[k];
           const noRef = !item.reference;
@@ -996,7 +1000,9 @@ function checkMidnightReset(userId) {
               <div>
                 <label for="pdfReference-${escapeHtmlText(k)}" class="font-bold text-slate-700 block mb-1">PDF’den okunan laboratuvar referansı</label>
                 <input id="pdfReference-${escapeHtmlText(k)}" type="text" value="${escapeHtmlText(item.reference || "")}" placeholder="Raporda aralık yok" oninput="updateParsedPdfField('${escapeHtmlText(k)}','reference',this.value)" class="w-full min-h-10 rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-xs focus:border-teal-500" aria-label="${escapeHtmlText(item.name)} referans aralığı">
-                ${noRef ? `<p class="vita-fallback-note" data-fallback="range" data-key="${escapeHtmlText(k)}"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Genel aralık kullanılacak: <b>${escapeHtmlText(appRef(k))}</b></p>` : ""}
+                ${noRef ? (inherited(k)
+                  ? `<p class="vita-inherited-note" data-inherited="${escapeHtmlText(inherited(k).date)}" data-key="${escapeHtmlText(k)}"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Önceki tahlilinizdeki aralık kullanılacak (${escapeHtmlText(dmyTr(inherited(k).date))}): <b>${escapeHtmlText(inherited(k).reference)}</b></p>`
+                  : `<p class="vita-fallback-note" data-fallback="range" data-key="${escapeHtmlText(k)}"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Genel aralık kullanılacak: <b>${escapeHtmlText(appRef(k))}</b></p>`) : ""}
               </div>
             </div>`;
         }).join('');

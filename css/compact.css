@@ -124,3 +124,9 @@
 .vita-fallback-banner{display:flex;gap:.5rem;align-items:flex-start;padding:.6rem .75rem;border-radius:.75rem;background:#fffbeb;border:1px solid #fde68a;font-size:11.5px;line-height:1.45;color:#78350f}
 .vita-fallback-banner i{color:#d97706;margin-top:.15rem}
 .rs-fallback sup,.rs-fallback-note sup{color:#b45309;font-weight:700}
+
+/* Inherited lab range (taken from the user's earlier report for the same test) */
+.vita-inherited-tag{display:inline-block;margin-left:4px;font-size:9.5px;font-weight:600;color:#075985;background:#e0f2fe;border:1px solid #bae6fd;border-radius:6px;padding:0 5px;vertical-align:middle;line-height:1.5}
+.vita-inherited-note{margin:.35rem 0 0;font-size:10.5px;line-height:1.4;color:#075985}
+.vita-inherited-note i{color:#0284c7}
+.rs-inherited sup,.rs-inherited-note sup{color:#0369a1;font-weight:700}

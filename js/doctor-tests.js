@@ -152,7 +152,8 @@
       if (v !== null) {
         /* ref: the lab range printed on the SAME report the value came from (an older merged value keeps its own range) */
         var recRef = m.record && m.record.references && m.record.references[k];
-        out[k] = { value: v, date: m.date || null, older: !!m.older, prev: m.prev || null, source: m.older && m.date ? dmy(m.date) : "güncel", ref: recRef ? String(recRef).trim() : "" };
+        out[k] = { value: v, date: m.date || null, older: !!m.older, prev: m.prev || null, source: m.older && m.date ? dmy(m.date) : "güncel", ref: recRef ? String(recRef).trim() : "",
+          refFrom: (recRef && m.record.referenceSources && m.record.referenceSources[k] && m.record.referenceSources[k].date) || null };
         return;
       }
       var cur = typeof state !== "undefined" && state.labValues ? num(state.labValues[k]) : null;

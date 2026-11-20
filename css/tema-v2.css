@@ -883,3 +883,5 @@ html[data-theme="dark"] .vs-rel .vs-warn-t{color:#e2e8f0}
 html[data-theme="dark"] .vita-fallback-tag{color:#fcd34d;background:#422006;border-color:#78350f}
 html[data-theme="dark"] .vita-fallback-note{color:#fcd34d}
 html[data-theme="dark"] .vita-fallback-banner{background:#2a1a05;border-color:#78350f;color:#fde68a}
+html[data-theme="dark"] .vita-inherited-tag{color:#bae6fd;background:#082f49;border-color:#0c4a6e}
+html[data-theme="dark"] .vita-inherited-note{color:#7dd3fc}

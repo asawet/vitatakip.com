@@ -1462,6 +1462,39 @@
       ...(window.VITA_EXTRA_LAB_DEFS || []).map(d => [`inputLabRef-${d.key}`, d.key])
     ];
 
+    /* REFERENCE INHERITANCE: a value saved without a lab range (manual entry, or a PDF row without one) takes the
+       range printed on the user's own most recent EARLIER report for the same test (same lab is the usual case).
+       Priority: range on this report / typed by the user  >  inherited from an earlier report  >  app general range.
+       Provenance is stored as record.referenceSources[key] = { type: "previous", date } (optional; old records lack it). */
+    function findInheritedLabReference(key, forDate, excludeId) {
+      const target = String(forDate || "");
+      const candidates = (Array.isArray(state.labHistory) ? state.labHistory : [])
+        .filter(r => r && r.id !== excludeId && r.date && String(r.references?.[key] || "").trim())
+        .filter(r => typeof isVitaLabReferenceCompatible !== "function" || isVitaLabReferenceCompatible(key, r.references[key]))
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      const pick = candidates.find(r => !target || r.date <= target);
+      if (!pick) return null;
+      const origin = pick.referenceSources?.[key]?.date || pick.date;
+      return { reference: String(pick.references[key]).trim(), date: origin };
+    }
+    function applyInheritedLabReferences(record) {
+      if (!record || typeof record !== "object") return 0;
+      record.references = record.references || {};
+      let count = 0;
+      LAB_HISTORY_METRICS.forEach(({ key }) => {
+        const v = record[key];
+        if (v === null || v === undefined || v === "" || String(record.references[key] || "").trim()) return;
+        const inh = findInheritedLabReference(key, record.date, record.id);
+        if (!inh) return;
+        record.references[key] = inh.reference;
+        record.referenceSources = { ...(record.referenceSources || {}), [key]: { type: "previous", date: inh.date } };
+        count++;
+      });
+      return count;
+    }
+    window.findInheritedLabReference = findInheritedLabReference;
+    window.applyInheritedLabReferences = applyInheritedLabReferences;
+
     /* Optional 1-click lab context tags. Persisted as record.contextTags (string[]); old records simply lack it. */
     const VITA_LAB_CONTEXT_TAGS = ["Su içerek gittim", "Susuzdum", "Aç karnına", "Takviye kullanıyordum"];
     const VITA_LAB_CONTEXT_EXCLUSIVE = { "Su içerek gittim": "Susuzdum", "Susuzdum": "Su içerek gittim" };
@@ -1623,6 +1656,7 @@
         timestamp: new Date(`${dateVal}T${new Date().toTimeString().slice(0, 8)}`).getTime() || Date.now(),
         timeLabel: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
       };
+      applyInheritedLabReferences(record);
       const existing = state.labHistory.find(item => item.date === dateVal);
       if (existing) {
         pendingLabRecordConflict = record;
@@ -1705,7 +1739,8 @@
       const rangeModal = document.getElementById("vitaLabRangesModal");
       if (rangeModal) rangeModal.classList.remove("is-open");
       const label = mode === "update" ? "Tahlil Güncellendi" : mode === "add" ? "Aynı Tarihe Yeni Kayıt Eklendi" : "Tahlil Kaydedildi";
-      showToast(label, `${cleanRecord.date}${cleanRecord.timeLabel ? ` ${cleanRecord.timeLabel}` : ""} tarihli tahlil arşive kaydedildi.`, "success");
+      const inheritedN = Object.keys(cleanRecord.referenceSources || {}).length;
+      showToast(label, `${cleanRecord.date}${cleanRecord.timeLabel ? ` ${cleanRecord.timeLabel}` : ""} tarihli tahlil arşive kaydedildi.${inheritedN ? ` Aralığı yazılmayan ${inheritedN} değer, önceki tahlilinizdeki laboratuvar aralığıyla değerlendirildi.` : ""}`, "success");
     }
 
     function persistCurrentLabInputsToState(options = {}) {
@@ -1776,6 +1811,8 @@
           hcy: pickLabValue("hcy"),
           ...Object.fromEntries((window.VITA_EXTRA_LAB_DEFS || []).map(d => [d.key, pickLabValue(d.key)])),
           references: { ...(baseRecord?.references || {}), ...enteredRefs },
+          // a range the user typed replaces an inherited one, so its provenance marker is dropped
+          referenceSources: Object.fromEntries(Object.entries(baseRecord?.referenceSources || {}).filter(([k]) => !(k in enteredRefs))),
           contextTags: vitaPendingLabContextTags.size ? [...vitaPendingLabContextTags] : (Array.isArray(baseRecord?.contextTags) ? baseRecord.contextTags.slice() : []),
           applicationReferences: typeof getVitaAppLabReferenceMap === "function" ? getVitaAppLabReferenceMap(genderAtTest) : {},
           genderAtTest,
@@ -1783,6 +1820,7 @@
           timeLabel: baseRecord?.timeLabel || new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
         };
 
+        applyInheritedLabReferences(mergedRecord);
         // Tüm değerleri boşalan kayıt arşivde tutulmaz (tam temizlik).
         const recordIsEmpty = ["d3", "b12", "ferritin", "mg", "ca", "zinc", "creatinine", "folate", "alt", "hb", "mcv", "crp", "rbcFolate", "hcy", ...(window.VITA_EXTRA_LAB_KEYS || [])]
           .every(k => mergedRecord[k] === null || mergedRecord[k] === undefined);
@@ -1990,7 +2028,8 @@
         value: rawValue,
         status,
         reference,
-        referenceSource: facilityStatus ? "lab" : "app"
+        referenceSource: facilityStatus ? "lab" : "app",
+        inheritedFrom: facilityStatus ? (record?.referenceSources?.[metric.key]?.date || null) : null
       };
     }
 
@@ -2129,7 +2168,9 @@
         const cardClass = isOut ? "border-rose-200 bg-rose-50/70" : isNormal ? "border-teal-100 bg-teal-50/50" : "border-slate-200 bg-slate-50";
         const valueClass = isOut ? "text-rose-700" : isNormal ? "text-slate-900" : "text-slate-700";
         const rangeLabel = metric.referenceSource === "lab" ? "Referans" : "Yaklaşık karşılaştırma aralığı";
-        const referenceNote = metric.referenceSource === "lab" ? "" : `<span class="block text-[9px] text-slate-400" data-fallback="range">Raporda aralık yok — genel uygulama aralığı; laboratuvar referansı değildir</span>`;
+        const referenceNote = metric.inheritedFrom
+          ? `<span class="block text-[9px] text-sky-700" data-inherited="${escapeHtmlText(metric.inheritedFrom)}">Bu raporda aralık yoktu — ${escapeHtmlText(metric.inheritedFrom.split("-").reverse().join("."))} tarihli tahlilinizdeki laboratuvar aralığı</span>`
+          : metric.referenceSource === "lab" ? "" : `<span class="block text-[9px] text-slate-400" data-fallback="range">Raporda aralık yok — genel uygulama aralığı; laboratuvar referansı değildir</span>`;
         return `<div class="rounded-xl border p-3 ${cardClass}">
           <div class="flex items-start justify-between gap-2"><span class="text-[11px] font-bold text-slate-700">${escapeHtmlText(metric.label)}</span>${statusPill(metric.status, true)}</div>
           <div class="mt-1.5 flex items-baseline gap-1.5"><span class="text-base font-black ${valueClass}">${escapeHtmlText(metric.value)}</span><span class="text-[10px] text-slate-500">${escapeHtmlText(metric.unit)}</span></div>
