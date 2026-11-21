@@ -45,7 +45,7 @@ test('aralıksız değer önceki raporun laboratuvar aralığını devralır', a
   await go(page, 'view-clinical-results');
   const tshChip = page.locator('#view-clinical-results .vs-okchip').filter({ hasText: 'TSH' }).first();
   await expect(tshChip.locator('.vita-inherited-tag')).toHaveText('önceki aralık');
-  await expect(page.locator('#view-clinical-results .vs-okchip, #view-clinical-results details.vs-val summary').filter({ hasText: 'Ferritin' }).first().locator('.vita-inherited-tag')).toHaveCount(0);
+  await expect(page.locator('#view-clinical-results .vs-okchip, #view-clinical-results .vs-val').filter({ hasText: 'Ferritin' }).first().locator('.vita-inherited-tag')).toHaveCount(0);
 
   await go(page, 'view-report');
   const tshRow = page.locator('#repSimple .rs-tbl tbody tr').filter({ hasText: 'TSH' }).first();

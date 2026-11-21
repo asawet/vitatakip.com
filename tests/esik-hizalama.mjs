@@ -63,7 +63,7 @@ await p.evaluate(() => navigateToView('view-clinical-results')); await sleep(170
 const U = await p.evaluate(() => ({ rows: [...document.querySelectorAll('.vs-val')].map(d => d.innerText.replace(/\s+/g, ' ')), refs: [...document.querySelectorAll('.vs-val')].map(d => ((d.querySelector('.vs-ref') || {}).textContent || '')) }));
 log('Erkek Hb 17,8 "Yüksek" (ekran aralığı 13–17,5)', U.rows.some(r => /Hemoglobin.*Yüksek/.test(r)), U.rows.join(' || '));
 log('Erkek kreatinin 1,35 "Yüksek" (ekran aralığı 0,7–1,3)', U.rows.some(r => /Kreatinin.*Yüksek/.test(r)));
-log('Satırda gösterilen referans motorla aynı', U.refs.some(r => /0,7–1,3/.test(r)) && U.refs.some(r => /13,0–17,5/.test(r)), U.refs.join(' | '));
+log('Değer satırları sade: aralık metni gösterilmez (Tahlillerim kısmında var)', U.refs.every(r => r === ''), U.refs.join(' | '));
 log('Hata yok', errs.length === 0, errs.join(' | '));
 console.log('ÖZET', results.filter(Boolean).length + '/' + results.length);
 await b.close(); process.exit(0);

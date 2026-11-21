@@ -885,3 +885,6 @@ html[data-theme="dark"] .vita-fallback-note{color:#fcd34d}
 html[data-theme="dark"] .vita-fallback-banner{background:#2a1a05;border-color:#78350f;color:#fde68a}
 html[data-theme="dark"] .vita-inherited-tag{color:#bae6fd;background:#082f49;border-color:#0c4a6e}
 html[data-theme="dark"] .vita-inherited-note{color:#7dd3fc}
+html[data-theme="dark"] .vs-det{border-color:rgba(148,163,184,.22)}html[data-theme="dark"] .vs-det > summary{color:#e2e8f0}
+html[data-theme="dark"] .vs-values .vs-val,html[data-theme="dark"] .vs-okdrawer,html[data-theme="dark"] .vkb-set-item{border-color:rgba(148,163,184,.18)}html[data-theme="dark"] .vkb-set-item > summary{color:#e2e8f0}
+html[data-theme="dark"] .vs-nut{background:rgba(245,158,11,.12);color:#fcd34d}html[data-theme="dark"] .vs-nut-btn{background:transparent;color:#fbbf24}

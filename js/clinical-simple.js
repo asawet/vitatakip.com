@@ -267,36 +267,33 @@
       sub = "Kesin bilgi için kan tahlili değerlerinizi girin.";
     }
 
-    if (m.improved && m.improved.length) sub = (sub ? sub + " " : "") + "🎉 " + m.improved.join(", ") + (m.improved.length > 1 ? " normale ulaştı." : " normale ulaştı.");
+    /* One-line verdict naming the values that need attention: "D vitamini düşük, B12 sınırda" */
+    if (nBad) sub = m.bad.slice(0, 3).map(function (r) { return r.name + " " + CHIP[r.dir][0].toLocaleLowerCase("tr"); }).join(", ") + (nBad > 3 ? " ve " + (nBad - 3) + " değer daha." : ".");
+    if (m.improved && m.improved.length) sub = (sub ? sub + " " : "") + "🎉 " + m.improved.join(", ") + " normale ulaştı.";
 
-    var steps = [];
-    if (m.tests.length) steps.push({ t: "Doktorunuza gidin, aşağıdaki testleri isteyin", b: '<button type="button" class="vs-btn" data-vs="tests">Testleri gör</button>' });
     var lowFood = m.bad.some(function (r) { return r.dir !== "high" && ADVICE[r.key] && ADVICE[r.key].low && ADVICE[r.key].low.food; });
-    if (lowFood) steps.push({ t: "Bu besinleri sofranıza ekleyin", b: '<button type="button" class="vs-btn vs-btn-ghost" data-vs="food">Besinlere git</button>' });
-    if (!m.hasLab) steps.push({ t: "Tahlil sonucunuz varsa girin; öneriler netleşir", b: '<button type="button" class="vs-btn vs-btn-ghost" data-vs="labs">Tahlil gir</button>' });
-    if (nBad) steps.push({ t: "Takviyeye hekiminize danışmadan başlamayın", b: "" });
+    var acts = [];
+    if (m.tests.length) acts.push('<button type="button" class="vs-act vs-act-main" data-vs="tests"><i class="fa-solid fa-vial" aria-hidden="true"></i><span>Doktora sorulacak testler</span><b>' + m.tests.length + '</b></button>');
+    if (!m.hasLab) acts.push('<button type="button" class="vs-act vs-act-main" data-vs="labs"><i class="fa-solid fa-flask-vial" aria-hidden="true"></i><span>Tahlil gir</span></button>');
+    if (lowFood) acts.push('<button type="button" class="vs-act" data-vs="food"><i class="fa-solid fa-leaf" aria-hidden="true"></i><span>Besinler</span></button>');
+    acts.push('<button type="button" class="vs-act" data-vs="report"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i><span>Hekim raporu</span></button>');
 
-    var html = '<section class="vs-card vs-hero"><div class="vs-hero-top"><span class="vs-hero-ico" aria-hidden="true"><i class="fa-solid fa-clipboard-check"></i></span><div>' +
-      '<h2>' + esc(title) + '</h2>' + (sub ? '<p>' + esc(sub) + '</p>' : "") + '</div></div>';
-    if (steps.length) {
-      html += '<div class="vs-steps"><div class="vs-steps-title">Ne yapmalısınız?</div><ol>' +
-        steps.map(function (s) { return '<li><span>' + esc(s.t) + '</span>' + s.b + '</li>'; }).join("") + '</ol></div>';
-    }
-    html += '<div class="vs-hero-actions"><button type="button" class="vs-btn vs-btn-ghost" data-vs="report"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i> Hekim raporu</button>' +
-      '<button type="button" class="vs-btn vs-btn-ghost" data-vs="edit"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Belirtileri düzenle</button></div></section>';
+    var html = '<section class="vs-card vs-hero" id="vsHero">' + safetyStripHtml(m) + '<div class="vs-hero-top"><span class="vs-hero-ico" aria-hidden="true"><i class="fa-solid fa-clipboard-check"></i></span><div>' +
+      '<h2>' + esc(title) + '</h2>' + (sub ? '<p>' + esc(sub) + '</p>' : "") + '</div></div>' +
+      '<div class="vs-acts">' + acts.join("") + '</div>' +
+      '<div class="vs-hero-foot">' + (nBad ? '<span><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Takviyeye hekiminize danışmadan başlamayın</span>' : '<span></span>') +
+      '<button type="button" class="vs-link" data-vs="edit"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Belirtileri düzenle</button></div></section>';
     return html;
   }
 
-  /* Güvenlik uyarıları: başlığın hemen altında, her biri tek satır; dokununca ayrıntı açılır */
-  function safetyHtml(m) {
+  /* Safety warnings as a compact strip at the top of the verdict block; each opens on tap */
+  function safetyStripHtml(m) {
     if (!m.safety.length) return "";
-    var html = '<section class="vs-card vs-safety"><h3 class="vs-h"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Güvenlik uyarıları <span class="vs-count">' + m.safety.length + '</span></h3>';
-    m.safety.forEach(function (s) {
-      html += '<details class="vs-warn' + (s.crit ? " vs-warn-crit" : "") + '"><summary><span class="vs-warn-t">' + esc(s.title) + '</span>' +
+    return '<div class="vs-safety" id="vsSafety">' + m.safety.map(function (s) {
+      return '<details class="vs-warn' + (s.crit ? " vs-warn-crit" : "") + '"><summary><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><span class="vs-warn-t">' + esc(s.title) + '</span>' +
         (s.detail ? '<i class="fa-solid fa-chevron-down vs-chev" aria-hidden="true"></i>' : "") + '</summary>' +
         (s.detail ? '<div class="vs-warn-body">' + esc(s.detail) + '</div>' : "") + '</details>';
-    });
-    return html + '</section>';
+    }).join("") + '</div>';
   }
 
   /* Subtle date tag when a merged value comes from an earlier lab than the newest one */
@@ -316,46 +313,45 @@
     }).join("") + '</div>';
   }
 
+  /* Değerler: dikkat isteyenler sade satırlar (açılmaz); normal değerler en altta küçük bir çekmecede */
   function valuesHtml(m) {
-    if (!m.hasLab) return "";
-    var html = '<section class="vs-card"><h3 class="vs-h"><i class="fa-solid fa-flask-vial" aria-hidden="true"></i> Değerlerim</h3>';
+    if (!m.hasLab || (!m.bad.length && !m.ok.length)) return "";
+    var html = '<section class="vs-card vs-values" id="vsValues"><h3 class="vs-h">' + (m.bad.length ? 'Dikkat isteyen değerler <span class="vs-count">' + m.bad.length + '</span>' : 'Değerleriniz normal') + '</h3>';
     m.bad.forEach(function (r) {
-      var adv = ADVICE[r.key] && (r.dir === "high" ? ADVICE[r.key].high : ADVICE[r.key].low) || (ADVICE[r.key] && (ADVICE[r.key].low || ADVICE[r.key].high));
       var chip = CHIP[r.dir];
-      if (r.key === "creatinine" && typeof isPregnantNow === "function" && isPregnantNow()) {
-        adv = { meaning: "Gebelikte böbrek süzme hızı artar, bu yüzden kreatinin normalde düşüktür (0,4–0,8 mg/dL). Bu değer gebelik için yüksek sayılır; tansiyon yüksekliği, baş ağrısı, görme bozukluğu veya ödem varsa acildir. Her durumda doğum hekiminize bildirin.", food: "" };
-      }
-      html += '<details class="vs-val' + (r.critical ? " vs-val-crit" : "") + '"><summary>' +
-        '<span class="vs-val-name">' + esc(r.name) + (window.VitaSourceInfo ? VitaSourceInfo.button(r.key, r.name) : "") + '</span>' +
+      var note = "";
+      if (r.key === "creatinine" && typeof isPregnantNow === "function" && isPregnantNow()) note = "Gebelik için yüksek sayılır; doğum hekiminize bildirin.";
+      else if (r.kidneyNote) note = "İlaç ve takviye kullanmadan önce hekime danışın.";
+      html += '<div class="vs-val' + (r.critical ? " vs-val-crit" : "") + '" data-key="' + esc(r.key) + '">' +
+        '<span class="vs-val-name">' + esc(r.name) + (dateTag(r) ? '<span class="vs-val-tags">' + dateTag(r) + '</span>' : '') + '</span>' +
         '<span class="vs-val-num">' + esc(fmt(r.value)) + ' <small>' + esc(r.unit) + esc(r.extra) + '</small></span>' +
-        '<span class="vs-chip ' + chip[1] + '">' + chip[0] + '</span><i class="fa-solid fa-chevron-down vs-chev" aria-hidden="true"></i>' +
-        (dateTag(r) ? '<span class="vs-val-tags">' + dateTag(r) + '</span>' : '') + '</summary>' +
-        '<div class="vs-val-body">';
-      /* Borderline values: the generic "X düşük" text contradicts the "Sınırda" chip — use the sourced borderline explanation */
-      var borderText = "";
-      if (r.dir === "border" && window.VitaLabEvidence && VitaLabEvidence.handles(r.key)) {
-        try { var evb = VitaLabEvidence.evaluate(r.key, r.value, { gender: (state.user && state.user.gender) || "K", reference: r.refFallback ? "" : r.ref }); borderText = (evb.clinical && evb.clinical.text) || ""; } catch (_) { borderText = ""; }
-      }
-      if (borderText) html += '<p>' + esc(borderText) + '</p>';
-      else if (r.dir === "border") html += '<p>' + esc(r.name) + ' sınır bölgesinde; laboratuvar aralığında olsa da ek değerlendirme önerilir.</p>';
-      else if (adv && adv.meaning) html += '<p>' + esc(adv.meaning) + '</p>';
-      if (r.prev && r.trend) html += '<p class="vs-trend ' + r.trendCls + '">Önceki ölçüm: ' + esc(fmt(r.prev.value)) + ' (' + esc(r.prev.date.split("-").reverse().join(".")) + ') → şimdi ' + esc(fmt(r.value)) + ' · <b>' + esc(r.trend) + '</b></p>';
-      if (r.kidneyNote) html += '<p class="vs-safe-line"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> İlaç ve takviye (özellikle ağrı kesici ve mineral) kullanmadan önce hekime danışın.</p>';
-      var an = window.VitaAgeStage ? VitaAgeStage.labNote(r.key, r.dir) : "";
-      if (an) html += '<p class="vs-age">' + esc(an) + '</p>';
-      if (r.ref && r.refFrom) html += '<p class="vs-ref vita-inherited-note" data-inherited="' + esc(r.refFrom) + '">Bu tahlilde aralık yoktu; <b>' + esc(r.refFrom.split("-").reverse().join(".")) + '</b> tarihli tahlilinizdeki laboratuvar aralığı kullanıldı: <b>' + esc(r.ref) + '</b></p>';
-      else if (r.ref) html += r.refFallback
-        ? '<p class="vs-ref vita-fallback-note" data-fallback="range">Raporda laboratuvar aralığı yok; VitaTakip genel karşılaştırma aralığı kullanıldı: <b>' + esc(r.ref) + '</b>. Kendi laboratuvarınızın aralığı farklı olabilir.</p>'
-        : '<p class="vs-ref">Referans: ' + esc(r.ref) + '</p>';
-      html += '</div></details>';
+        '<span class="vs-chip ' + chip[1] + '">' + chip[0] + '</span>' +
+        (note ? '<span class="vs-val-note">' + esc(note) + '</span>' : '') + '</div>';
     });
     if (m.ok.length) {
-      html += '<div class="vs-okrow"><span class="vs-ok-title">Normal</span>' + m.ok.map(function (r) {
-        return '<span class="vs-okchip">' + esc(r.name) + ' <b>' + esc(fmt(r.value)) + '</b>' + dateTag(r) + (window.VitaSourceInfo ? VitaSourceInfo.button(r.key, r.name) : "") + '</span>';
-      }).join("") + '</div>';
+      html += '<details class="vs-okdrawer"' + (m.bad.length ? '' : ' open') + '><summary>Normal değerler <span>' + m.ok.length + '</span><i class="fa-solid fa-chevron-down vs-chev" aria-hidden="true"></i></summary>' + okRowHtml(m) + '</details>';
     }
-    html += '</section>';
-    return html;
+    return html + '</section>';
+  }
+
+  function okRowHtml(m) {
+    return '<div class="vs-okrow">' + m.ok.map(function (r) {
+      return '<span class="vs-okchip">' + esc(r.name) + ' <b>' + esc(fmt(r.value)) + '</b>' + dateTag(r) + '</span>';
+    }).join("") + '</div>';
+  }
+  /* Layer 3: secondary information, each group collapsed by default inside one "Ayrıntılar" card */
+  function detailsHtml(m) {
+    var groups = [];
+    var add = function (id, icon, title, count, body) { if (body) groups.push({ id: id, icon: icon, title: title, count: count, body: body }); };
+    var rel = relationsCardHtml(m);
+    add("rel", "fa-link", "Tahliller arası ilişkiler", (rel.match(/vs-rel"/g) || []).length, rel);
+    add("normal", "fa-clock-rotate-left", "Son 90 günde normal ölçülenler", (m.normalNotes || []).length, normalNotesHtml(m));
+    if (!groups.length) return "";
+    return '<section class="vs-card vs-details" id="vsDetails"><h3 class="vs-h"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Ayrıntılar</h3>' +
+      groups.map(function (g) {
+        return '<details class="vs-det" data-det="' + g.id + '"><summary><i class="fa-solid ' + g.icon + '" aria-hidden="true"></i><span>' + esc(g.title) + '</span>' +
+          (g.count ? '<span class="vs-count">' + g.count + '</span>' : "") + '<i class="fa-solid fa-chevron-down vs-chev" aria-hidden="true"></i></summary><div class="vs-det-body">' + g.body + '</div></details>';
+      }).join("") + '</section>';
   }
 
   /* Pre-lab preparation micro-guide (shared by Klinik Analiz card and the Tahlillerim helper) */
@@ -383,11 +379,11 @@
     var pats = [];
     try { pats = window.VitaLabInsights ? VitaLabInsights.analyze().patterns : []; } catch (_) { pats = []; }
     if (!m.hasLab || !pats.length) return "";
-    var html = '<section class="vs-card" id="vsRelations"><h3 class="vs-h"><i class="fa-solid fa-link" aria-hidden="true"></i> Tahliller arası ilişkiler <span class="vs-count">' + pats.length + '</span></h3>';
+    var html = '<div id="vsRelations">';
     pats.forEach(function (p) {
       html += '<details class="vs-warn vs-rel"><summary><span class="vs-warn-t">' + esc(p.title) + '</span><i class="fa-solid fa-chevron-down vs-chev" aria-hidden="true"></i></summary><div class="vs-warn-body">' + esc(p.text) + '</div></details>';
     });
-    return html + '<p class="vs-rel-foot">Kural tabanlı ön gözlemlerdir; tanı koymaz, nihai karar hekime aittir.</p></section>';
+    return html + '<p class="vs-rel-foot">Kural tabanlı ön gözlemlerdir; tanı koymaz, nihai karar hekime aittir.</p></div>';
   }
 
   function symptomsHtml(m) {
@@ -411,24 +407,52 @@
     return m.recall ? '<div class="vs-recall" title="Bu tarih yalnızca uygulama içi hatırlatmadır; kontrol zamanını doktorunuz belirler."><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Kontrol tahlili hatırlatması: <b>' + esc(m.recall) + '</b></div>' : "";
   }
 
+  /* Doktordan istenebilecek testler: tahlil kaynaklı testler açık; belirtilere göre testler "Belirtilerinize göre testler"
+     çekmecesinde — her testin altında belirtileri, yanındaki (!) olası eksikleri açar. En altta kan verme hazırlığı. */
   function testsHtml(m) {
-    if (!m.tests.length) {
-      var notes = normalNotesHtml(m);
-      return (m.recall || notes) ? '<section class="vs-card vs-card-slim">' + notes + recallHtml(m) + '</section>' : "";
-    }
-    var VISIBLE = 6;
-    var row = function (t) {
+    var symNut = {};
+    m.syms.forEach(function (s) { symNut[s.name] = s.nutrients; });
+    var labTests = m.tests.filter(function (t) { return t.lab; });
+    var symTests = m.tests.filter(function (t) { return !t.lab; });
+    var usedSyms = {};
+    m.tests.forEach(function (t) { t.why.forEach(function (w) { if (symNut[w]) usedSyms[w] = true; }); });
+    var restSyms = m.syms.filter(function (s) { return !usedSyms[s.name] && s.nutrients.length; });
+    if (!m.tests.length && !restSyms.length) return '<section class="vs-card" id="vsTests"><details class="vs-more vs-prelab-more"><summary>Kan vermeye gitmeden önce <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><div id="vsPrelab">' + prelabListHtml() + '</div></details>' + recheckDrawerHtml(m) + '</section>';
+
+    var labRow = function (t) {
       return '<div class="vs-test"><span class="vs-test-name">' + esc(t.name) + '</span>' +
         (t.why.length ? '<span class="vs-test-why">' + t.why.map(esc).join(" · ") + '</span>' : "") + '</div>';
     };
+    var nutOf = function (whys) {
+      var seen = {}, out = [];
+      whys.forEach(function (w) { (symNut[w] || []).forEach(function (n) { if (!seen[n]) { seen[n] = true; out.push(n); } }); });
+      return out;
+    };
+    var symRow = function (name, whys, nut) {
+      return '<div class="vs-test vs-test-sym"><span class="vs-test-name">' + esc(name) +
+        (nut.length ? '<button type="button" class="vs-nut-btn" data-vs="nut" aria-expanded="false" aria-label="Olası eksikleri göster" title="Olası eksikler">!</button>' : "") + '</span>' +
+        (whys.length ? '<span class="vs-test-why">' + whys.map(esc).join(" · ") + '</span>' : "") +
+        (nut.length ? '<span class="vs-nut" hidden>Olası eksik: ' + nut.map(esc).join(", ") + '</span>' : "") + '</div>';
+    };
+
+    var symHtml = symTests.map(function (t) { return symRow(t.name, t.why, nutOf(t.why)); }).join("") +
+      restSyms.map(function (s) { return symRow(s.name, [], s.nutrients); }).join("");
+    var nSym = symTests.length + restSyms.length;
+
     var html = '<section class="vs-card" id="vsTests"><div class="vs-h-row"><h3 class="vs-h"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i> Doktordan isteyebileceğiniz testler</h3>' +
-      '<button type="button" class="vs-copy" data-vs="copy"><i class="fa-regular fa-copy" aria-hidden="true"></i> Kopyala</button></div>' +
-      m.tests.slice(0, VISIBLE).map(row).join("");
-    if (m.tests.length > VISIBLE) {
-      html += '<details class="vs-more"><summary>Diğer ' + (m.tests.length - VISIBLE) + ' test <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>' +
-        m.tests.slice(VISIBLE).map(row).join("") + '</details>';
+      '<button type="button" class="vs-copy" data-vs="copy"><i class="fa-regular fa-copy" aria-hidden="true"></i> Kopyala</button></div>';
+    if (labTests.length) {
+      html += labTests.map(labRow).join("");
+      if (nSym) html += '<details class="vs-more"><summary>Belirtilerinize göre testler <span class="vs-more-n">' + nSym + '</span> <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>' + symHtml + '</details>';
+    } else {
+      html += '<div class="vs-sub-h">Belirtilerinize göre testler</div>' + symHtml;
     }
-    return html + normalNotesHtml(m) + recallHtml(m) + '</section>';
+    html += '<details class="vs-more vs-prelab-more"><summary><i class="fa-solid fa-droplet" aria-hidden="true"></i> Kan vermeye gitmeden önce <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><div id="vsPrelab">' + prelabListHtml() + '</div></details>' + recheckDrawerHtml(m);
+    return html + '</section>';
+  }
+  function recheckDrawerHtml(m) {
+    var rc = (window.VitaRecheck ? VitaRecheck.cardHtml(m) : "") + recallHtml(m);
+    return rc ? '<details class="vs-more vs-recheck-more" id="vsRecheck"><summary><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Kontrol ölçümü <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><div class="vs-det-body">' + rc + '</div></details>' : "";
   }
 
   function plainText(m) {
@@ -444,12 +468,13 @@
   function render(show) {
     var host = $("vitaSimpleHost");
     if (!host) return;
-    if (show === false) { host.classList.add("hidden"); host.innerHTML = ""; return; }
+    if (show === false) { host.classList.add("hidden"); host.innerHTML = ""; var dh0 = $("vitaDetailsHost"); if (dh0) dh0.innerHTML = ""; return; }
     var m;
     try { m = build(); } catch (e) { console.warn("[VitaTakip] clinical-simple:", e); return; }
     current = m;
-    /* Sıra: özet → güvenlik uyarıları → değerlerim → tahliller arası ilişkiler → belirtiler → testler (+ hatırlatma) */
-    host.innerHTML = summaryHtml(m) + safetyHtml(m) + valuesHtml(m) + relationsCardHtml(m) + (window.VitaRecheck ? VitaRecheck.cardHtml(m) : "") + (window.VitaAgeStage ? VitaAgeStage.cardHtml() : "") + symptomsHtml(m) + testsHtml(m) + prelabCardHtml();
+    /* Sıra: sonuç bloğu (güvenlik şeridi + özet + eylemler) → dikkat isteyen değerler → belirtiler → testler → Ayrıntılar (kapalı) */
+    host.innerHTML = summaryHtml(m) + valuesHtml(m) + (window.VitaAgeStage ? VitaAgeStage.cardHtml() : "") + testsHtml(m);
+    var dh = $("vitaDetailsHost"); if (dh) dh.innerHTML = detailsHtml(m);
     host.classList.remove("hidden");
   }
 
@@ -461,6 +486,9 @@
       var txt = plainText(current);
       var done = function () { if (typeof showToast === "function") showToast("Kopyalandı", "Liste panoya alındı.", "success"); };
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, done); else done();
+    } else if (a === "nut") {
+      var box = t.parentNode && t.parentNode.parentNode && t.parentNode.parentNode.querySelector(".vs-nut");
+      if (box) { box.hidden = !box.hidden; t.setAttribute("aria-expanded", box.hidden ? "false" : "true"); }
     } else if (a === "tests") {
       var tt = $("vsTests");
       if (tt) tt.scrollIntoView({ behavior: "smooth", block: "start" });

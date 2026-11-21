@@ -121,11 +121,27 @@
     open(b.getAttribute("data-vt-src"));
   }, true);
 
+  /* Ayarlar → Kaynaklar: every parameter with its general range, short note and sources, each collapsible */
+  function renderSettingsList() {
+    var host = document.getElementById("settingsSourcesList");
+    var E = window.VitaLabEvidence;
+    if (!host || !E) return;
+    var keys = Object.keys(E.PARAMS).concat(Object.keys(EXTRA).filter(function (k) { return !E.PARAMS[k]; }));
+    host.innerHTML = '<p class="vkb-sum">Uygulamadaki değerlendirme eşiklerinin dayandığı kaynaklar. Tahlil raporunuzdaki laboratuvar aralığı her zaman önceliklidir.</p>' +
+      keys.map(function (k) {
+        return '<details class="vkb-set-item" data-src-key="' + esc(k) + '"><summary><span>' + esc(labelFor(k)) + '</span><small>' + sourcesFor(k).length + ' kaynak</small><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>' +
+          '<div class="vkb-set-body">' + bodyFor(k) + '</div></details>';
+      }).join("") +
+      (version() ? '<p class="vkb-foot"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Eşikler: <b>' + esc(version()) + '</b> · PubMed doğrulamalı. Kaynaklar bilgi içindir; karar hekiminizindir.</p>' : "");
+  }
+
   function init() {
-    decorateLabCards();
+    renderSettingsList();
+    var sec = document.getElementById("settingsSectionSources");
+    if (sec) sec.addEventListener("toggle", function () { if (sec.open) renderSettingsList(); }); /* gender-specific ranges refresh */
     var v = document.getElementById("reportThresholdVersion");
     if (v && version()) v.textContent = "Eşikler: " + version() + " · PubMed doğrulamalı";
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
-  window.VitaSourceInfo = { open: open, close: close, button: infoButton, decorate: decorateLabCards };
+  window.VitaSourceInfo = { open: open, close: close, button: infoButton, decorate: decorateLabCards, renderSettings: renderSettingsList };
 })();

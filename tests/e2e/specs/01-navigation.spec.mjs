@@ -21,7 +21,7 @@ test('tüm ana ekranlar konsol hatası olmadan yüklenir', async ({ page }) => {
   await expect(page.locator('#view-neyim .anamnesis-card').first()).toBeVisible();
 
   await go(page, 'view-clinical-results');
-  await expect(page.locator('#view-clinical-results').getByText('Değerlerim')).toBeVisible();
+  await expect(page.locator('#vsHero')).toBeVisible();
 
   await go(page, 'view-report');
   await expect(page.locator('#repSimple .rs-tbl tbody tr').first()).toBeVisible();

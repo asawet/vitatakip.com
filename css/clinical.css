@@ -254,3 +254,79 @@
 .vs-val-tags{flex:1 0 100%;order:5;display:flex;flex-wrap:wrap;gap:4px;margin-top:-2px}
 .vs-val-tags > span{margin-left:0}
 .vs-val-name{min-width:40%}
+
+/* Klinik Analiz — sonuç bloğu eylemleri ve kapalı Ayrıntılar */
+.vs-hero .vs-safety{background:rgba(255,241,242,.96);border:0;border-radius:12px;padding:4px;margin:0 0 12px}
+.vs-hero .vs-safety .vs-warn{margin:0;border:0;background:transparent}
+.vs-hero .vs-safety .vs-warn + .vs-warn{border-top:1px solid #fecdd3;border-radius:0}
+.vs-hero .vs-safety summary > .fa-triangle-exclamation{color:#e11d48;font-size:13px}
+.vs-hero .vs-safety .vs-warn-t{color:#9f1239}
+.vs-hero .vs-safety .vs-chev{color:#9f1239}
+.vs-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.vs-act{display:flex;align-items:center;gap:8px;min-height:44px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);color:#fff;font-size:13px;font-weight:800;text-align:left;cursor:pointer}
+.vs-act span{flex:1 1 auto;min-width:0;line-height:1.25}
+.vs-act b{flex:0 0 auto;min-width:24px;height:24px;padding:0 6px;border-radius:12px;background:#042f2e;color:#5eead4;font-size:12px;display:inline-flex;align-items:center;justify-content:center}
+.vs-act-main{grid-column:1 / -1;background:#14b8a6;border-color:#14b8a6;color:#042f2e}
+.vs-act:hover{filter:brightness(1.08)}
+.vs-hero-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;margin-top:12px;font-size:11.5px;color:#99f6e4}
+.vs-hero-foot i{margin-right:4px}
+.vs-link{background:none;border:0;padding:4px 0;color:#ccfbf1;font-size:12px;font-weight:800;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.vs-details{padding:14px}
+.vs-det{border-top:1px solid #e2e8f0}
+.vs-det:first-of-type{border-top:0}
+.vs-det > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 2px;font-size:13.5px;font-weight:800;color:#334155}
+.vs-det > summary::-webkit-details-marker{display:none}
+.vs-det > summary > i:first-child{width:18px;text-align:center;color:#94a3b8}
+.vs-det > summary > span:not(.vs-count){flex:1 1 auto}
+.vs-det[open] > summary .vs-chev{transform:rotate(180deg)}
+.vs-det-body{padding:0 2px 12px}
+.vs-det-body .vs-card{border:0;box-shadow:none;padding:0;background:transparent}
+.vs-det-body .vs-card > .vs-h{display:none}
+.vs-det-body .vs-okrow{margin:0}
+.vs-det-body .vs-normal-notes{margin:0}
+@media (max-width:360px){.vs-acts{grid-template-columns:1fr}}
+.vs-det > summary .vs-count{background:#f1f5f9;color:#475569;border-color:#e2e8f0}
+
+/* Değerler kartı — minimal satırlar (açılmaz) + normal değerler çekmecesi */
+.vs-values .vs-h{font-size:14px;margin-bottom:6px}
+.vs-values .vs-val{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:0;padding:11px 2px;border:0;border-bottom:1px solid #f1f5f9;border-radius:0;background:transparent}
+.vs-values .vs-val:last-of-type{border-bottom:0}
+.vs-values .vs-val.vs-val-crit{background:transparent}
+.vs-values .vs-val.vs-val-crit .vs-val-name{color:#be123c}
+.vs-values .vs-val-name{flex:1 1 auto;min-width:0;font-size:13.5px;font-weight:700;display:flex;flex-direction:column;gap:2px}
+.vs-values .vs-val-tags{flex:none;order:0;margin:0;gap:4px}
+.vs-values .vs-val-tags span{font-size:10px}
+.vs-values .vs-val-num{font-size:13.5px}
+.vs-values .vs-chip{min-width:62px;text-align:center}
+.vs-val-note{flex:1 0 100%;font-size:11.5px;color:#9f1239}
+.vs-okdrawer{margin-top:6px;border-top:1px solid #f1f5f9}
+.vs-okdrawer > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:10px 2px 2px;font-size:12px;font-weight:700;color:#64748b}
+.vs-okdrawer > summary::-webkit-details-marker{display:none}
+.vs-okdrawer > summary span{font-size:11px;color:#94a3b8}
+.vs-okdrawer > summary .vs-chev{margin-left:auto;font-size:11px}
+.vs-okdrawer[open] > summary .vs-chev{transform:rotate(180deg)}
+.vs-okdrawer .vs-okrow{border-top:0;padding-top:6px}
+.vkb-set-item{border-top:1px solid #f1f5f9}
+.vkb-set-item > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 0;font-size:13px;font-weight:700;color:#0f172a}
+.vkb-set-item > summary::-webkit-details-marker{display:none}
+.vkb-set-item > summary span{flex:1 1 auto}
+.vkb-set-item > summary small{font-size:11px;color:#94a3b8;font-weight:600}
+.vkb-set-item > summary i{font-size:11px;color:#94a3b8}
+.vkb-set-item[open] > summary i{transform:rotate(180deg)}
+.vkb-set-body{padding:0 0 10px}
+#settingsSectionSources[open] > summary .fa-chevron-down{transform:rotate(180deg)}
+#settingsSectionSources > summary::-webkit-details-marker{display:none}
+
+/* Testler: belirtilere göre testler çekmecesi, (!) olası eksik düğmesi, kan verme hazırlığı */
+.vs-test-sym .vs-test-name{display:inline-flex;align-items:center;gap:8px}
+.vs-nut-btn{width:20px;height:20px;flex:0 0 auto;border-radius:50%;border:1.5px solid #f59e0b;background:#fffbeb;color:#b45309;font-size:12px;font-weight:900;line-height:1;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.vs-nut-btn[aria-expanded="true"]{background:#f59e0b;color:#fff}
+.vs-nut{display:block;margin-top:5px;padding:6px 9px;border-radius:8px;background:#fffbeb;color:#92400e;font-size:12px;font-weight:600}
+.vs-nut[hidden]{display:none}
+.vs-more-n{font-size:11px;color:#94a3b8;margin-left:2px}
+.vs-sub-h{font-size:12px;font-weight:800;color:#64748b;margin:4px 0 2px}
+.vs-prelab-more{margin-top:8px}
+.vs-prelab-more > summary .fa-droplet{color:#0ea5e9;margin-right:4px}
+.vs-prelab-more #vsPrelab{padding-top:8px}
+.vs-values .vs-val-name .vs-ref{font-size:11px;font-weight:500;color:#94a3b8;margin:0}
+.vs-recheck-more{margin-top:8px}.vs-recheck-more > summary .fa-calendar-check{color:#0d9488;margin-right:4px}.vs-recheck-more .vs-det-body{padding-top:8px}#vitaDetailsHost:empty{display:none}

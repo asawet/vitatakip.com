@@ -56,28 +56,26 @@ test('birim/aralık eksik değerler genel aralığa düşer ve bu arayüzde beli
   /* Düzeltme: RBC yüksek → Hemogram isteniyor; aynı anda "Hemogram 90 günde normal ölçüldü" notu ÇIKMAZ */
   const testNames = await page.locator('#vsTests .vs-test-name').allTextContents();
   expect(testNames.some(t => /Hemogram/.test(t))).toBe(true);
-  await expect(page.locator('#vsTests .vs-normal-note').filter({ hasText: 'Hemogram' })).toHaveCount(0);
-  await expect(page.locator('#vsTests .vs-normal-note').filter({ hasText: 'Ferritin' })).toHaveCount(1);
+  await expect(page.locator('#vsDetails .vs-normal-note').filter({ hasText: 'Hemogram' })).toHaveCount(0);
+  await expect(page.locator('#vsDetails .vs-normal-note').filter({ hasText: 'Ferritin' })).toHaveCount(1);
 
-  /* Düzeltme: B12 350 "Sınırda" iken metinler "düşük" demez */
-  const b12 = page.locator('#view-clinical-results details.vs-val').filter({ hasText: 'Vitamin B12' }).first();
-  await expect(b12.locator('summary')).toContainText('Sınırda');
-  await b12.locator('summary').click();
-  await expect(b12.locator('.vs-val-body')).toContainText('sınırda');
-  await expect(b12.locator('.vs-val-body')).not.toContainText('B12 düşük');
+  /* Düzeltme: B12 350 "Sınırda" iken metinler "düşük" demez; değer satırları sade, açılır değil */
+  const b12 = page.locator('#view-clinical-results .vs-val').filter({ hasText: 'Vitamin B12' }).first();
+  await expect(b12).toContainText('Sınırda');
+  await expect(page.locator('#view-clinical-results details.vs-val')).toHaveCount(0);
+  await expect(page.locator('#view-clinical-results .vkb-i')).toHaveCount(0);
   const why = await page.locator('#vsTests .vs-test-why').allTextContents();
   expect(why.some(t => /Vitamin B12 sınırda/.test(t))).toBe(true);
   expect(why.some(t => /Vitamin B12 düşük/.test(t))).toBe(false);
 
-  /* Düzeltme: telefonda etiketli satırda tahlil adı sıkışmaz (tek satır, makul genişlik) */
-  const nameBox = await page.locator('#view-clinical-results details.vs-val').filter({ hasText: 'Vitamin D' }).first().locator('.vs-val-name').boundingBox();
-  expect(nameBox.width).toBeGreaterThan(110);
-  expect(nameBox.height).toBeLessThan(30);
-  const d3 = page.locator('#view-clinical-results details.vs-val').filter({ hasText: 'Vitamin D' }).first();
-  await expect(d3.locator('summary')).toContainText('Düşük');
-  await expect(d3.locator('summary .vita-fallback-tag')).toHaveText('genel aralık');
-  await d3.locator('summary').click();
-  await expect(d3.locator('.vita-fallback-note')).toContainText(`genel karşılaştırma aralığı kullanıldı: ${appRef.d3}`);
+  /* Telefonda etiketli satırda tahlil adı sıkışmaz */
+  const d3 = page.locator('#view-clinical-results .vs-val').filter({ hasText: 'Vitamin D' }).first();
+  expect((await d3.locator('.vs-val-name').boundingBox()).width).toBeGreaterThan(110);
+  await expect(d3).toContainText('Düşük');
+  await expect(d3.locator('.vita-fallback-tag')).toHaveText('genel aralık');
+  await expect(d3.locator('.vita-fallback-tag')).toHaveAttribute('title', /genel karşılaştırma aralığı kullanıldı/);
+  /* Normal değerler küçük çekmecede, başta kapalı */
+  await expect(page.locator('#vsValues details.vs-okdrawer')).not.toHaveAttribute('open', '');
   await expect(page.locator('#view-clinical-results .vs-okchip').filter({ hasText: 'TSH' }).locator('.vita-fallback-tag')).toHaveCount(1);
   await expect(page.locator('#view-clinical-results .vs-okchip').filter({ hasText: 'Glukoz' }).locator('.vita-fallback-tag')).toHaveCount(0);
   await expect(page.locator('#view-clinical-results .vs-okchip').filter({ hasText: 'Hemoglobin' }).locator('.vita-fallback-tag')).toHaveCount(0);

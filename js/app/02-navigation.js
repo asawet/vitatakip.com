@@ -306,8 +306,8 @@ function openAppDrawer() {
       }
       if (container) {
         const orderedIds = state.lastCDSS && state.lastCDSS.hasNoCurrentLabs
-          ? ["foodAlternativesSection", "protocolRecommendationSection", "cdssRecallContainer", "contraindicationAlertContainer", "cdssKidneySafetyWarningContainer", "aiClinicalSynthesisCardShell", "triageLabRecommendationsContainer", "specificityPredictionContainer", "lifeStageCard", "doctorTestsSection"]
-          : ["foodAlternativesSection", "protocolRecommendationSection", "cdssRecallContainer", "contraindicationAlertContainer", "cdssKidneySafetyWarningContainer", "aiClinicalSynthesisCardShell", "triageLabRecommendationsContainer", "specificityPredictionContainer", "lifeStageCard", "doctorTestsSection"];
+          ? ["foodAlternativesSection", "protocolRecommendationSection", "vitaDetailsHost", "cdssRecallContainer", "contraindicationAlertContainer", "cdssKidneySafetyWarningContainer", "aiClinicalSynthesisCardShell", "triageLabRecommendationsContainer", "specificityPredictionContainer", "lifeStageCard", "doctorTestsSection"]
+          : ["foodAlternativesSection", "protocolRecommendationSection", "vitaDetailsHost", "cdssRecallContainer", "contraindicationAlertContainer", "cdssKidneySafetyWarningContainer", "aiClinicalSynthesisCardShell", "triageLabRecommendationsContainer", "specificityPredictionContainer", "lifeStageCard", "doctorTestsSection"];
         orderedIds.forEach(id => {
           const section = document.getElementById(id);
           if (section && section.parentElement === container) container.appendChild(section);

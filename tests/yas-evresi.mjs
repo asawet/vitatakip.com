@@ -33,7 +33,7 @@ await p.evaluate(() => { for (const [id, v] of Object.entries({ inputLabFerritin
 await p.evaluate(() => navigateToView('view-clinical-results')); await sleep(1600);
 const U = await p.evaluate(() => ({ card: !!document.querySelector('#vitaSimpleHost .as-card'), title: (document.querySelector('#vitaSimpleHost .as-card summary') || {}).innerText, age: [...document.querySelectorAll('#vitaSimpleHost .vs-age')].map(e => e.innerText.slice(0, 60)), tbl: document.querySelectorAll('#vitaSimpleHost .as-tbl tbody tr').length }));
 log('Klinik Analiz: yaş kartı + 8 satır tablo', U.card && U.tbl === 8, JSON.stringify(U));
-log('Klinik Analiz: ferritin/Hb düşükken yaş notu satırı', U.age.length >= 1, U.age.join(' | '));
+log('Klinik Analiz: değer satırları sade (yaş bilgisi ayrı yaş kartında)', U.age.length === 0, U.age.join(' | '));
 await p.evaluate(() => navigateToView('view-settings')); await sleep(600);
 const S = await p.evaluate(() => ({ card: !!document.querySelector('#settingsAgeStage .as-card'), len: document.getElementById('view-settings').innerText.length }));
 log('Ayarlar: yaş kartı görünür', S.card, JSON.stringify(S));

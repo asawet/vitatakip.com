@@ -37,7 +37,7 @@ test('e-Nabız PDF değerleri ve referans durumları doğru gösterilir', async 
 
   /* Klinik Analiz: yön (düşük / yüksek) ve ilişkiler */
   await go(page, 'view-clinical-results');
-  const val = name => page.locator('#view-clinical-results details.vs-val summary').filter({ hasText: name }).first();
+  const val = name => page.locator('#view-clinical-results .vs-val').filter({ hasText: name }).first();
   await expect(val('Hemoglobin')).toContainText('Düşük');
   await expect(val('MCV')).toContainText('Yüksek');
   await expect(val('Vitamin B12')).toContainText('Düşük');

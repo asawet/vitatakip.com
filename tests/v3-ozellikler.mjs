@@ -31,14 +31,11 @@ log('Açık tema varsayılan görünüme döner', await p.evaluate(() => !docume
 
 /* 2) Kaynak penceresi + eşik sürümü */
 await p.evaluate(() => navigateToView('view-labs')); await sleep(500);
-const nI = await p.evaluate(() => document.querySelectorAll('#view-labs .vkb-i').length);
-log('Tahlil kartlarında 14 adet (i) kaynak düğmesi', nI === 14, String(nI));
-await p.evaluate(() => document.querySelector('#view-labs [data-vt-src="d3"]').click()); await sleep(300);
-const m1 = await p.evaluate(() => { const m = document.getElementById('vitaSourceModal'); return { open: m && !m.classList.contains('hidden'), title: document.getElementById('vkbTitle')?.textContent, n: m.querySelectorAll('.vkb-src').length, doi: [...m.querySelectorAll('.vkb-src a')].some(a => /doi\.org\/10\.1210\/clinem\/dgae290/.test(a.href)), ver: document.getElementById('vkbVer')?.textContent }; });
-log('(i) → sade pencere: başlık, kaynaklar, Endocrine Society 2024 DOI, eşik sürümü', m1.open && /25-OH D/.test(m1.title) && m1.n >= 2 && m1.doi && /Kasım 2026/.test(m1.ver), JSON.stringify(m1));
-await p.keyboard.press('Escape'); await sleep(150);
-log('Esc ile kapanır', await p.evaluate(() => document.getElementById('vitaSourceModal').classList.contains('hidden')));
-await p.evaluate(() => navigateToView('view-report')); await sleep(500);
+const nI = await p.evaluate(() => document.querySelectorAll('.vkb-i').length);
+log('Ekranlarda (i) kaynak düğmesi yok; kaynaklar Ayarlar → Kaynaklar altında', nI === 0, String(nI));
+await p.evaluate(() => { navigateToView('view-settings'); document.getElementById('settingsSectionSources').open = true; }); await sleep(300);
+const m1 = await p.evaluate(() => { const s = document.getElementById('settingsSourcesList'); const d3 = s.querySelector('[data-src-key="d3"]'); return { items: s.querySelectorAll('.vkb-set-item').length, title: d3?.querySelector('summary')?.textContent, n: d3?.querySelectorAll('.vkb-src').length, doi: [...(d3?.querySelectorAll('.vkb-src a') || [])].some(a => /doi\.org\/10\.1210\/clinem\/dgae290/.test(a.href)), ver: s.querySelector('.vkb-foot')?.textContent }; });
+log('Ayarlar → Kaynaklar: parametre listesi, D vitamini kaynakları, Endocrine Society 2024 DOI, eşik sürümü', m1.items >= 14 && /25-OH D/.test(m1.title) && m1.n >= 2 && m1.doi && /Kasım 2026/.test(m1.ver), JSON.stringify(m1));await p.evaluate(() => navigateToView('view-report')); await sleep(500);
 const rep = await p.evaluate(() => document.getElementById('reportThresholdVersion')?.textContent || '');
 await p.evaluate(() => document.querySelector('#reportPrintFooterMeta [data-vt-src="all"]').click()); await sleep(250);
 const all = await p.evaluate(() => document.querySelectorAll('#vitaSourceModal .vkb-src').length);

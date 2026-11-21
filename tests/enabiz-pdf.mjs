@@ -48,7 +48,7 @@ async function clinical(p) {
   return p.evaluate(() => ({
     patterns: VitaLabInsights.analyze().patterns.map(x => x.title),
     rel: [...document.querySelectorAll('#vsRelations .vs-warn-t')].map(e => e.innerText.trim()),
-    bad: [...document.querySelectorAll('#view-clinical-results .vs-val summary')].map(e => e.innerText.replace(/\s+/g, ' ').trim()),
+    bad: [...document.querySelectorAll('#view-clinical-results .vs-val')].map(e => e.innerText.replace(/\s+/g, ' ').trim()),
     tests: [...document.querySelectorAll('#vsTests .vs-test-name')].map(e => e.textContent.trim()),
     kidneyAlarm: /böbrek/i.test(document.querySelector('.vs-safety')?.textContent || ''),
     hist: (state.labHistory || []).map(rec => LAB_HISTORY_METRICS.map(mm => getLabHistoryMetric(rec, mm)).filter(Boolean).map(x => [x.key, x.status, x.referenceSource]))
