@@ -12,7 +12,7 @@ await prep();
 /* ---------- Bölüm 1–3: hata gerilemeleri ---------- */
 await p.evaluate(() => { localStorage.setItem('vitatakip_remember_me', 'true'); localStorage.setItem('vitatakip_remembered_user_id', activeUserId); localStorage.setItem('vitatakip_remembered_fullname', 'Test Kullanici'); localStorage.setItem('vitatakip_active_session_id', activeUserId); handleLogout(); });
 await sleep(300);
-const p2 = await b.newPage(); await p2.goto('http://localhost:8080/index.html', { waitUntil: 'networkidle2' }); await sleep(1500);
+const p2 = await b.newPage(); await p2.goto('http://localhost:' + (process.env.VT_PORT || 8080) + '/index.html', { waitUntil: 'networkidle2' }); await sleep(1500);
 const r1 = await p2.evaluate(() => ({ active: activeUserId, auth: !document.getElementById('authModal').classList.contains('hidden'), quick: !document.getElementById('authRememberedQuickLoginBox').classList.contains('hidden'), forget: !!document.getElementById('authForgetRememberedBtn') }));
 log('#1 Güvenli çıkıştan sonra yeniden açılışta giriş ekranı (otomatik giriş yok); hatırlanan hesap kartı + Hesabı Unut', !r1.active && r1.auth && r1.quick && r1.forget, r1);
 await p2.evaluate(() => document.getElementById('authForgetRememberedBtn').click()); await sleep(150);

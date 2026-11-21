@@ -43,7 +43,7 @@ log('Gönderim sürerken düğme pasif, "Gönderiliyor..." ve yüklenme simgesi'
 await sleep(700);
 const req = NET.reqs[0] || {};
 log('İstek FormSubmit AJAX adresine POST + JSON başlıklarıyla gider', req.url === 'https://formsubmit.co/ajax/sxgsawet@gmail.com' && /application\/json/.test(req.headers?.['content-type'] || '') && /application\/json/.test(req.headers?.accept || ''), req.url);
-log('İstekte yalnızca site adresi Referer olarak gider (FormSubmit bunu ister; sayfa yolu gönderilmez)', req.headers?.referer === 'http://localhost:8080/', req.headers?.referer);
+log('İstekte yalnızca site adresi Referer olarak gider (FormSubmit bunu ister; sayfa yolu gönderilmez)', req.headers?.referer === 'http://localhost:' + (process.env.VT_PORT || 8080) + '/', req.headers?.referer);
 const body = req.body || {};
 log('Gövdede Türkçe anahtarlarla tüm alanlar ve konu var', body['Gönderen'] === 'Test Kullanici' && body['Kullanım kolaylığı puanı'] === '4 / 5' && body['Bildirim türü'] === 'Hata' && body['İlgili bölüm'] === 'VitaAI' && /çalışıyor/.test(body['Açıklama']) && body._subject === '[VitaTakip] Yeni Geri Bildirim', JSON.stringify(body));
 const ok = await p.evaluate(() => { const s = document.getElementById('vitaFeedbackDeliveryStatus'); return { status: s.innerText.trim(), cls: s.className, visible: !s.classList.contains('hidden'), msg: document.getElementById('vitaFeedbackMessage').value, entries: getVitaFeedbackEntries().map(e => ({ m: e.message, d: e.delivered })), hist: document.getElementById('vitaFeedbackHistoryList').innerText, btn: document.getElementById('btnSubmitVitaFeedback').disabled }; });

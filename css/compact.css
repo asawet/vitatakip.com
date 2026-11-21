@@ -181,3 +181,9 @@ details.lab-manual-quiet > summary{font-size:12px}
 .lab-tab.on b{background:#0f766e;color:#fff}
 .lab-panel{display:flex;flex-direction:column;gap:12px}
 .lab-panel[hidden]{display:none}
+
+/* Rehber: isteğe bağlı günlük takip kartı (4/4 ilerlemeye sayılmaz) */
+.vg-steps li.vg-optional{margin-top:10px;padding-top:10px;border-top:1px dashed #cbd5e1}
+.vg-steps li.vg-optional button{border-style:dashed;background:#f8fafc}
+.vg-steps li.vg-optional b{background:#e2e8f0;color:#475569}
+.vg-steps li.vg-optional.is-done b{background:#16a34a;color:#fff}

@@ -3,7 +3,7 @@
    internetsiz yüklenir; her ekrandaki tüm simgeler çizilir (Font Awesome alt kümesi eksiksiz).
    Varsayılan yerel sunucu; canlı site için: node cevrimdisi.mjs https://asawet05.github.io/VitaTakip-PWA/ */
 import puppeteer from 'puppeteer-core';
-const base = (process.argv[2] || 'http://localhost:8080/').replace(/\/?$/, '/');
+const base = (process.argv[2] || 'http://localhost:' + (process.env.VT_PORT || 8080) + '/').replace(/\/?$/, '/');
 const b = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: 'new', args: ['--no-sandbox'] });
 const results = []; const log = (n, ok, d) => { results.push(ok); console.log((ok ? 'OK   ' : 'FAIL ') + n + (d ? ' -> ' + d : '')); };
 const errs = [];

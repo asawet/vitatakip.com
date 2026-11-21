@@ -11,7 +11,7 @@ export async function boot(opts = {}) {
   await p.evaluateOnNewDocument(() => { localStorage.setItem('vitatakip_legal_accepted', 'true'); });
   if (opts.preload) await p.evaluateOnNewDocument(opts.preload, opts.preloadArg);
   if (opts.ua) await p.setUserAgent(opts.ua);
-  await p.goto('http://localhost:8080/index.html' + (opts.hash || ''), { waitUntil: 'networkidle2' });
+  await p.goto('http://localhost:' + (process.env.VT_PORT || 8080) + '/index.html' + (opts.hash || ''), { waitUntil: 'networkidle2' });
   await new Promise(r => setTimeout(r, 1500));
   if (opts.register === false) return { b, p, errs };
   // kayıt ol

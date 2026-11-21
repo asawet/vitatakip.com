@@ -12,7 +12,7 @@ p.on('request', r => {
   if (u.startsWith('https://generativelanguage.googleapis.com/')) {
     return r.respond({ status: 200, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*' }, contentType: 'application/json', body: '{"models":[]}' });
   }
-  if (/^https?:/.test(u) && !u.startsWith('http://localhost:8080')) external.add(new URL(u).host);
+  if (/^https?:/.test(u) && !u.startsWith('http://localhost:' + (process.env.VT_PORT || 8080) + '')) external.add(new URL(u).host);
   r.continue();
 });
 p.on('dialog', d => d.accept());

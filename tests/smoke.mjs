@@ -11,7 +11,7 @@ p.on('requestfailed', r => fails.push(r.url().slice(0, 100) + ' ' + (r.failure()
 p.on('dialog', d => d.dismiss());
 await p.setViewport({ width: 400, height: 850 });
 await p.evaluateOnNewDocument(() => localStorage.setItem('vitatakip_legal_accepted', 'true'));
-await p.goto('http://localhost:8080/index.html', { waitUntil: 'networkidle2' }); await sleep(1200);
+await p.goto('http://localhost:' + (process.env.VT_PORT || 8080) + '/index.html', { waitUntil: 'networkidle2' }); await sleep(1200);
 await p.evaluate(() => { document.getElementById('authTabRegisterBtn').click(); });
 await p.type('#authInputFullName', 'Smoke Test'); await p.type('#authInputPassword', 'smoketest1');
 await p.evaluate(() => { document.getElementById('authInputPasswordConfirm').value = 'smoketest1'; document.getElementById('authSubmitBtn').click(); }); await sleep(2000);

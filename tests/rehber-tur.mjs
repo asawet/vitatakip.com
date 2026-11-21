@@ -53,7 +53,7 @@ log('Tur görüldü olarak işaretlenir', seen === 'true');
 
 // Tur kendi gösterdiği ekranları "tamamlandı" saymaz.
 const afterTour = await p.evaluate(() => getVitaGuideStatus().done);
-log('Turun gezdirdiği ekranlar ilerlemeye sayılmaz', afterTour[3] === false && afterTour[5] === false, JSON.stringify(afterTour));
+log('Turun gezdirdiği ekranlar ilerlemeye sayılmaz', afterTour[3] === false, JSON.stringify(afterTour));
 
 await p.setViewport({ width: 1280, height: 800 });
 await sleep(400);
@@ -69,19 +69,20 @@ await p.keyboard.press('ArrowLeft'); await sleep(400);
 const k2 = await p.evaluate(() => document.getElementById('vitaTourCount').textContent);
 await p.keyboard.press('Escape'); await sleep(400);
 const k3 = await p.evaluate(() => document.getElementById('vitaSpotlightLayer').classList.contains('hidden'));
-log('Klavye: ← → adım değiştirir, Esc kapatır', k1 === '2 / 6' && k2 === '1 / 6' && k3, `${k1} ${k2} ${k3}`);
+log('Klavye: ← → adım değiştirir, Esc kapatır', k1 === '2 / 4' && k2 === '1 / 4' && k3, `${k1} ${k2} ${k3}`);
 
 // Rehber penceresi: aynı adımlar, aynı başlıklar.
 await p.evaluate(() => openOnboardingModal());
 await sleep(300);
 const modal = await p.evaluate(() => ({
-  items: Array.from(document.querySelectorAll('#vitaGuideSteps strong')).map(e => e.childNodes[0].textContent),
+  items: Array.from(document.querySelectorAll('#vitaGuideSteps li:not(.vg-optional) strong')).map(e => e.childNodes[0].textContent),
   steps: VITA_GUIDE_STEPS.map(s => s.title),
   total: document.getElementById('vitaGuideStepTotal').textContent,
-  label: document.getElementById('vitaGuideProgressLabel').textContent
+  label: document.getElementById('vitaGuideProgressLabel').textContent,
+  optional: document.querySelectorAll('#vitaGuideSteps li.vg-optional').length
 }));
 log('Pencere ve tur aynı adımları aynı sırayla gösterir', JSON.stringify(modal.items) === JSON.stringify(modal.steps) && modal.total === String(modal.steps.length), JSON.stringify(modal.items));
-log('İlerleme başlangıçta 0', /^0 \/ 6/.test(modal.label), modal.label);
+log('İlerleme başlangıçta 0 / 4; günlük takip isteğe bağlı ek olarak ayrı', /^0 \/ 4/.test(modal.label) && modal.optional === 1, modal.label);
 
 // Gerçek işlemler ilerlemeyi işaretler.
 await p.evaluate(() => { closeOnboardingModal(); });
@@ -89,32 +90,31 @@ await p.evaluate(() => {
   state.user = { ...state.user, age: 41, height: 175, weight: 80, profileCompleted: true };
   const lab = document.getElementById('inputLabD3'); lab.value = '30';
   lab.dispatchEvent(new Event('input', { bubbles: true })); lab.dispatchEvent(new Event('change', { bubbles: true }));
+  state.labValues = { ...(state.labValues || {}), d3: 30 }; /* analysis is not opened here, so store the typed value directly */
   const box = document.querySelector('#view-neyim input[type=checkbox][data-symptom], #view-neyim [data-symptom-key]');
   state.selectedSymptoms.add(box ? (box.dataset.symptom || box.dataset.symptomKey) : 'yorgunluk');
-  navigateToView('view-clinical-results');
-  navigateToView('view-report');
   navigateToView('view-home');
   openOnboardingModal();
 });
 await sleep(300);
 const prog = await p.evaluate(() => ({
   label: document.getElementById('vitaGuideProgressLabel').textContent,
-  done: Array.from(document.querySelectorAll('#vitaGuideSteps li')).map(li => li.classList.contains('is-done')),
-  next: Array.from(document.querySelectorAll('#vitaGuideSteps li')).findIndex(li => li.classList.contains('is-next')),
+  done: Array.from(document.querySelectorAll('#vitaGuideSteps li:not(.vg-optional)')).map(li => li.classList.contains('is-done')),
+  next: Array.from(document.querySelectorAll('#vitaGuideSteps li:not(.vg-optional)')).findIndex(li => li.classList.contains('is-next')),
   start: document.getElementById('vitaGuideStartLabel').textContent,
   bar: document.getElementById('vitaGuideProgressBar').style.width
 }));
-log('Profil, tahlil, belirti ve ziyaret edilen ekranlar tamamlandı olarak işaretlenir', JSON.stringify(prog.done) === '[true,true,true,true,false,true]' && /^5 \/ 6/.test(prog.label) && prog.bar === '83%', JSON.stringify(prog));
-log('Sıradaki adım vurgulanır ve tur oradan sürdürülebilir', prog.next === 4 && /5\. adımdan/.test(prog.start), prog.start);
+log('Profil, tahlil, belirti ve ziyaret edilen ekranlar tamamlandı olarak işaretlenir', JSON.stringify(prog.done) === '[true,true,true,false]' && /^3 \/ 4/.test(prog.label) && prog.bar === '75%', JSON.stringify(prog));
+log('Sıradaki adım vurgulanır ve tur oradan sürdürülebilir', prog.next === 3 && /4\. adımdan/.test(prog.start), prog.start);
 
 await p.evaluate(() => document.getElementById('vitaGuideStartTour').click());
 await sleep(700);
 const resumed = await p.evaluate(() => ({ count: document.getElementById('vitaTourCount').textContent, status: document.getElementById('vitaTourStatus').textContent }));
-log('"Sürdür" turu doğru adımdan açar ve durumunu gösterir', resumed.count === '5 / 6' && /Henüz/.test(resumed.status), JSON.stringify(resumed));
+log('"Sürdür" turu doğru adımdan açar ve durumunu gösterir', resumed.count === '4 / 4' && /Henüz/.test(resumed.status), JSON.stringify(resumed));
 await p.evaluate(() => runVitaTourStepAction());
 await sleep(400);
 const act = await p.evaluate(() => ({ hidden: document.getElementById('vitaSpotlightLayer').classList.contains('hidden'), view: state.activeTab }));
-log('Kart üzerindeki eylem düğmesi turu kapatıp o bölüme götürür', act.hidden && act.view === 'view-home', JSON.stringify(act));
+log('Kart üzerindeki eylem düğmesi turu kapatıp o bölüme götürür', act.hidden && act.view === 'view-clinical-results', JSON.stringify(act));
 
 // Pencerede bir adıma tıklamak o ekrana götürür.
 await p.evaluate(() => { openOnboardingModal(); document.querySelector('#vitaGuideSteps [data-guide-step="1"]').click(); });

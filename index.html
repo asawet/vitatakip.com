@@ -26,11 +26,11 @@
 <!-- Uses Inter when already available; otherwise falls back immediately to the system UI font. -->
 <!-- Font Awesome 6 CDN -->
 <!-- build:css -->
-<link rel="stylesheet" href="./css/app.css?v=c1993bc6d7">
-<script defer src="./js/app.1.js?v=c1993bc6d7"></script>
-<script defer src="./js/app.2.js?v=c1993bc6d7"></script>
-<script defer src="./js/app.3.js?v=c1993bc6d7"></script>
-<script defer src="./js/app.4.js?v=c1993bc6d7"></script>
+<link rel="stylesheet" href="./css/app.css?v=9376c6065a">
+<script defer src="./js/app.1.js?v=9376c6065a"></script>
+<script defer src="./js/app.2.js?v=9376c6065a"></script>
+<script defer src="./js/app.3.js?v=9376c6065a"></script>
+<script defer src="./js/app.4.js?v=9376c6065a"></script>
 <!-- /build:css -->
 <!-- Chart.js loads only if a trend chart is needed. -->
 <!-- PDF.js loads only when a user selects a PDF for analysis. -->
@@ -2561,15 +2561,17 @@ Verileri Sil
 <h3 class="text-base sm:text-lg font-black text-navy-900 mt-0.5">VitaTakip Nasıl Kullanılır?</h3>
 </div>
 </div>
-<p class="text-xs leading-relaxed text-slate-600">Tahlil sonuçlarınızı ve belirtilerinizi birlikte değerlendirip doktor görüşmesine hazırlar, günlük vitamin/su takibini kolaylaştırır. <strong><span id="vitaGuideStepTotal">6</span> adımda</strong> kullanın. Tamamladığınız adımlar otomatik işaretlenir:</p>
-<div class="vg-progress" id="vitaGuideProgress" role="progressbar" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" aria-labelledby="vitaGuideProgressLabel">
-  <div class="vg-progress-head"><span id="vitaGuideProgressLabel">0 / 6 adım tamamlandı</span><span class="vg-progress-hint">Bir adıma dokunarak o ekrana gidin</span></div>
+<p class="text-xs leading-relaxed text-slate-600">Tahlil ve belirtilerinizi <strong><span id="vitaGuideStepTotal">4</span> kolay adımda</strong> bir araya getirip doktor görüşmesine hazırlanın. Uygulama tanı koymaz. Tamamladığınız adımlar kendiliğinden işaretlenir:</p>
+<div class="vg-progress" id="vitaGuideProgress" role="progressbar" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" aria-labelledby="vitaGuideProgressLabel">
+  <div class="vg-progress-head"><span id="vitaGuideProgressLabel">0 / 4 adım tamamlandı</span><span class="vg-progress-hint">Bir adıma dokunarak o ekrana gidin</span></div>
   <div class="vg-progress-track"><div class="vg-progress-bar" id="vitaGuideProgressBar"></div></div>
 </div>
 <ol class="vg-steps my-3" id="vitaGuideSteps"></ol>
 <div class="vg-tips">
-  <div><i class="fa-solid fa-robot text-indigo-700"></i><span><strong>Vita AI:</strong> kısa sorular sorun. Ayarlar'dan Gemini API anahtarı ekler ve paylaşım onayı verirseniz Gemini, aksi hâlde cihazdaki yerel motor yanıtlar. Anahtarınız yalnızca bu tarayıcıda, kendi hesabınızda saklanır.</span></div>
+  <div><i class="fa-solid fa-lightbulb text-amber-600"></i><span><strong>İpuçları:</strong> Tahlillerim'de <b>Geçmiş</b> eski sonuçları, <b>Grafik</b> gidişatı gösterir. Testler sekmesindeki <b>(!)</b> olası eksikliği açar; <b>Kopyala</b> test listesini alır.</span></div>
+  <div><i class="fa-solid fa-robot text-indigo-700"></i><span><strong>Vita AI ve kaynaklar:</strong> sağ alttaki düğmeden kısa sorular sorabilirsiniz (kaydırırken gizlenir). Testlerin bilimsel kaynakları Ayarlar &gt; <b>Kaynaklar</b>'da.</span></div>
   <div><i class="fa-solid fa-shield-halved text-teal-700"></i><span><strong>Gizlilik:</strong> verileriniz yalnızca bu tarayıcıda tutulur; başka cihaza taşımak için Ayarlar &gt; "Yedek İndir"i kullanın.</span></div>
+</div>
 </div>
 <div class="mt-4 flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
   <button type="button" onclick="if(window.SoundEffects) SoundEffects.playClick(); closeOnboardingModal()" class="min-h-10 rounded-xl bg-slate-100 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200">Kapat</button>

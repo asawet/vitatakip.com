@@ -277,7 +277,7 @@ function renderFridgeScheduleSheet() {
         check("Yanıt beklerken yerel motora geçiş mevcut", Boolean(document.getElementById("ai-use-local-fallback")) && typeof VitaAIChat.useLocalFallback === "function");
         check("Geri bildirim modalı tekil", document.querySelectorAll("#feedbackModal").length === 1);
         check("Geri bildirim formu mevcut", Boolean(document.getElementById("vitaFeedbackForm")));
-        check("İlk kullanım spotlight turunun 6 adımı tanımlı", Array.isArray(VITA_SPOTLIGHT_STEPS) && VITA_SPOTLIGHT_STEPS.length === 6);
+        check("İlk kullanım spotlight turunun 4 adımı tanımlı", Array.isArray(VITA_SPOTLIGHT_STEPS) && VITA_SPOTLIGHT_STEPS.length === 4);
         check("Spotlight turu manuel başlatma ve tamamlama işlevleri mevcut", typeof startVitaSpotlightTour === "function" && typeof moveVitaSpotlightTour === "function" && typeof finishVitaSpotlightTour === "function");
         check("Tur hedefleri DOM'da mevcut", VITA_GUIDE_STEPS.every(step => step.targets.some(selector => Boolean(document.querySelector(selector)))));
         check("Rehber penceresi ve tur aynı adım listesini kullanıyor", VITA_SPOTLIGHT_STEPS === VITA_GUIDE_STEPS && Boolean(document.getElementById("vitaGuideSteps")) && typeof renderVitaGuideModal === "function" && /renderVitaGuideModal/.test(openOnboardingModal.toString()));

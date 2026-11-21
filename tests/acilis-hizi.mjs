@@ -2,7 +2,7 @@
    İlk ziyaret yavaş 4G benzeri ağda, ikinci ziyaret önbellekten (servis çalışanı) ölçülür.
    Kullanım: node acilis-hizi.mjs [adres]   (varsayılan http://localhost:8080/) */
 import puppeteer from 'puppeteer-core';
-const base = (process.argv[2] || 'http://localhost:8080/').replace(/\/?$/, '/');
+const base = (process.argv[2] || 'http://localhost:' + (process.env.VT_PORT || 8080) + '/').replace(/\/?$/, '/');
 const b = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: 'new', args: ['--no-sandbox'] });
 const p = await b.newPage();
 await p.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });

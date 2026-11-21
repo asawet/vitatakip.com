@@ -3,18 +3,18 @@
     const VITA_GUIDE_STEPS = [
       {
         id: "profile", view: "view-home", targets: ["#headerProfileButton"],
-        title: "Profilinizi girin",
-        text: "Yaş, boy, kilo ve kullandığınız ilaçlar.",
-        detail: "Su hedefi, böbrek (eGFR) hesabı ve ilaç–takviye uyarıları bu bilgilere göre ayarlanır. Sağ üstteki adınıza dokunarak istediğiniz zaman değiştirebilirsiniz.",
+        title: "Profilinizi oluşturun",
+        text: "Yaş, boy, kilo ve ilaçlarınızı girin.",
+        detail: "Günlük su hedefiniz, böbrek süzme hızınız (eGFR) ve ilaç–takviye uyarıları bu bilgilere göre hesaplanır. Sağ üstteki adınıza dokunarak değiştirebilirsiniz.",
         actionLabel: "Profili düzenle",
         open: () => openProfileModal(true),
         done: () => typeof isVitaProfileComplete === "function" && isVitaProfileComplete()
       },
       {
-        id: "labs", view: "view-labs", targets: ["#guideLabsTarget"],
-        title: "Tahlillerim",
-        text: "e-Nabız PDF'ini yükleyin ya da değerleri elle yazın.",
-        detail: "D vitamini, B12, ferritin, hemoglobin, kreatinin gibi değerler tarihi ve referans aralığıyla kaydedilir; yeni tahliller eskileriyle karşılaştırılır.",
+        id: "labs", view: "view-labs", targets: ["#labAddChoices", "#labSummaryHero", "#guideLabsTarget"],
+        title: "Tahlilinizi ekleyin",
+        text: "e-Nabız PDF'ini yükleyin ya da elle yazın.",
+        detail: "Üstteki “Son tahlil” kartı kaç değerin normal, kaçının referans dışı olduğunu gösterir. Eski sonuçlar “Geçmiş”, gidişat “Grafik” sekmesinde.",
         actionLabel: "Tahlil ekle",
         open: () => navigateToView("view-labs"),
         done: () => (Array.isArray(state.labHistory) && state.labHistory.length > 0)
@@ -22,43 +22,33 @@
       },
       {
         id: "symptoms", view: "view-neyim", targets: ["#guideNeyimTarget"],
-        title: "NeyimVar?",
-        text: "Yaşadığınız belirtileri seçin.",
-        detail: "7 kısa adımda belirtilerinizi işaretleyin. Ağız, dil, cilt, saç ve tırnak belirtilerindeki (?) düğmesi örnek görsel açar.",
+        title: "Belirtilerinizi seçin",
+        text: "NeyimVar? bölümünde şikâyetlerinizi işaretleyin.",
+        detail: "Kısa adımlarla ilerleyin. Emin olamadığınız belirtide (?) düğmesi örnek fotoğraf açar. Seçtikleriniz tahlilinizle birlikte değerlendirilir.",
         actionLabel: "Belirti seç",
         open: () => navigateToView("view-neyim"),
         done: () => Boolean(state.selectedSymptoms && state.selectedSymptoms.size > 0)
       },
       {
         id: "analysis", view: "view-clinical-results",
-        targets: ["#view-clinical-results h2", "#view-clinical-results h3", "#mobile-nav-view-clinical-results"],
-        title: "Klinik Analiz",
-        text: "Tahlil ve belirtileriniz birlikte yorumlanır.",
-        detail: "Neye dikkat etmeli, hangi besinler ve hangi testler hekiminizle konuşulabilir; ilaç–takviye uyarıları da burada. Bu bir tanı değildir.",
+        targets: ["#vsHero", "#vitaSimpleHost .vs-tabs", "#view-clinical-results h2", "#view-clinical-results h3", "#mobile-nav-view-clinical-results"],
+        title: "Sonuç ve rapor",
+        text: "Klinik Analiz'i okuyun, raporu doktora götürün.",
+        detail: "Özet, Testler ve Destek sekmelerine bakın; kırmızı uyarıları atlamayın. Alttaki Rapor sekmesinden tek sayfalık doktor raporunu yazdırın ya da PDF kaydedin.",
         actionLabel: "Analize bak",
         open: () => navigateToView("view-clinical-results"),
-        done: () => vitaGuideVisited("view-clinical-results")
-      },
-      {
-        id: "daily", view: "view-home", targets: ["#guideDailyProtocolTarget", "#view-home h2"],
-        title: "Günlük takip",
-        text: "Bugünkü takviyelerinizi ve suyunuzu işaretleyin.",
-        detail: "Hekiminizin önerdiği takviyeleri sabah, öğle ve akşam olarak ekleyin; barkod veya kutu fotoğrafıyla da eklenebilir. Liste ve su sayacı her gece 00:00'da yenilenir.",
-        actionLabel: "Takviyelere git",
-        open: () => navigateToView("view-home"),
-        done: () => Array.isArray(state.supplements) && state.supplements.length > 0
-      },
-      {
-        id: "report", view: "view-report", targets: ["#reportModeSelectorBar h2", "#btnPrintDoctorReport"],
-        title: "Doktor Raporu",
-        text: "Özetinizi yazdırın veya PDF olarak kaydedin.",
-        detail: "Tahlil gidişatı, belirtiler ve uyarılar kısa bir raporda toplanır. Doktor görüşmesine yazdırıp götürebilir ya da PDF olarak kaydedebilirsiniz.",
-        actionLabel: "Raporu aç",
-        open: () => navigateToView("view-report"),
-        done: () => vitaGuideVisited("view-report")
+        done: () => vitaGuideVisited("view-clinical-results") || vitaGuideVisited("view-report")
       }
     ];
-    // Eski adla erişen tanılama testleri ve yardımcılar için takma ad.
+    /* İsteğe bağlı ek: ilerlemeye (4/4) sayılmaz, turda gösterilmez */
+    const VITA_GUIDE_OPTIONAL = {
+      id: "daily", view: "view-home", targets: ["#guideDailyProtocolTarget", "#symptomDailyCheck", "#view-home h2"],
+      title: "İsteğe bağlı: Günlük takip",
+      text: "Su, takviye ve belirtilerinizi her gün izleyin.",
+      actionLabel: "Ana sayfaya git",
+      open: () => navigateToView("view-home"),
+      done: () => Array.isArray(state.supplements) && state.supplements.length > 0
+    };    // Eski adla erişen tanılama testleri ve yardımcılar için takma ad.
     const VITA_SPOTLIGHT_STEPS = VITA_GUIDE_STEPS;
 
     let vitaSpotlightStepIndex = 0;
@@ -115,7 +105,12 @@
         const badge = done ? '<i class="fa-solid fa-check" aria-hidden="true"></i>' : String(index + 1);
         const tag = done ? '<small class="vg-tag vg-tag-done">Tamam</small>' : (isNext ? '<small class="vg-tag vg-tag-next">Sıradaki</small>' : "");
         return `<li class="${done ? "is-done" : ""}${isNext ? " is-next" : ""}"><button type="button" data-guide-step="${index}" aria-label="${index + 1}. adım: ${escapeVitaGuideText(step.title)}${done ? " (tamamlandı)" : ""}"><b>${badge}</b><span><strong>${escapeVitaGuideText(step.title)}${tag}</strong><em>${escapeVitaGuideText(step.text)}</em></span></button></li>`;
-      }).join("");
+      }).join("") + (() => {
+        const o = VITA_GUIDE_OPTIONAL, done = isVitaGuideStepDone(o);
+        return `<li class="vg-optional${done ? " is-done" : ""}"><button type="button" data-guide-optional aria-label="${escapeVitaGuideText(o.title)}"><b>${done ? '<i class="fa-solid fa-check" aria-hidden="true"></i>' : '<i class="fa-solid fa-plus" aria-hidden="true"></i>'}</b><span><strong>${escapeVitaGuideText(o.title)}</strong><em>${escapeVitaGuideText(o.text)}</em></span></button></li>`;
+      })();
+      const opt = list.querySelector("[data-guide-optional]");
+      if (opt) opt.addEventListener("click", () => { if (window.SoundEffects) SoundEffects.playClick(); closeOnboardingModal(); VITA_GUIDE_OPTIONAL.open(); });
       list.querySelectorAll("[data-guide-step]").forEach(button => {
         button.addEventListener("click", () => openVitaGuideStep(Number(button.dataset.guideStep)));
       });

@@ -8,7 +8,7 @@ p.on('request', r => { const u = new URL(r.url()); if (!['localhost', '127.0.0.1
 p.on('response', r => { if (r.status() >= 400 && r.url().includes('localhost')) local404.push(r.status() + ' ' + r.url()); });
 p.on('pageerror', e => errs.push(e.message));
 await p.evaluateOnNewDocument(() => localStorage.setItem('vitatakip_legal_accepted', 'true'));
-await p.goto('http://localhost:8080/index.html', { waitUntil: 'networkidle2' }); await sleep(2500);
+await p.goto('http://localhost:' + (process.env.VT_PORT || 8080) + '/index.html', { waitUntil: 'networkidle2' }); await sleep(2500);
 
 // 1) Simge yazı tipleri yerelden yüklendi mi?
 const fonts = await p.evaluate(async () => { await document.fonts.ready; const out = []; document.fonts.forEach(f => { if (/Font Awesome/.test(f.family)) out.push(f.family + ':' + f.status); }); return out; });
