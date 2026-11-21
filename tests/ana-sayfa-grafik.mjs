@@ -17,7 +17,7 @@ for (const [date, vals] of [['2026-05-14', { inputLabMg: '1.5', inputLabB12: '18
   await p.evaluate(() => navigateToView('view-labs')); await sleep(250);
   await p.evaluate((date, vals) => { for (const el of document.querySelectorAll('[id^="inputLab"]')) if (!el.id.includes('Date')) el.value = ''; document.getElementById('inputLabDate').value = date; for (const [id, v] of Object.entries(vals)) { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); } saveCurrentLabRecordWithDate(); }, date, vals); await sleep(500);
 }
-await p.evaluate(() => navigateToView('view-labs')); await sleep(500);
+await p.evaluate(() => { navigateToView('view-labs'); if (window.vitaLabsTab) vitaLabsTab('grafik'); }); await sleep(500); /* chart lives in the Grafik tab */
 const T0 = await p.evaluate(() => ({ closed: document.getElementById('acc-labtrend').classList.contains('lt-closed'), label: document.getElementById('label-acc-labtrend').innerText, title: document.getElementById('labTrendAccordionToggle').innerText.replace(/\s+/g, ' ') }));
 log('Başlık/alt başlık, varsayılan kapalı + "Göster"', T0.closed && T0.label === 'Göster' && /Tahlil gelişim grafiği/.test(T0.title) && /Ölçüm trendini görüntülemek için açın\./.test(T0.title), JSON.stringify(T0));
 await p.click('#labTrendAccordionToggle'); await sleep(600);

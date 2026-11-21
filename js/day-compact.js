@@ -104,7 +104,91 @@
       var box = document.querySelector("#acc-labhistory > div.mb-3");
       if (box) box.classList.toggle("hidden", n < 3);
       labsTidy();
+      labsLayout();
     } catch (_) {}
+  }
+
+  /* 3c) Tahlillerim düzeni (Seçenek 1, tekrarsız): üstte son tahlil özeti + ekleme seçenekleri,
+     altında "Geçmiş | Grafik" sekmeleri. Değer yorumu Klinik Analiz'de kalır ("Yorumu gör →"). */
+  var labTab = "gecmis";
+  function dmy(iso) { var p = String(iso || "").split("-"); return p.length === 3 ? Number(p[2]) + " " + ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"][Number(p[1]) - 1] + " " + p[0] : String(iso || ""); }
+  function counts(rec) {
+    var c = { ok: 0, out: 0 };
+    try {
+      LAB_HISTORY_METRICS.forEach(function (m) { var x = getLabHistoryMetric(rec, m); if (!x) return; if (x.status === "outside") c.out++; else c.ok++; });
+    } catch (_) {}
+    return c;
+  }
+  function labsLayout() {
+    var view = document.getElementById("view-labs");
+    var entry = document.getElementById("labNewEntryCard");
+    var chart = document.getElementById("biomarkerChartCard");
+    var hist = document.getElementById("acc-labhistory");
+    var choices = document.getElementById("labAddChoices");
+    if (!view || !entry || !chart || !hist || !choices) return;
+    var histCard = hist.parentElement;
+    var hero = document.getElementById("labSummaryHero");
+    if (!hero) {
+      hero = document.createElement("section"); hero.id = "labSummaryHero"; hero.className = "lab-hero";
+      var title = view.firstElementChild;
+      title.insertAdjacentElement("afterend", hero);
+      /* manual entry form sits right under the hero (visible only while open) */
+      var manual = document.getElementById("labManualEntry");
+      var tabs = document.createElement("div"); tabs.id = "labTabs"; tabs.className = "lab-tabs"; tabs.setAttribute("role", "tablist");
+      var pG = document.createElement("div"); pG.id = "labPanelGecmis"; pG.className = "lab-panel"; pG.setAttribute("role", "tabpanel");
+      var pC = document.createElement("div"); pC.id = "labPanelGrafik"; pC.className = "lab-panel"; pC.setAttribute("role", "tabpanel");
+      hero.insertAdjacentElement("afterend", tabs);
+      if (manual) hero.insertAdjacentElement("afterend", manual);
+      tabs.insertAdjacentElement("afterend", pG);
+      pG.insertAdjacentElement("afterend", pC);
+      pG.appendChild(histCard);
+      var pre = document.getElementById("labPrelabGuide"); if (pre) pG.appendChild(pre);
+      pC.appendChild(chart);
+      entry.classList.add("hidden"); /* its parts moved into the hero / panels */
+      tabs.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-labtab]"); if (!b) return;
+        labTab = b.getAttribute("data-labtab"); paintTabs();
+        if (labTab === "grafik") { var acc = document.getElementById("labTrendAccordionButton") || chart.querySelector("button[aria-controls='acc-labtrend']"); if (acc && acc.getAttribute("aria-expanded") === "false") acc.click(); }
+      });
+      hero.addEventListener("click", function (e) {
+        if (e.target.closest("[data-lab-open-analysis]") && typeof navigateToView === "function") navigateToView("view-clinical-results");
+      });
+    }
+    /* summary */
+    var recs = (Array.isArray(state.labHistory) ? state.labHistory.slice() : []).filter(function (r) { return r && r.date; }).sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
+    var head;
+    if (!recs.length) {
+      head = '<div class="lab-hero-k">Henüz tahlil yok</div><div class="lab-hero-t">İlk tahlilinizi ekleyin</div><p class="lab-hero-p">e-Nabız PDF\'i yükleyin ya da değerleri elle girin.</p>';
+    } else {
+      var c0 = counts(recs[0]);
+      head = '<div class="lab-hero-k">Son tahlil · ' + dmy(recs[0].date) + '</div>' +
+        '<div class="lab-hero-t"><b class="' + (c0.out ? "lab-out" : "") + '">' + c0.out + ' referans dışı</b> · ' + c0.ok + ' normal</div>';
+      if (recs[1]) {
+        var c1 = counts(recs[1]);
+        var arrow = c0.out < c1.out ? "↘ azaldı" : (c0.out > c1.out ? "↗ arttı" : "→ aynı");
+        head += '<div class="lab-hero-prev">Önceki (' + dmy(recs[1].date) + '): ' + c1.out + ' referans dışı <span>' + arrow + '</span></div>';
+      }
+    }
+    var top = hero.querySelector(".lab-hero-top");
+    if (!top) { hero.innerHTML = '<div class="lab-hero-top"></div><div class="lab-hero-acts"></div>'; top = hero.querySelector(".lab-hero-top"); }
+    top.innerHTML = head;
+    var acts = hero.querySelector(".lab-hero-acts");
+    if (choices.parentElement !== acts) acts.appendChild(choices);
+    var link = hero.querySelector("[data-lab-open-analysis]");
+    if (recs.length && !link) acts.insertAdjacentHTML("beforeend", '<button type="button" class="lab-hero-link" data-lab-open-analysis>Yorumu gör <span aria-hidden="true">→</span></button>');
+    else if (!recs.length && link) link.remove();
+    paintTabs(recs.length);
+  }
+  function paintTabs(n) {
+    var tabs = document.getElementById("labTabs"); if (!tabs) return;
+    if (typeof n !== "number") n = Array.isArray(state.labHistory) ? state.labHistory.length : 0;
+    tabs.innerHTML = [["gecmis", "Geçmiş", n], ["grafik", "Grafik", 0]].map(function (t) {
+      var on = t[0] === labTab;
+      return '<button type="button" role="tab" class="lab-tab' + (on ? " on" : "") + '" data-labtab="' + t[0] + '" aria-selected="' + on + '">' + t[1] + (t[2] ? ' <b>' + t[2] + '</b>' : "") + '</button>';
+    }).join("");
+    var g = document.getElementById("labPanelGecmis"), c = document.getElementById("labPanelGrafik");
+    if (g) g.hidden = labTab !== "gecmis";
+    if (c) c.hidden = labTab !== "grafik";
   }
 
   /* 3b) Tahlillerim sadeleştirme (yapı aynı kalır):
@@ -122,7 +206,7 @@
       manualBtn.type = "button"; manualBtn.className = "lab-add-choice";
       manualBtn.innerHTML = '<i class="fa-solid fa-keyboard" aria-hidden="true"></i><span>Değerleri elle gir</span>';
       manualBtn.addEventListener("click", function () { manual.open = true; manual.classList.add("lab-manual-on"); manual.scrollIntoView({ behavior: "smooth", block: "start" }); });
-      if (pdfBtn) { pdfBtn.classList.add("lab-add-choice"); choices.appendChild(pdfBtn); }
+      if (pdfBtn) { pdfBtn.classList.add("lab-add-choice"); var sp = pdfBtn.querySelector("span"); if (sp) sp.textContent = "e-Nabız PDF yükle"; choices.appendChild(pdfBtn); }
       choices.appendChild(manualBtn);
       actions.parentElement.insertAdjacentElement("afterend", choices);
       manual.classList.add("lab-manual-quiet"); /* closed manual drawer is hidden; the "Değerleri elle gir" choice opens it */
@@ -159,4 +243,6 @@
   }
   document.addEventListener("DOMContentLoaded", labsCompact);
   window.vitaLabsCompact = labsCompact;
+  /* Switch the Tahlillerim tab without opening the chart (used by tests and deep links) */
+  window.vitaLabsTab = function (k) { labTab = k === "grafik" ? "grafik" : "gecmis"; paintTabs(); };
 })();

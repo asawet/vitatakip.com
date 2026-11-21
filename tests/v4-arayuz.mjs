@@ -67,7 +67,7 @@ log('#10 Halka açıklaması: takviye yoksa "Yalnızca su hedefi (%100)", varsa 
 
 const r11 = await p.evaluate(async () => {
   state.labHistory = [{ id: 'a', date: '2026-08-01', hb: 15.2, references: {}, genderAtTest: 'E' }, { id: 'b', date: '2026-11-10', hb: 16.9, references: {}, genderAtTest: 'E' }]; saveState();
-  navigateToView('view-labs'); await new Promise(r => setTimeout(r, 300)); document.querySelectorAll('.lt-row').forEach(d => { if (/Hemoglobin/.test(d.textContent)) d.open = true; }); await new Promise(r => setTimeout(r, 300));
+  navigateToView('view-labs'); await new Promise(r => setTimeout(r, 300)); { if (window.vitaLabsTab) vitaLabsTab('grafik'); } document.querySelectorAll('.lt-row').forEach(d => { if (/Hemoglobin/.test(d.textContent)) d.open = true; }); await new Promise(r => setTimeout(r, 300));
   const svg = [...document.querySelectorAll('svg.lt-chart')].find(s => /Hemoglobin/.test(s.getAttribute('aria-label') || ''));
   const u = svg.querySelector('.lt-unit').getBBox(); const top = [...svg.querySelectorAll('text[text-anchor="end"]')].filter(t => /^\d/.test(t.textContent)).map(t => t.getBBox()).sort((x, y) => x.y - y.y)[0];
   Object.assign(state.user, { dietPattern: 'omnivore', fishPerWeek: '1', redMeatPerWeek: '1', sunExposureDaily: '10-20' }); executeCDSSRules();
