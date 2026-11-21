@@ -34,7 +34,7 @@ if (!only || only === 'T1') {
   await p.evaluate(() => saveCurrentLabRecordWithDate()); await sleep(500);
   const t = await analysisText(p);
   log('T1c yeni normal tahlilde demir/B12 eksikliği sızmadı', !/Ferritin: Referans altı|B12: Referans altı|9\.37|187/.test(t), (t.match(/.{0,40}(Referans altı|187|9\.37).{0,40}/) || [''])[0]);
-  log('T1d besin bölümünde demir/B12 yok (veya normal)', await p.evaluate(() => { const f = document.getElementById('foodAlternativesSection'); return !/Demir|B12/i.test(f.innerText) || f.classList.contains('hidden') || getComputedStyle(f).display === 'none'; }));
+  log('T1d besin bölümünde demir/B12 yok (veya normal)', await p.evaluate(() => { const f = document.getElementById('foodAlternativesSection'); /* symptom-linked B12 tips are legitimate; only a LAB-based iron/B12 deficiency must not leak from the deleted record */ return !/(tahlil|referans)[^.]{0,80}(Demir|B12)|(Demir|B12)[^.]{0,80}(tahlil sonuc|referans alt)/i.test(f.textContent) || f.classList.contains('hidden') || getComputedStyle(f).display === 'none'; }));
   ls = await lsDump(p);
   log('T1e localStorage\'da eski değer yok', !/9\.37/.test(ls));
   // yeniden yükle

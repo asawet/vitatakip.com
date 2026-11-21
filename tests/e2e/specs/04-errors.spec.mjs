@@ -33,7 +33,7 @@ test('geçersiz dosyalar ve boş/hatalı girişler zarifçe karşılanır', asyn
 
   /* Elle giriş: hiç değer yokken kaydet */
   await go(page, 'view-labs');
-  await page.locator('#labManualEntry > summary').click();
+  await page.locator('#labAddChoices').getByRole('button', { name: /Değerleri elle gir/ }).click();
   await page.getByRole('button', { name: /Bu Tahlili Tarih ile Kaydet/ }).click();
   await waitToast(page, /Boş Sonuç/);
 

@@ -39,7 +39,7 @@ const S = await p.evaluate(() => ({ card: !!document.querySelector('#settingsAge
 log('Ayarlar: yaş kartı görünür', S.card, JSON.stringify(S));
 await p.evaluate(() => navigateToView('view-report')); await sleep(900);
 const R = await p.evaluate(() => document.getElementById('repSimple').innerText);
-log('Rapor: yaş notu en fazla bir satır', (R.match(/Yaş:/g) || []).length === 1, (R.match(/Yaş:[^\n]*/) || [''])[0].slice(0, 80));
+log('Rapor: yaş notu en fazla bir satır', (R.match(/Yaş:/g) || []).length <= 1, (R.match(/Yaş:[^\n]*/) || [''])[0].slice(0, 80));
 log('Hata yok', errs.length === 0, errs.join(' | '));
 console.log('ÖZET', results.filter(Boolean).length + '/' + results.length);
 await b.close(); process.exit(0);

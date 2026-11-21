@@ -69,11 +69,16 @@
       var key = sympKey();
       var keys = state.selectedSymptoms instanceof Set ? Array.from(state.selectedSymptoms) : [];
       if (!key || !keys.length || localStorage.getItem(key) === today()) { host.innerHTML = ""; host.className = "hidden"; return; }
-      host.className = "sdc";
-      host.innerHTML = '<div class="sdc-h"><b>Belirtileriniz hâlâ var mı?</b><button type="button" class="sdc-all">Hepsi aynı</button></div>' +
-        keys.map(function (k) {
-          return '<div class="sdc-r" data-k="' + k + '"><span>' + String(symptomName(k)).replace(/[<>&]/g, "") + '</span><span class="sdc-b"><button type="button" class="sdc-yes">Hâlâ var</button><button type="button" class="sdc-no">Geçti</button></span></div>';
-        }).join("");
+      /* One symptom at a time: the box always takes a single row; answering moves to the next (1/7 progress) */
+      host.className = "sdc sdc-one";
+      var total = keys.length, pos = 0;
+      var draw = function () {
+        var k = keys[pos];
+        host.innerHTML = '<div class="sdc-h"><b>Belirtileriniz hâlâ var mı?</b><span class="sdc-n">' + (pos + 1) + '/' + total + '</span><button type="button" class="sdc-all">Hepsi aynı</button></div>' +
+          '<div class="sdc-r" data-k="' + k + '"><span>' + String(symptomName(k)).replace(/[<>&]/g, "") + '</span><span class="sdc-b"><button type="button" class="sdc-yes">Hâlâ var</button><button type="button" class="sdc-no">Geçti</button></span></div>' +
+          (total > 1 ? '<div class="sdc-dots" aria-hidden="true">' + keys.map(function (_, i) { return '<i class="' + (i < pos ? "done" : (i === pos ? "on" : "")) + '"></i>'; }).join("") + '</div>' : "");
+      };
+      draw();
       host.onclick = function (e) {
         var t = e.target.closest("button"); if (!t) return;
         if (window.SoundEffects && SoundEffects.playClick) SoundEffects.playClick();
@@ -83,8 +88,8 @@
           removeSymptom(row.getAttribute("data-k"));
           if (typeof showToast === "function") showToast("Belirti kaldırıldı", "Klinik Analiz ve rapor güncellendi.", "success");
         }
-        row.remove();
-        if (!host.querySelector(".sdc-r")) { markChecked(); renderSymptomCheck(); }
+        pos += 1;
+        if (pos >= total) { markChecked(); renderSymptomCheck(); } else draw();
       };
     } catch (e) { console.warn("[VitaTakip] belirti kontrolü:", e); }
   }
@@ -98,7 +103,48 @@
       if (chart) chart.classList.toggle("hidden", n < 1);
       var box = document.querySelector("#acc-labhistory > div.mb-3");
       if (box) box.classList.toggle("hidden", n < 3);
+      labsTidy();
     } catch (_) {}
+  }
+
+  /* 3b) Tahlillerim sadeleştirme (yapı aynı kalır):
+     - PDF yükle + elle giriş tek "+ Yeni tahlil ekle" düğmesinde; seçenekler düğmeye basınca açılır
+     - arama + filtre + PDF indir tek satırda; tarih seçimi ve durum filtreleri "Filtre" ile açılır */
+  function labsTidy() {
+    var actions = document.getElementById("labHeroActions");
+    var manual = document.getElementById("labManualEntry");
+    if (actions && manual && !document.getElementById("labAddChoices")) {
+      var pdfBtn = actions.querySelector("button");
+      /* Two side-by-side choices, always visible: "e-Nabız PDF yükle" | "Değerleri elle gir" */
+      var choices = document.createElement("div");
+      choices.id = "labAddChoices"; choices.className = "lab-add-choices";
+      var manualBtn = document.createElement("button");
+      manualBtn.type = "button"; manualBtn.className = "lab-add-choice";
+      manualBtn.innerHTML = '<i class="fa-solid fa-keyboard" aria-hidden="true"></i><span>Değerleri elle gir</span>';
+      manualBtn.addEventListener("click", function () { manual.open = true; manual.classList.add("lab-manual-on"); manual.scrollIntoView({ behavior: "smooth", block: "start" }); });
+      if (pdfBtn) { pdfBtn.classList.add("lab-add-choice"); choices.appendChild(pdfBtn); }
+      choices.appendChild(manualBtn);
+      actions.parentElement.insertAdjacentElement("afterend", choices);
+      manual.classList.add("lab-manual-quiet"); /* closed manual drawer is hidden; the "Değerleri elle gir" choice opens it */
+    }
+    var search = document.getElementById("labHistorySearchInput");
+    var grid = document.getElementById("labHistoryDateFilter") && document.getElementById("labHistoryDateFilter").parentElement;
+    var pdfOut = document.getElementById("btnExportLabHistoryPdf");
+    if (search && grid && pdfOut && !document.getElementById("labFilterToggle")) {
+      var wrap = search.parentElement;
+      var row = document.createElement("div"); row.className = "lab-tools-row";
+      wrap.parentElement.insertBefore(row, wrap); row.appendChild(wrap);
+      var ft = document.createElement("button");
+      ft.type = "button"; ft.id = "labFilterToggle"; ft.className = "lab-tool-btn"; ft.setAttribute("aria-expanded", "false"); ft.title = "Tarih ve sonuç filtresi";
+      ft.innerHTML = '<i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Filtre</span>';
+      row.appendChild(ft);
+      pdfOut.classList.add("lab-tool-btn", "lab-tool-pdf"); pdfOut.title = "Tahlil geçmişini PDF indir"; pdfOut.setAttribute("aria-label", "Tahlil geçmişini PDF indir");
+      row.appendChild(pdfOut);
+      grid.classList.add("lab-filter-panel"); grid.hidden = true;
+      var sum = document.getElementById("labHistoryFilterSummary");
+      ft.addEventListener("click", function () { grid.hidden = !grid.hidden; if (sum) sum.hidden = grid.hidden; ft.setAttribute("aria-expanded", String(!grid.hidden)); });
+      if (sum) sum.hidden = true;
+    }
   }
   /* renderLabHistoryUI sarmalanmaz (uygulamanın kendi testi işlev metnini okur): rozet değişince uygula */
   function watchBadge() {

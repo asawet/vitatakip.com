@@ -14,7 +14,7 @@ await p.evaluate(() => navigateToView('view-labs')); await sleep(400);
 const G2m = await p.evaluate(() => {
   const d = document.getElementById('labManualEntry');
   const hist = [...document.querySelectorAll('#view-labs h3')].find(h => /Geçmiş tahlillerim/i.test(h.textContent));
-  return { open: d.open, summary: d.querySelector('summary').textContent.trim(), histTop: Math.round(hist.getBoundingClientRect().top + scrollY), pdfFirst: !!document.querySelector('#labHeroActions button[onclick*="openENabizModal"]') };
+  return { open: d.open, summary: d.querySelector('summary').textContent.trim(), histTop: Math.round(hist.getBoundingClientRect().top + scrollY), pdfFirst: !!document.querySelector('#labAddChoices button[onclick*="openENabizModal"]') };
 });
 log('Elle giriş bölümü varsayılan KAPALI, başlık doğru', !G2m.open && /PDF'in yok mu\? Değerleri elle gir/.test(G2m.summary), G2m.summary);
 log('PDF yükleme düğmesi en üstte (bölüm dışında)', G2m.pdfFirst);
@@ -106,8 +106,10 @@ log('Klinik Analiz: eski tarihli değerlerde 16.11.2026 etiketi', C.tags.include
 const d3row = await p.evaluate(() => [...document.querySelectorAll('#view-clinical-results .vs-val')].map(e => e.textContent.replace(/\s+/g, ' ').trim()).find(t => /Vitamin D/.test(t)) || '');
 log('D vitamini 24,8 (30 altı) "Düşük" görünür', /24[,.]8/.test(d3row) && /Düşük/.test(d3row), d3row);
 log('Ferritin istenmez, Çinko istenir', !C.tests.some(t => /ferritin/i.test(t)) && C.tests.some(t => /çinko/i.test(t)), C.tests.join(' | '));
-log('"Ferritin: Son 90 günde normal ölçüldü (16.11.2026: 71)" notu', C.notes.some(n => /Ferritin: Son 90 günde normal ölçüldü \(16\.11\.2026: 71\)/.test(n)), C.notes.join(' | '));
-log('TSH artık 90 günde normal ölçüldüğü için istenmez', !C.tests.some(t => /tsh/i.test(t)) && C.notes.some(n => /TSH/.test(n)), C.tests.join(' | '));
+log('Normal ölçülen Ferritin (71) Normal değerler çekmecesinde', /Ferritin\s*71/.test(C.text));
+log('TSH artık 90 günde normal ölçüldüğü için istenmez', !C.tests.some(t => /tsh/i.test(t)), C.tests.join(' | '));
+const SPLIT = await p.evaluate(() => { const re = /muayene|değerlendirme|gözden geçir|EKG|ultrason|tansiyon/i; const lab = [...document.querySelectorAll('#vsTests .vs-test-name')].map(e => e.textContent.trim()); const ex = [...document.querySelectorAll('#vsExams .vs-test-name')].map(e => e.textContent.trim()); return { lab, ex, ok: !lab.some(n => re.test(n) && !/sistatin/i.test(n)) && ex.every(n => re.test(n)), head: document.querySelector('#vsExams .vs-h')?.textContent.trim(), labHead: document.querySelector('#vsTests .vs-h')?.textContent.trim() }; });
+log('Lab testleri ile klinik muayene/uzmanlık önerileri ayrı kartlarda', SPLIT.ok && /Lab Testleri/.test(SPLIT.labHead) && (!SPLIT.ex.length || /Klinik Muayene ve Uzmanlık Önerileri/.test(SPLIT.head)), JSON.stringify(SPLIT));
 const iT = C.order.indexOf('vsTests'), iP = iT + 1;
 const prelabInDetails = await p.evaluate(() => !!document.querySelector('#vsTests details:not([open]) #vsPrelab'));
 log('"Kan Vermeye Gitmeden Önce" testler kartının altında kapalı çekmecede', iT >= 0 && iP > iT && prelabInDetails, C.order.join(' > '));

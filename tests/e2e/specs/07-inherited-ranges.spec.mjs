@@ -21,7 +21,7 @@ test('aralıksız değer önceki raporun laboratuvar aralığını devralır', a
 
   /* 2) 15.11.2026: elle, aralık yazmadan TSH 4,6 + kullanıcı aralığıyla Ferritin 25 + hiç aralığı olmayan eritrosit folatı */
   await go(page, 'view-labs');
-  await page.locator('#labManualEntry > summary').click();
+  await page.locator('#labAddChoices').getByRole('button', { name: /Değerleri elle gir/ }).click();
   await page.locator('#inputLabDate').fill('2026-11-15');
   await page.locator('#inputLabTsh').fill('4.6');
   await page.locator('#inputLabFerritin').fill('25');
@@ -64,7 +64,7 @@ test('aralıksız değer önceki raporun laboratuvar aralığını devralır', a
 
   /* 5) Daha eski tarihli bir kayıt, kendisinden SONRAKİ raporun aralığını devralmaz */
   await go(page, 'view-labs');
-  if (!(await page.locator('#labManualEntry').evaluate(d => d.open))) await page.locator('#labManualEntry > summary').click();
+  if (!(await page.locator('#labManualEntry').evaluate(d => d.open))) await page.locator('#labAddChoices').getByRole('button', { name: /Değerleri elle gir/ }).click();
   await page.locator('#inputLabDate').fill('2026-06-01');
   await page.locator('#inputLabTsh').fill('4.6');
   await page.getByRole('button', { name: /Bu Tahlili Tarih ile Kaydet/ }).click();

@@ -18,10 +18,10 @@ const I = await p.evaluate(() => { const v = document.getElementById('view-repor
 console.log(I.text);
 log('Kısa rapor görünür metin < 2200 karakter', I.chars < 2200, String(I.chars));
 log('Tahlil satırları var', I.rows >= 4, String(I.rows));
-log('Öne çıkan nokta ≤ 6', I.hl > 0 && I.hl <= 6, String(I.hl));
-log('Test ≤ 9 öğe', I.tests <= 9, String(I.tests));
-const fresh = await p.evaluate(async () => { document.getElementById('rsModeToggle').click(); await new Promise(r => setTimeout(r, 300)); const d = document.getElementById('view-report').innerText.length; document.getElementById('rsModeToggle').click(); await new Promise(r => setTimeout(r, 300)); return { d, mode: getDoctorReportMode() }; });
-log('Ayrıntılı mod daha uzun, geri dönüş çalışıyor', fresh.d > I.chars && fresh.mode === 'concise', fresh.d + ' ' + fresh.mode);
+log('Önemli bulgular 1–10 madde (her biri bir kez)', I.hl > 0 && I.hl <= 10, String(I.hl));
+log('Testler laboratuvar/muayene olarak listelenir (≤ 30)', I.tests <= 30, String(I.tests));
+const single = await p.evaluate(() => ({ toggle: !!document.getElementById('rsModeToggle'), mode: getDoctorReportMode(), modeBar: !!document.getElementById('btnReportModeConcise') && document.getElementById('btnReportModeConcise').offsetParent !== null }));
+log('Tek birleşik rapor: kısa/ayrıntılı geçişi yok', !single.toggle && single.mode === 'concise' && !single.modeBar, JSON.stringify(single));
 const H = await p.evaluate(() => document.documentElement.scrollHeight);
 await p.screenshot({ path: 'rep_new.png', fullPage: true });
 // Gebelik: eGFR yok

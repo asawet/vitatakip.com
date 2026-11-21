@@ -119,7 +119,7 @@
     /* Testler: tek bir birleşik, tekrarsız liste (sorunlu tahliller + belirtiler) */
     var testMap = {}, testOrder = [];
     var addTest = function (name, why, fromLab) {
-      var n = d.norm(name);
+      var n = d.norm(name).replace(/lipit/g, "lipid"); /* "Lipit Profili" = "Lipid profili" */
       if (!testMap[n]) { testMap[n] = { name: d.canon(name), why: [], lab: false }; testOrder.push(n); }
       var t = testMap[n];
       if (why && t.why.indexOf(why) === -1) t.why.push(why);
@@ -157,6 +157,16 @@
 
     var tests = testOrder.map(function (n, i) { var o = testMap[n]; o._i = i; return o; })
       .sort(function (a, b) { return (b.why.length - a.why.length) || ((b.lab ? 1 : 0) - (a.lab ? 1 : 0)) || (a._i - b._i); });
+    /* "ALP" is already part of "AST, GGT, ALP, bilirubin": keep the panel, carry over the reasons, drop the single test */
+    var parts = function (t) { return t.name.toLocaleLowerCase("tr-TR").split(/\s*[,/]\s*/).map(function (s) { return s.trim(); }); };
+    tests = tests.filter(function (t) {
+      var me = t.name.toLocaleLowerCase("tr-TR").trim();
+      var host = tests.filter(function (o) { return o !== t && parts(o).length > 1 && parts(o).indexOf(me) > -1; })[0];
+      if (!host) return true;
+      t.why.forEach(function (w) { if (host.why.indexOf(w) === -1) host.why.push(w); });
+      host.lab = host.lab || t.lab;
+      return false;
+    });
     /* A test that IS requested (e.g. Hemogram for a high RBC) must not also show "measured normal in 90 days" */
     normalNotes = normalNotes.filter(function (n) { return !testMap[d.norm(n.test)]; });
 
@@ -228,7 +238,20 @@
         pri.push({ title: r.name + " " + fmt(r.value) + " " + r.unit + ": gecikmeden hekim değerlendirmesi", detail: R.message || "", crit: true });
       });
     }
-    safety = pri.concat(safety);
+    /* Same warning from two rules (symptom red flag + engine box, e.g. "Tırnakta koyu çizgi" twice): keep one, merge details */
+    /* Generic words ("gecikmeden hekim değerlendirmesi", "acil") must not make two different warnings look alike:
+       only topic words count (Hb 7,4 and CRP 80 urgent warnings stay separate) */
+    var GENERIC = /^(gecik|hekim|değer|acil|klini|gerek|veya|ise|için|başla|danış|önce|uyarı|yüksek|düşük|sonra|olabi|durum|ile|tek)/;
+    var words = function (s) { return (s || "").toLocaleLowerCase("tr-TR").split(/[^a-zçğıöşü]+/).filter(function (w) { return w.length >= 4 && !GENERIC.test(w); }).map(function (w) { return w.slice(0, 5); }); };
+    var merged = [];
+    pri.concat(safety).forEach(function (it) {
+      var wi = words(it.title);
+      var twin = merged.filter(function (k) { var wk = words(k.title); return wi.filter(function (w) { return wk.indexOf(w) > -1; }).length >= 2; })[0];
+      if (!twin) { merged.push(it); return; }
+      twin.crit = twin.crit || it.crit;
+      if (it.detail && (twin.detail || "").indexOf(it.detail) === -1) twin.detail = twin.detail ? twin.detail + " " + it.detail : it.detail;
+    });
+    safety = merged;
 
     var recall = state.lastCDSS && state.lastCDSS.recallInfo && state.lastCDSS.recallInfo.dateFormatted ? String(state.lastCDSS.recallInfo.dateFormatted) : "";
 
@@ -268,17 +291,14 @@
     }
 
     /* One-line verdict naming the values that need attention: "D vitamini düşük, B12 sınırda" */
-    if (nBad) sub = m.bad.slice(0, 3).map(function (r) { return r.name + " " + CHIP[r.dir][0].toLocaleLowerCase("tr"); }).join(", ") + (nBad > 3 ? " ve " + (nBad - 3) + " değer daha." : ".");
     if (m.improved && m.improved.length) sub = (sub ? sub + " " : "") + "🎉 " + m.improved.join(", ") + " normale ulaştı.";
 
-    var lowFood = m.bad.some(function (r) { return r.dir !== "high" && ADVICE[r.key] && ADVICE[r.key].low && ADVICE[r.key].low.food; });
+    /* One primary action only (Hick's law): report lives in the bottom nav, food in the "Destek" tab */
     var acts = [];
-    if (m.tests.length) acts.push('<button type="button" class="vs-act vs-act-main" data-vs="tests"><i class="fa-solid fa-vial" aria-hidden="true"></i><span>Doktora sorulacak testler</span><b>' + m.tests.length + '</b></button>');
+    if (m.tests.length) acts.push('<button type="button" class="vs-act vs-act-main" data-vs="tests"><i class="fa-solid fa-vial" aria-hidden="true"></i><span>Doktora sorulacaklar</span><b>' + m.tests.length + '</b></button>');
     if (!m.hasLab) acts.push('<button type="button" class="vs-act vs-act-main" data-vs="labs"><i class="fa-solid fa-flask-vial" aria-hidden="true"></i><span>Tahlil gir</span></button>');
-    if (lowFood) acts.push('<button type="button" class="vs-act" data-vs="food"><i class="fa-solid fa-leaf" aria-hidden="true"></i><span>Besinler</span></button>');
-    acts.push('<button type="button" class="vs-act" data-vs="report"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i><span>Hekim raporu</span></button>');
 
-    var html = '<section class="vs-card vs-hero" id="vsHero">' + safetyStripHtml(m) + '<div class="vs-hero-top"><span class="vs-hero-ico" aria-hidden="true"><i class="fa-solid fa-clipboard-check"></i></span><div>' +
+    var html = '<section class="vs-card vs-hero" id="vsHero"><div class="vs-hero-top"><span class="vs-hero-ico" aria-hidden="true"><i class="fa-solid fa-clipboard-check"></i></span><div>' +
       '<h2>' + esc(title) + '</h2>' + (sub ? '<p>' + esc(sub) + '</p>' : "") + '</div></div>' +
       '<div class="vs-acts">' + acts.join("") + '</div>' +
       '<div class="vs-hero-foot">' + (nBad ? '<span><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Takviyeye hekiminize danışmadan başlamayın</span>' : '<span></span>') +
@@ -286,14 +306,51 @@
     return html;
   }
 
-  /* Safety warnings as a compact strip at the top of the verdict block; each opens on tap */
+  /* Safety warnings: one collapsed card right below the verdict block (count in the header); each warning opens on tap */
+  /* Urgent (rose) warnings are always visible above the tabs; the other warnings sit in one collapsed drawer */
   function safetyStripHtml(m) {
     if (!m.safety.length) return "";
-    return '<div class="vs-safety" id="vsSafety">' + m.safety.map(function (s) {
-      return '<details class="vs-warn' + (s.crit ? " vs-warn-crit" : "") + '"><summary><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><span class="vs-warn-t">' + esc(s.title) + '</span>' +
+    var warn = function (s) {
+      return '<details class="vs-warn' + (s.crit ? " vs-warn-crit" : "") + '"><summary><span class="vs-warn-t">' + esc(s.title) + '</span>' +
         (s.detail ? '<i class="fa-solid fa-chevron-down vs-chev" aria-hidden="true"></i>' : "") + '</summary>' +
         (s.detail ? '<div class="vs-warn-body">' + esc(s.detail) + '</div>' : "") + '</details>';
+    };
+    var crit = m.safety.filter(function (s) { return s.crit; }), rest = m.safety.filter(function (s) { return !s.crit; });
+    var html = '<div id="vsSafety">';
+    if (crit.length) html += '<div class="vs-card vs-safety-urgent">' + crit.map(function (s) {
+      return warn(s).replace('<summary>', '<summary><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>');
     }).join("") + '</div>';
+    if (rest.length) html += '<details class="vs-card vs-safety-box"><summary><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><span>' + (crit.length ? "Diğer güvenlik uyarıları" : "Güvenlik uyarıları") + '</span><span class="vs-count">' + rest.length + '</span><i class="fa-solid fa-chevron-down vs-chev" aria-hidden="true"></i></summary><div class="vs-safety">' +
+      rest.map(warn).join("") + '</div></details>';
+    return html + '</div>';
+  }
+
+  /* Tabs: Özet | Hekim & Test | Destek — one chunk visible at a time (progressive disclosure) */
+  var activeTab = "ozet";
+  function tabsHtml(m, panels) {
+    var nTests = m.tests.length;
+    var tabs = [["ozet", "Özet", m.bad.length], ["hekim", "Testler", nTests], ["destek", "Destek", 0]];
+    return '<div class="vs-tabs" role="tablist" aria-label="Klinik analiz bölümleri">' + tabs.map(function (t) {
+      var on = t[0] === activeTab;
+      return '<button type="button" role="tab" class="vs-tab' + (on ? " on" : "") + '" data-vs="tab" data-tab="' + t[0] + '" aria-selected="' + on + '" aria-controls="vsPanel-' + t[0] + '">' + t[1] + (t[2] ? ' <b>' + t[2] + '</b>' : "") + '</button>';
+    }).join("") + '</div>' +
+      ["ozet", "hekim", "destek"].map(function (k) { return '<div class="vs-panel" role="tabpanel" id="vsPanel-' + k + '" data-panel="' + k + '"' + (k === activeTab ? "" : " hidden") + '>' + (panels[k] || "") + '</div>'; }).join("");
+  }
+  function showTab(k) {
+    activeTab = k;
+    Array.prototype.forEach.call(document.querySelectorAll("#vitaSimpleHost .vs-tab"), function (b) { var on = b.getAttribute("data-tab") === k; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+    Array.prototype.forEach.call(document.querySelectorAll("#vitaSimpleHost .vs-panel"), function (p) { p.hidden = p.getAttribute("data-panel") !== k; });
+    var bar = document.querySelector("#vitaSimpleHost .vs-tabs");
+    if (bar && bar.getBoundingClientRect().top < 0) bar.scrollIntoView({ block: "start" });
+  }
+  /* Legacy cards rendered by older code (food sources, supplement forms) move into the "Destek" tab */
+  var LEGACY_SUPPORT = ["foodAlternativesSection", "protocolRecommendationSection"];
+  function adoptSupportCards() {
+    var panel = document.getElementById("vsPanel-destek"); if (!panel) return;
+    var slot = panel.querySelector(".vs-support-slot");
+    LEGACY_SUPPORT.forEach(function (id) { var el = $(id); if (el && slot && el.parentElement !== slot) slot.appendChild(el); });
+    var any = LEGACY_SUPPORT.some(function (id) { var el = $(id); return el && !el.classList.contains("hidden") && el.innerHTML.trim(); });
+    var empty = panel.querySelector(".vs-support-empty"); if (empty) empty.hidden = any;
   }
 
   /* Subtle date tag when a merged value comes from an earlier lab than the newest one */
@@ -345,7 +402,6 @@
     var add = function (id, icon, title, count, body) { if (body) groups.push({ id: id, icon: icon, title: title, count: count, body: body }); };
     var rel = relationsCardHtml(m);
     add("rel", "fa-link", "Tahliller arası ilişkiler", (rel.match(/vs-rel"/g) || []).length, rel);
-    add("normal", "fa-clock-rotate-left", "Son 90 günde normal ölçülenler", (m.normalNotes || []).length, normalNotesHtml(m));
     if (!groups.length) return "";
     return '<section class="vs-card vs-details" id="vsDetails"><h3 class="vs-h"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Ayrıntılar</h3>' +
       groups.map(function (g) {
@@ -409,15 +465,42 @@
 
   /* Doktordan istenebilecek testler: tahlil kaynaklı testler açık; belirtilere göre testler "Belirtilerinize göre testler"
      çekmecesinde — her testin altında belirtileri, yanındaki (!) olası eksikleri açar. En altta kan verme hazırlığı. */
+  /* Clinical exams, imaging, specialist referrals and medication reviews are not lab tests: listed in their own card */
+  var EXAM_RE = /muayene|değerlendirme|gözden geçir|EKG|ultrason|tansiyon|konsültasyon|sevk|schirmer|gözyaşı/i;
+  /* Symptom-based lab tests grouped by type; the (!) "olası eksik" button only makes sense for vitamin/mineral tests */
+  var NUTRIENT_TEST_RE = /vitamin|b12|folat|ferritin|demir|tibc|transferrin|çinko|bakır|magnezyum|kalsiyum|biyotin|selenyum|iyot|metilmalonik|mma|homosistein|omega|potasyum|fosfor/i;
+  function testGroup(name) { return /[iİ]drar/i.test(name) ? "urine" : (NUTRIENT_TEST_RE.test(name) ? "nutrient" : "blood"); }
+  function isExam(name) { return EXAM_RE.test(name) && !/sistatin/i.test(name); }
+  function nutOf0(symNut) {
+    return function (whys) {
+      var seen = {}, out = [];
+      whys.forEach(function (w) { (symNut[w] || []).forEach(function (n) { if (!seen[n]) { seen[n] = true; out.push(n); } }); });
+      return out;
+    };
+  }
+  function examsHtml(exams, symNut, nutOf) {
+    if (!exams.length) return "";
+    return '<section class="vs-card vs-exams" id="vsExams"><h3 class="vs-h"><i class="fa-solid fa-stethoscope" aria-hidden="true"></i> Klinik Muayene ve Uzmanlık Önerileri</h3>' +
+      '<p class="vs-exams-sub">Kan tahlili değildir; hekiminizin muayene, görüntüleme, ilaç gözden geçirme veya uzman yönlendirmesi olarak değerlendirebileceği adımlardır.</p>' +
+      exams.map(function (t) {
+        var nut = [];
+        return '<div class="vs-test vs-test-exam"><span class="vs-test-name">' + esc(t.name) +
+          (nut.length ? '<button type="button" class="vs-nut-btn" data-vs="nut" aria-expanded="false" aria-label="Olası eksikleri göster" title="Olası eksikler">!</button>' : "") + '</span>' +
+          (t.why.length ? '<span class="vs-test-why">' + t.why.map(esc).join(" · ") + '</span>' : "") +
+          (nut.length ? '<span class="vs-nut" hidden>Olası eksik: ' + nut.map(esc).join(", ") + '</span>' : "") + '</div>';
+      }).join("") + '</section>';
+  }
   function testsHtml(m) {
     var symNut = {};
     m.syms.forEach(function (s) { symNut[s.name] = s.nutrients; });
-    var labTests = m.tests.filter(function (t) { return t.lab; });
-    var symTests = m.tests.filter(function (t) { return !t.lab; });
+    var labTests = m.tests.filter(function (t) { return t.lab && !isExam(t.name); });
+    var symTests = m.tests.filter(function (t) { return !t.lab && !isExam(t.name); });
+    var exams = m.tests.filter(function (t) { return isExam(t.name); });
     var usedSyms = {};
     m.tests.forEach(function (t) { t.why.forEach(function (w) { if (symNut[w]) usedSyms[w] = true; }); });
     var restSyms = m.syms.filter(function (s) { return !usedSyms[s.name] && s.nutrients.length; });
-    if (!m.tests.length && !restSyms.length) return '<section class="vs-card" id="vsTests"><details class="vs-more vs-prelab-more"><summary>Kan vermeye gitmeden önce <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><div id="vsPrelab">' + prelabListHtml() + '</div></details>' + recheckDrawerHtml(m) + '</section>';
+    var examHtml = examsHtml(exams, symNut, nutOf0(symNut));
+    if (!labTests.length && !symTests.length && !restSyms.length) return examHtml + '<section class="vs-card" id="vsTests"><details class="vs-more vs-prelab-more"><summary>Kan vermeye gitmeden önce <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><div id="vsPrelab">' + prelabListHtml() + '</div></details>' + recheckDrawerHtml(m) + '</section>';
 
     var labRow = function (t) {
       return '<div class="vs-test"><span class="vs-test-name">' + esc(t.name) + '</span>' +
@@ -435,20 +518,33 @@
         (nut.length ? '<span class="vs-nut" hidden>Olası eksik: ' + nut.map(esc).join(", ") + '</span>' : "") + '</div>';
     };
 
-    var symHtml = symTests.map(function (t) { return symRow(t.name, t.why, nutOf(t.why)); }).join("") +
-      restSyms.map(function (s) { return symRow(s.name, [], s.nutrients); }).join("");
+    var GROUPS = [["nutrient", "Vitamin ve mineral testleri"], ["blood", "Diğer kan testleri"], ["urine", "İdrar testleri"]];
+    var symHtml = GROUPS.map(function (g) {
+      var list = symTests.filter(function (t) { return testGroup(t.name) === g[0]; });
+      if (!list.length) return "";
+      return '<div class="vs-grp-h">' + g[1] + '</div>' + list.map(function (t) { return symRow(t.name, t.why, g[0] === "nutrient" ? nutOf(t.why) : []); }).join("");
+    }).join("") +
+      (restSyms.length ? '<div class="vs-grp-h">Teste bağlanmayan belirtiler</div>' + restSyms.map(function (s) {
+        return '<div class="vs-test vs-test-sym"><span class="vs-test-name">' + esc(s.name) + '</span><span class="vs-test-why">Olası eksik: ' + s.nutrients.map(esc).join(", ") + '</span></div>';
+      }).join("") : "");
     var nSym = symTests.length + restSyms.length;
 
-    var html = '<section class="vs-card" id="vsTests"><div class="vs-h-row"><h3 class="vs-h"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i> Doktordan isteyebileceğiniz testler</h3>' +
+    var html = '<section class="vs-card" id="vsTests"><div class="vs-h-row"><h3 class="vs-h"><i class="fa-solid fa-vial" aria-hidden="true"></i> Lab Testleri</h3>' +
       '<button type="button" class="vs-copy" data-vs="copy"><i class="fa-regular fa-copy" aria-hidden="true"></i> Kopyala</button></div>';
     if (labTests.length) {
-      html += labTests.map(labRow).join("");
+      /* One row per reason ("25-OH Vitamin D düşük") with its tests side by side, instead of repeating the reason on every test */
+      var byWhy = {}, whyOrder = [];
+      labTests.forEach(function (t) { var k = t.why.join(" · "); if (!byWhy[k]) { byWhy[k] = []; whyOrder.push(k); } byWhy[k].push(t); });
+      html += whyOrder.map(function (k) {
+        return '<div class="vs-test vs-test-grp">' + (k ? '<span class="vs-test-why vs-why-h">' + esc(k) + '</span>' : "") + '<span class="vs-test-names">' +
+          byWhy[k].map(function (t) { return '<span class="vs-test-name">' + esc(t.name) + '</span>'; }).join("") + '</span></div>';
+      }).join("");
       if (nSym) html += '<details class="vs-more"><summary>Belirtilerinize göre testler <span class="vs-more-n">' + nSym + '</span> <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>' + symHtml + '</details>';
     } else {
       html += '<div class="vs-sub-h">Belirtilerinize göre testler</div>' + symHtml;
     }
     html += '<details class="vs-more vs-prelab-more"><summary><i class="fa-solid fa-droplet" aria-hidden="true"></i> Kan vermeye gitmeden önce <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary><div id="vsPrelab">' + prelabListHtml() + '</div></details>' + recheckDrawerHtml(m);
-    return html + '</section>';
+    return html + '</section>' + examHtml;
   }
   function recheckDrawerHtml(m) {
     var rc = (window.VitaRecheck ? VitaRecheck.cardHtml(m) : "") + recallHtml(m);
@@ -456,8 +552,11 @@
   }
 
   function plainText(m) {
-    var L = ["VitaTakip - doktordan istenebilecek testler", ""];
-    m.tests.forEach(function (t) { L.push("- " + t.name + (t.why.length ? " (" + t.why.join(", ") + ")" : "")); });
+    var L = ["VitaTakip - doktora sorulacaklar", ""];
+    var line = function (t) { L.push("- " + t.name + (t.why.length ? " (" + t.why.join(", ") + ")" : "")); };
+    var labs = m.tests.filter(function (t) { return !isExam(t.name); }), ex = m.tests.filter(function (t) { return isExam(t.name); });
+    if (labs.length) { L.push("Lab testleri:"); labs.forEach(line); L.push(""); }
+    if (ex.length) { L.push("Klinik muayene ve uzmanlık önerileri:"); ex.forEach(line); }
     L.push("");
     L.push("Not: Tanı veya talimat değildir; kararı hekim verir.");
     return L.join("\n");
@@ -472,10 +571,24 @@
     var m;
     try { m = build(); } catch (e) { console.warn("[VitaTakip] clinical-simple:", e); return; }
     current = m;
-    /* Sıra: sonuç bloğu (güvenlik şeridi + özet + eylemler) → dikkat isteyen değerler → belirtiler → testler → Ayrıntılar (kapalı) */
-    host.innerHTML = summaryHtml(m) + valuesHtml(m) + (window.VitaAgeStage ? VitaAgeStage.cardHtml() : "") + testsHtml(m);
-    var dh = $("vitaDetailsHost"); if (dh) dh.innerHTML = detailsHtml(m);
+    /* Sıra: sonuç bloğu → acil uyarılar (hep açık) → sekmeler: Özet | Hekim & Test | Destek */
+    /* Legacy cards are inside the host after a previous render: park them back before replacing the host's HTML */
+    var parking = $("vitaDetailsHost");
+    LEGACY_SUPPORT.forEach(function (id) { var el = $(id); if (el && parking && host.contains(el)) parking.parentElement.insertBefore(el, parking); });
+    var rel = relationsCardHtml(m), nRel = (rel.match(/vs-rel"/g) || []).length;
+    var panels = {
+      ozet: valuesHtml(m) + (window.VitaAgeStage ? VitaAgeStage.cardHtml() : "") +
+        (rel ? '<details class="vs-card vs-det-card"><summary><i class="fa-solid fa-link" aria-hidden="true"></i><span>Tahliller arası ilişkiler</span><span class="vs-count">' + nRel + '</span><i class="fa-solid fa-chevron-down vs-chev" aria-hidden="true"></i></summary><div class="vs-det-body">' + rel + '</div></details>' : "") +
+        (!m.hasLab ? '<p class="vs-empty">Tahlil girilmedi; belirtilerinize göre testler "Testler" sekmesinde.</p>' : ""),
+      hekim: testsHtml(m),
+      destek: '<p class="vs-support-note"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> Hekiminizle konuşmanız içindir; tanı koymaz, tedavi önermez.</p><div class="vs-support-slot"></div><p class="vs-empty vs-support-empty">Şu an gösterilecek besin veya takviye bilgisi yok.</p>'
+    };
+    if (!m.hasLab && activeTab === "ozet") activeTab = "hekim";
+    host.innerHTML = summaryHtml(m) + safetyStripHtml(m) + tabsHtml(m, panels);
+    var dh = $("vitaDetailsHost"); if (dh) dh.innerHTML = "";
     host.classList.remove("hidden");
+    adoptSupportCards();
+    setTimeout(adoptSupportCards, 400); /* legacy cards fill in after the CDSS run */
   }
 
   function onClick(e) {
@@ -489,12 +602,14 @@
     } else if (a === "nut") {
       var box = t.parentNode && t.parentNode.parentNode && t.parentNode.parentNode.querySelector(".vs-nut");
       if (box) { box.hidden = !box.hidden; t.setAttribute("aria-expanded", box.hidden ? "false" : "true"); }
+    } else if (a === "tab") {
+      showTab(t.getAttribute("data-tab"));
     } else if (a === "tests") {
-      var tt = $("vsTests");
+      showTab("hekim");
+      var tt = document.querySelector("#vitaSimpleHost .vs-tabs");
       if (tt) tt.scrollIntoView({ behavior: "smooth", block: "start" });
     } else if (a === "food") {
-      var f = $("foodAlternativesSection");
-      if (f) f.scrollIntoView({ behavior: "smooth", block: "start" });
+      showTab("destek");
     } else if (a === "labs") { if (typeof navigateToView === "function") navigateToView("view-labs"); }
     else if (a === "report") { if (typeof transferToDoctorReport === "function") transferToDoctorReport(); else if (typeof navigateToView === "function") navigateToView("view-report"); }
     else if (a === "edit") {
@@ -506,5 +621,5 @@
   document.addEventListener("click", onClick);
   window.renderVitaSimple = render;
   /* Rapor sayfası (js/report-simple.js) aynı veri modelini kullanır: tek doğruluk kaynağı */
-  window.VitaSimpleModel = { build: build, fmt: fmt, CHIP: CHIP };
+  window.VitaSimpleModel = { build: build, fmt: fmt, CHIP: CHIP, isExam: isExam };
 })();

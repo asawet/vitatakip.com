@@ -110,7 +110,7 @@ const hc = await p.evaluate(() => {
 log('"Bugünkü ilaçlarım" başlığında da gün rozeti', hc.day === hc.expect, JSON.stringify(hc));
 log('"+ Takviye Ekle" ve "+ İlaç Ekle" açıklama metninin sağında, iki kartta simetrik', hc.supRight && hc.medRight && hc.sym, JSON.stringify(hc));
 await p.evaluate(() => navigateToView('view-labs')); await sleep(400);
-const lab = await p.evaluate(() => { const a = document.getElementById('labCardAlt').getBoundingClientRect(), c = document.getElementById('labCardCrp').getBoundingClientRect(), z = document.getElementById('inputLabZinc').closest('div.bg-slate-50').getBoundingClientRect(); return { altW: Math.round(a.width), zincW: Math.round(z.width), sameRow: Math.abs(a.top - c.top) < 2, crpRight: c.left > a.left }; });
+const lab = await p.evaluate(() => { document.getElementById('labManualEntry').open = true; const a = document.getElementById('labCardAlt').getBoundingClientRect(), c = document.getElementById('labCardCrp').getBoundingClientRect(), z = document.getElementById('inputLabZinc').closest('div.bg-slate-50').getBoundingClientRect(); return { altW: Math.round(a.width), zincW: Math.round(z.width), sameRow: Math.abs(a.top - c.top) < 2, crpRight: c.left > a.left }; });
 log('Tahliller: ALT kartı diğerleri gibi yarım genişlik, CRP aynı satırda yanında', Math.abs(lab.altW - lab.zincW) < 3 && lab.sameRow && lab.crpRight, JSON.stringify(lab));
 
 const diag = await p.evaluate(() => VitaTakipDiagnostics.run());

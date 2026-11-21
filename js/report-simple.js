@@ -60,6 +60,55 @@
     return out.filter(function (x, i, a) { return a.findIndex(function (y) { return y.t === x.t; }) === i; }).slice(0, 6);
   }
 
+  /* Shared-word test used to drop the same finding coming from two rule sets */
+  /* Generic words (hekim, acil, değerlendirme, gecikmeden…) are ignored so different urgent findings never merge */
+  var GENERIC = /^(gecik|hekim|değer|acil|klini|gerek|veya|için|başla|danış|önce|uyarı|yüksek|düşük|sonra|olabi|durum|alarm|hasta|eksik|riski)/;
+  function stems(s) { return String(s || "").toLocaleLowerCase("tr-TR").split(/[^a-zçğıöşü0-9]+/).filter(function (w) { return w.length >= 4 && !GENERIC.test(w); }).map(function (w) { return w.slice(0, 5); }); }
+  function similar(a, b) { var sb = stems(b); return stems(a).filter(function (w) { return sb.indexOf(w) > -1; }).length >= 3; }
+
+  function findings(m, u) {
+    var out = [];
+    var add = function (t, a, crit) {
+      if (!t) return;
+      var twin = out.filter(function (x) { return similar(x.t, t); })[0];
+      /* Short rule titles ("ALT yüksek") already covered by an alarm naming the same lab ("… (ALT: 62 U/L)") */
+      var first = String(t).split(/\s+/)[0];
+      if (!twin && String(t).split(/\s+/).length <= 3) twin = out.filter(function (x) { return new RegExp("\\b" + first.replace(/[^\wçğıöşüÇĞİÖŞÜ]/g, "") + "\\b", "i").test(x.t); })[0];
+      if (twin) { twin.crit = twin.crit || crit; if (!twin.a && a) twin.a = a; return; }
+      out.push({ t: t, a: a || "", crit: !!crit });
+    };
+    m.safety.filter(function (s) { return s.crit; }).forEach(function (s) { add("⚠ " + cut(s.title, 110), "", true); });
+    try {
+      var syn = typeof buildProfessorClinicalSynthesisData === "function" ? buildProfessorClinicalSynthesisData() : null;
+      (syn && syn.alarms || []).forEach(function (a) { add(a.title, cut(a.action, 170), a.level === "critical"); });
+    } catch (_) {}
+    highlights(m, u).forEach(function (x) { if (!/^Belirti–tahlil uyumu/.test(x.t) && !/^⚠/.test(x.t)) add(x.t, "", x.crit); });
+    try { (window.VitaLabInsights ? VitaLabInsights.analyze().patterns : []).forEach(function (p) { add(p.title, "", false); }); } catch (_) {}
+    return out.slice(0, 10);
+  }
+
+  function correlation(m) {
+    var lowNut = {};
+    m.bad.forEach(function (r) { if (r.dir !== "high" && NUTR_BY_LAB[r.key]) (lowNut[NUTR_BY_LAB[r.key]] = lowNut[NUTR_BY_LAB[r.key]] || []).push(r.name); });
+    var metas = (window.VitaClinicalData && VitaClinicalData.selectedSymptomMetas) ? VitaClinicalData.selectedSymptomMetas() : [];
+    return metas.map(function (mt) {
+      var labs = [];
+      (mt.nutrients || []).forEach(function (n) { (lowNut[n] || []).forEach(function (nm) { if (labs.indexOf(nm) === -1) labs.push(nm); }); });
+      return { sym: mt.symptomName || mt.medicalName, labs: labs };
+    });
+  }
+
+  function valueNotes(m, u) {
+    var E = window.VitaLabEvidence; if (!E) return [];
+    return m.bad.map(function (r) {
+      if (!E.handles || !E.handles(r.key)) return null;
+      var R = null;
+      try { R = E.evaluate(r.key, r.value, { gender: u.gender === "E" ? "E" : "K", age: Number(u.age), reference: r.refFallback ? "" : r.ref }); } catch (_) {}
+      var text = R && ((R.clinical && R.clinical.text) || R.message);
+      return text ? { name: r.name + " " + window.VitaSimpleModel.fmt(r.value), text: text } : null;
+    }).filter(Boolean);
+  }
+
   function missing(m, u) {
     var miss = [], have = {}; m.rows.forEach(function (r) { have[r.key] = 1; });
     if (m.hasLab && !have.creatinine && !(typeof isPregnantNow === "function" && isPregnantNow())) miss.push("kreatinin/eGFR");
@@ -111,16 +160,36 @@
           : (state.lastCDSS && state.lastCDSS.egfrResult ? '<p class="rs-note">eGFR (CKD-EPI 2021): <b>' + esc(state.lastCDSS.egfrResult.egfr) + '</b> mL/dk/1,73 m² (Evre ' + esc(state.lastCDSS.egfrResult.stage) + ')</p>' : "")) + '</section>';
     }
 
-    var hl = highlights(m, u);
-    if (hl.length) h += '<section class="rs-sec"><h2>Öne çıkan noktalar</h2><ul class="rs-list">' + hl.map(function (x) { return '<li class="' + (x.crit ? "rs-crit" : "") + '">' + esc(x.t) + '</li>'; }).join("") + '</ul></section>';
+    /* Önemli bulgular: kritik uyarılar + klinik alarmlar (hekim eylem önerisiyle) + tahliller arası ilişkiler — her biri bir kez */
+    var finds = findings(m, u);
+    if (finds.length) h += '<section class="rs-sec rs-findings"><h2>Önemli bulgular</h2><ul class="rs-list">' + finds.map(function (x) {
+      return '<li class="' + (x.crit ? "rs-crit" : "") + '"><b>' + esc(x.t) + '</b>' + (x.a ? '<span class="rs-act">→ ' + esc(x.a) + '</span>' : "") + '</li>';
+    }).join("") + '</ul></section>';
 
+    /* Belirti–tahlil uyumu: tek tablo */
+    var corr = correlation(m);
+    if (corr.length) h += '<section class="rs-sec"><h2>Belirti – tahlil uyumu</h2><table class="rs-tbl rs-corr"><tbody>' + corr.map(function (c) {
+      return '<tr><td>' + esc(c.sym) + '</td><td>' + (c.labs.length ? esc(c.labs.join(", ")) : '<span class="rs-muted">İlgili tahlil kaydı yok</span>') + '</td></tr>';
+    }).join("") + '</tbody></table></section>';
+
+    /* İstenebilecek testler: laboratuvar ve klinik muayene ayrı */
     if (m.tests.length) {
-      var shown = m.tests.slice(0, 8);
-      h += '<section class="rs-sec"><h2>İstenebilecek testler</h2><div class="rs-chips rs-tests">' + shown.map(function (t) { return '<span>' + esc(t.name) + '</span>'; }).join("") + (m.tests.length > 8 ? '<span class="rs-more">+' + (m.tests.length - 8) + '</span>' : "") + '</div></section>';
+      var isEx = M.isExam || function () { return false; };
+      var labT = m.tests.filter(function (t) { return !isEx(t.name); }), exT = m.tests.filter(function (t) { return isEx(t.name); });
+      var chips = function (list) { return '<div class="rs-chips rs-tests">' + list.map(function (t) { return '<span>' + esc(t.name) + '</span>'; }).join("") + '</div>'; };
+      h += '<section class="rs-sec"><h2>İstenebilecek testler</h2>' +
+        (labT.length ? '<div class="rs-sub">Laboratuvar</div>' + chips(labT) : "") +
+        (exT.length ? '<div class="rs-sub">Klinik muayene / uzmanlık</div>' + chips(exT) : "") + '</section>';
     }
 
     var miss = missing(m, u);
-    h += '<p class="rs-foot">' + (miss.length ? '<b>Eksik:</b> ' + esc(miss.join(", ")) + '. ' : "") + 'Referanslar genel aralıktır; tahlil raporundaki laboratuvar referansı esastır. Bu özet ön değerlendirmedir, tanı veya reçete değildir.</p>';
+
+    /* Ek açıklamalar: her referans dışı değerin kaynaklı yorumu (kapalı; doktor isterse açar) */
+    var notes = valueNotes(m, u);
+    if (notes.length) h += '<details class="rs-sec rs-annex"><summary><h2>Ek açıklamalar <small>(' + notes.length + ')</small></h2></summary><ul class="rs-list">' +
+      notes.map(function (n) { return '<li><b>' + esc(n.name) + ':</b> ' + esc(n.text) + '</li>'; }).join("") + '</ul></details>';
+
+    h += '<p class="rs-foot">' + (miss.length ? '<b>Eksik:</b> ' + esc(miss.join(", ")) + '. ' : "") + 'Tahlil raporundaki laboratuvar referansı esastır. Bu özet ön değerlendirmedir, tanı veya reçete değildir.</p>';
 
     if (!m.rows.length && !symNames.length) h = h.replace('<section class="rs-sec"><h2>Şikâyetler</h2>', '<section class="rs-sec"><h2>Şikâyetler</h2><p class="rs-muted">Henüz tahlil veya belirti girilmemiş.</p>');
     host.innerHTML = h;
@@ -147,11 +216,24 @@
     if (fhir) { fhir.classList.toggle("hidden", !detailed); fhir.classList.toggle("flex", detailed); }
   }
 
+  /* Tek birleşik rapor: kısa/ayrıntılı ayrımı ve ayrıntılı ek (tekrarlar, düğmeler, ayar kutuları) kaldırıldı.
+     Ayrıntılı ekin klinik içeriği (alarmlar, ilişkiler, değer yorumları) bu raporda birer kez yer alır. */
+  function singleReport() {
+    if (typeof getDoctorReportMode === "function" && getDoctorReportMode() !== "concise" && typeof setDoctorReportMode === "function") setDoctorReportMode("concise");
+    var bc = $("btnReportModeConcise");
+    if (bc && bc.parentElement) bc.parentElement.classList.add("hidden");
+    var old = $("rsModeToggle"); if (old) old.remove();
+    /* Technical HL7 FHIR export used to live only in the detailed report: keep it reachable in the report toolbar */
+    var fhir = $("btnExportFhirBundle");
+    if (fhir) { fhir.classList.remove("hidden"); fhir.classList.add("flex"); }
+  }
+  void ensureToggle; void syncToggle;
+
   var origRender = window.renderReportTab;
   if (typeof origRender === "function") {
     window.renderReportTab = function () {
       var r = origRender.apply(this, arguments);
-      try { build(); ensureToggle(); syncToggle(); } catch (e) { console.warn("[VitaTakip] rapor özeti:", e); }
+      try { singleReport(); build(); } catch (e) { console.warn("[VitaTakip] rapor özeti:", e); }
       return r;
     };
   }

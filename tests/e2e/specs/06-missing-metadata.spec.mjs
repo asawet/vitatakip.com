@@ -56,8 +56,8 @@ test('birim/aralık eksik değerler genel aralığa düşer ve bu arayüzde beli
   /* Düzeltme: RBC yüksek → Hemogram isteniyor; aynı anda "Hemogram 90 günde normal ölçüldü" notu ÇIKMAZ */
   const testNames = await page.locator('#vsTests .vs-test-name').allTextContents();
   expect(testNames.some(t => /Hemogram/.test(t))).toBe(true);
-  await expect(page.locator('#vsDetails .vs-normal-note').filter({ hasText: 'Hemogram' })).toHaveCount(0);
-  await expect(page.locator('#vsDetails .vs-normal-note').filter({ hasText: 'Ferritin' })).toHaveCount(1);
+  await expect(page.locator('#vitaSimpleHost .vs-normal-note').filter({ hasText: 'Hemogram' })).toHaveCount(0);
+  await expect(page.locator('#vsValues .vs-okchip').filter({ hasText: 'Ferritin' })).toHaveCount(1);
 
   /* Düzeltme: B12 350 "Sınırda" iken metinler "düşük" demez; değer satırları sade, açılır değil */
   const b12 = page.locator('#view-clinical-results .vs-val').filter({ hasText: 'Vitamin B12' }).first();

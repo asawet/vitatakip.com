@@ -100,7 +100,7 @@ log('"Tümü alındı" grup başlığının sağında, ayrı satır kaplamaz', g
 await p.evaluate(() => { navigateToView('view-labs'); window.scrollTo(0, 0); }); await sleep(400);
 const back = await p.evaluate(() => { const b = document.querySelector('#viewHeaderBar .vbh-back'); const r = b.getBoundingClientRect(); return { text: b.innerText.trim(), h: Math.round(r.height), arrows: (b.innerText.match(/←/g) || []).length }; });
 log('Geri düğmesi tek satır "Ana Sayfa", çift ok yok, ≥40px', back.text === 'Ana Sayfa' && back.h >= 40 && back.h <= 48 && back.arrows === 0, JSON.stringify(back));
-const labs = await p.evaluate(() => { const lab = document.querySelector('label[title^="D Vitamini"]'); const inp = document.getElementById('inputLabD3'); const pdf = document.querySelector('#view-labs button[onclick*="openENabiz"]'); return { overflow: lab.scrollWidth > lab.clientWidth + 1, lines: Math.round(lab.getBoundingClientRect().height / parseFloat(getComputedStyle(lab).lineHeight)), inputH: Math.round(inp.getBoundingClientRect().height), font: getComputedStyle(inp).fontSize, pdf: Math.round(pdf.getBoundingClientRect().height) }; });
+const labs = await p.evaluate(() => { document.getElementById('labManualEntry').open = true; const lab = document.querySelector('label[title^="D Vitamini"]'); const inp = document.getElementById('inputLabD3'); const pdf = document.querySelector('#view-labs button[onclick*="openENabiz"]'); return { overflow: lab.scrollWidth > lab.clientWidth + 1, lines: Math.round(lab.getBoundingClientRect().height / parseFloat(getComputedStyle(lab).lineHeight)), inputH: Math.round(inp.getBoundingClientRect().height), font: getComputedStyle(inp).fontSize, pdf: Math.round(pdf.getBoundingClientRect().height) }; });
 log('Tahlil adları kesilmeden iki satıra sığar; giriş kutuları ≥40px ve 16px yazı; PDF düğmesi ≥40px', !labs.overflow && labs.inputH >= 40 && labs.font === '16px' && labs.pdf >= 40, JSON.stringify(labs));
 await p.evaluate(() => { navigateToView('view-home'); window.scrollTo(0, 0); }); await sleep(300);
 const nav = await p.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.vita-mobile-nav button span')).fontSize));
@@ -115,11 +115,8 @@ log('Yapay zekâ düğmesi aşağı kaydırırken gizlenir, yukarı kaydırınca
 const sdc = await p.evaluate(() => { const b = document.querySelector('.sdc-yes'); return b ? Math.round(b.getBoundingClientRect().height) : null; });
 log('"Hâlâ var / Geçti" düğmeleri ≥40px', sdc === null || sdc >= 40, String(sdc));
 await p.evaluate(() => { navigateToView('view-report'); }); await sleep(500);
-const fhir1 = await p.evaluate(() => document.getElementById('btnExportFhirBundle').getClientRects().length > 0);
-await p.evaluate(() => document.getElementById('rsModeToggle').click()); await sleep(300);
-const fhir2 = await p.evaluate(() => ({ vis: document.getElementById('btnExportFhirBundle').getClientRects().length > 0, text: document.getElementById('btnExportFhirBundle').innerText.trim() }));
-await p.evaluate(() => document.getElementById('rsModeToggle').click()); await sleep(200);
-log('HL7 FHIR düğmesi kısa raporda gizli, yalnızca ayrıntılı raporda görünür', !fhir1 && fhir2.vis && /Teknik veri dosyası/.test(fhir2.text), JSON.stringify({ fhir1, fhir2 }));
+const fhir = await p.evaluate(() => ({ vis: document.getElementById('btnExportFhirBundle').getClientRects().length > 0, text: document.getElementById('btnExportFhirBundle').innerText.trim() }));
+log('HL7 FHIR düğmesi tek raporun üst çubuğunda erişilebilir', fhir.vis && /Teknik veri dosyası/.test(fhir.text), JSON.stringify(fhir));
 const ph = await p.evaluate(() => { const i = document.querySelector('input[placeholder="Ara…"]'); return i ? { ph: i.placeholder, fits: (() => { const c = document.createElement('canvas').getContext('2d'); c.font = getComputedStyle(i).font; return c.measureText(i.placeholder).width <= i.clientWidth - 20; })() } : null; });
 log('Üst arama kutusu yer tutucusu kısa ve sığıyor', ph && ph.fits, JSON.stringify(ph));
 const hscroll = await p.evaluate(async () => { const out = {}; for (const v of ['view-home', 'view-labs', 'view-neyim', 'view-clinical-results', 'view-report', 'view-settings']) { navigateToView(v); await new Promise(r => setTimeout(r, 250)); out[v] = document.documentElement.scrollWidth > innerWidth + 1; } return out; });

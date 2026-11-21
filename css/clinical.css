@@ -330,3 +330,56 @@
 .vs-prelab-more #vsPrelab{padding-top:8px}
 .vs-values .vs-val-name .vs-ref{font-size:11px;font-weight:500;color:#94a3b8;margin:0}
 .vs-recheck-more{margin-top:8px}.vs-recheck-more > summary .fa-calendar-check{color:#0d9488;margin-right:4px}.vs-recheck-more .vs-det-body{padding-top:8px}#vitaDetailsHost:empty{display:none}
+.vs-exams .vs-h i{color:#7c3aed}.vs-exams-sub{margin:-2px 0 8px;font-size:11.5px;color:#64748b;line-height:1.45}
+.vs-safety-box{padding:0;border-color:#fcd34d;background:#fffbeb}
+.vs-safety-box.vs-safety-crit{border-color:#fda4af;background:#fff1f2}
+.vs-safety-box > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 14px;font-size:13.5px;font-weight:800;color:#92400e}
+.vs-safety-crit > summary{color:#9f1239}
+.vs-safety-box > summary::-webkit-details-marker{display:none}
+.vs-safety-box > summary span:not(.vs-count){flex:1 1 auto}
+.vs-safety-box > summary .fa-triangle-exclamation{color:#d97706}
+.vs-safety-crit > summary .fa-triangle-exclamation{color:#e11d48}
+.vs-safety-box[open] > summary .vs-chev{transform:rotate(180deg)}
+.vs-safety-box > .vs-safety{border:0;background:transparent;padding:0 10px 10px;margin:0}
+.vs-grp-h{font-size:11px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:#64748b;margin:12px 2px 4px}.vs-grp-h:first-of-type{margin-top:8px}
+.vs-test-grp{display:flex;flex-direction:column;gap:6px}.vs-test-grp .vs-why-h{font-size:11.5px;font-weight:800;color:#b45309;order:-1}.vs-test-names{display:flex;flex-wrap:wrap;gap:6px}.vs-test-names .vs-test-name{font-size:13px;font-weight:800;color:#0f172a;background:#fff;border:1px solid #e2e8f0;border-radius:999px;padding:4px 10px}
+
+/* Birleşik doktor raporu: bulgular + eylem, belirti–tahlil tablosu, test alt başlıkları, hekim alanı, kapalı ek */
+.rs-findings .rs-list li b{font-weight:700}
+.rs-act{display:block;font-size:11.5px;color:#475569;margin-top:2px}
+.rs-corr td:first-child{width:45%;font-weight:600}
+.rs-sub{font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#64748b;margin:8px 0 4px}
+.rs-sign .rs-note-lines{height:64px;border-bottom:1px solid #cbd5e1;background:repeating-linear-gradient(transparent 0 20px,#e2e8f0 20px 21px)}
+.rs-sign-row{display:flex;justify-content:space-between;gap:16px;margin-top:22px;font-size:11px;color:#64748b}
+.rs-sign-row span{flex:1;border-top:1px solid #94a3b8;padding-top:4px}
+.rs-annex > summary{list-style:none;cursor:pointer}
+.rs-annex > summary::-webkit-details-marker{display:none}
+.rs-annex > summary h2::after{content:" ▾";font-size:11px;color:#94a3b8}
+.rs-annex[open] > summary h2::after{content:" ▴"}
+@media print{.rs-annex:not([open]){display:none}}
+
+/* Klinik Analiz — sekmeli düzen (Özet | Hekim & Test | Destek) */
+.vs-tabs{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:14px;background:#e2e8f0;margin:2px 0}
+.vs-tab{min-height:40px;border:0;border-radius:11px;background:transparent;color:#475569;font-size:12.5px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 6px}
+.vs-tab b{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#cbd5e1;color:#334155;font-size:10.5px;display:inline-flex;align-items:center;justify-content:center}
+.vs-tab.on{background:#fff;color:#0f172a;box-shadow:0 1px 3px rgba(15,23,42,.12)}
+.vs-tab.on b{background:#0f766e;color:#fff}
+.vs-panel{display:flex;flex-direction:column;gap:12px}
+.vs-panel[hidden]{display:none}
+.vs-safety-urgent{padding:4px;border-color:#fda4af;background:#fff1f2}
+.vs-safety-urgent .vs-warn{margin:0;border:0;background:transparent}
+.vs-safety-urgent .vs-warn + .vs-warn{border-top:1px solid #fecdd3;border-radius:0}
+.vs-safety-urgent summary > .fa-triangle-exclamation{color:#e11d48}
+.vs-det-card{padding:0}
+.vs-det-card > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:13px 14px;font-size:13.5px;font-weight:800;color:#334155}
+.vs-det-card > summary::-webkit-details-marker{display:none}
+.vs-det-card > summary > i:first-child{color:#94a3b8;width:18px;text-align:center}
+.vs-det-card > summary > span:not(.vs-count){flex:1 1 auto}
+.vs-det-card[open] > summary .vs-chev{transform:rotate(180deg)}
+.vs-det-card > .vs-det-body{padding:0 12px 12px}
+.vs-support-note{margin:0;font-size:12px;color:#64748b;display:flex;gap:6px;align-items:center}
+.vs-support-note i{color:#0d9488}
+.vs-support-slot{display:flex;flex-direction:column;gap:12px}
+.vs-empty{margin:0;font-size:12.5px;color:#94a3b8;text-align:center;padding:12px}
+.vs-empty[hidden]{display:none}
+.vs-acts{grid-template-columns:1fr}

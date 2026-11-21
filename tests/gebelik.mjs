@@ -57,7 +57,7 @@ await p.evaluate(() => navigateToView('view-clinical-results')); await sleep(170
 const U = await p.evaluate(() => ({
   rows: [...document.querySelectorAll('.vs-val')].map(d => d.innerText.replace(/\s+/g, ' ')),
   okchips: [...document.querySelectorAll('.vs-okchip')].map(e => e.innerText.replace(/\s+/g, ' ')),
-  warn: [...document.querySelectorAll('.vs-warn-t')].map(e => e.innerText),
+  warn: [...document.querySelectorAll('.vs-warn-t')].map(e => e.textContent),
   protocol: (state.lastCDSS.protocol || []).length, egfr: state.lastCDSS.egfrResult,
 }));
 log('Hb 10,8 (2. trimester) sorunlu listede değil', !U.rows.some(r => /Hemoglobin/.test(r)), U.okchips.join(' | '));

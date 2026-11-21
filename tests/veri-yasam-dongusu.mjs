@@ -11,7 +11,7 @@ const sym = await p.evaluate(() => { const c = [...document.querySelectorAll('.a
 // kaldırılacak belirtinin (ilk) tüm yazılış biçimleri
 const tokens = await p.evaluate((k) => { const m = ANAMNESIS_DICTIONARY[k]; return [m.symptomName, m.medicalName, m.question.slice(8, 34)].filter(Boolean); }, sym[0]);
 const has = (t) => tokens.some(x => t.includes(x));
-const text = id => p.evaluate(id => document.getElementById(id).innerText, id);
+const text = id => p.evaluate(id => document.getElementById(id).textContent, id);
 await p.evaluate(() => navigateToView('view-clinical-results')); await sleep(1500);
 const an0 = await text('view-clinical-results');
 await p.evaluate(() => navigateToView('view-report')); await sleep(900);

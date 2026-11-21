@@ -130,3 +130,33 @@
 .vita-inherited-note{margin:.35rem 0 0;font-size:10.5px;line-height:1.4;color:#075985}
 .vita-inherited-note i{color:#0284c7}
 .rs-inherited sup,.rs-inherited-note sup{color:#0369a1;font-weight:700}
+
+/* Belirti kontrolü: tek tek sorulur, kutu tek satır yer kaplar; sıvı kartına yapışmaz */
+#symptomDailyCheck.sdc{margin-top:12px;padding:12px 14px}
+.sdc-one .sdc-h{gap:10px;margin-bottom:6px}
+.sdc-one .sdc-h b{flex:1 1 auto}
+.sdc-n{font-size:11.5px;font-weight:800;color:#b45309}
+.sdc-one .sdc-r{border-top:0;padding:6px 0;font-size:14px;font-weight:700}
+.sdc-dots{display:flex;gap:5px;margin-top:6px}
+.sdc-dots i{width:7px;height:7px;border-radius:50%;background:#fde68a}
+.sdc-dots i.done{background:#f59e0b}
+.sdc-dots i.on{background:#b45309;width:16px;border-radius:4px}
+
+/* Tahlillerim — tek "+ Yeni tahlil ekle", tek satır araç çubuğu */
+#labHeroActions .lab-add-btn{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 16px;border:0;border-radius:12px;background:#0f766e;color:#fff;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 1px 3px rgba(15,23,42,.15)}
+#labHeroActions .lab-add-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+#labHeroActions .lab-add-btn i{transition:transform .15s}
+.lab-add-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 2px}
+.lab-add-choices[hidden]{display:none}
+.lab-add-choices .lab-add-choice{display:flex !important;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:8px 10px !important;border-radius:12px !important;border:1px solid #99f6e4 !important;background:#f0fdfa !important;color:#134e4a !important;font-size:12.5px !important;font-weight:800 !important;box-shadow:none !important;text-align:center}
+.lab-add-choices .lab-add-choice i{color:#0d9488 !important}
+details.lab-manual-quiet:not([open]){display:none}
+details.lab-manual-quiet > summary{font-size:12px}
+.lab-tools-row{display:flex;gap:6px;align-items:stretch}
+.lab-tools-row > .relative{flex:1 1 auto;min-width:0}
+.lab-tool-btn{display:inline-flex !important;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 12px !important;border-radius:12px !important;border:1px solid #e2e8f0 !important;background:#fff !important;color:#334155 !important;font-size:12px !important;font-weight:800 !important;box-shadow:none !important;flex:0 0 auto}
+.lab-tool-btn[aria-expanded="true"]{border-color:#0d9488 !important;color:#0f766e !important}
+.lab-tool-pdf span{display:none}
+.lab-tool-pdf i{color:#e11d48}
+.lab-filter-panel[hidden]{display:none !important}
+#view-labs > div.flex:last-of-type{margin-bottom:28px}

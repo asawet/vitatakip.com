@@ -17,6 +17,11 @@
     "@media (max-width:767px){body main{padding-bottom:calc(6.25rem + 50px + env(safe-area-inset-bottom)) !important}",
     "body #vita-ai-widget{bottom:calc(4.65rem + env(safe-area-inset-bottom) + var(--vms-h,36px)) !important}}",
     "@media print{.vms-strip,.vmd-root{display:none !important}}",
+    ".vms-strip.vms-hidden{display:none !important}",
+    "#vita-ai-widget,#vitaAiFab{transition:opacity .2s ease,transform .2s ease}",
+    "html.vt-scrolling #vita-ai-widget,html.vt-scrolling #vitaAiFab{opacity:0;transform:scale(.85);pointer-events:none}",
+    "html.vms-off body main{padding-bottom:calc(16px + env(safe-area-inset-bottom)) !important}",
+    "@media (max-width:767px){html.vms-off body main{padding-bottom:calc(6.25rem + env(safe-area-inset-bottom)) !important}}",
     /* --- Alt çekmece --- */
     ".vmd-root{position:fixed;inset:0;z-index:110;display:flex;align-items:flex-end;justify-content:center;visibility:hidden;pointer-events:none;transition:visibility 0s linear .32s}",
     ".vmd-root.vmd-open{visibility:visible;pointer-events:auto;transition-delay:0s}",
@@ -68,7 +73,19 @@
     var navH = 0;
     if (nav && getComputedStyle(nav).display !== "none") navH = nav.offsetHeight;
     document.documentElement.style.setProperty("--vms-bottom", navH + "px");
-    if (strip) document.documentElement.style.setProperty("--vms-h", strip.offsetHeight + "px");
+    if (strip) document.documentElement.style.setProperty("--vms-h", (strip.classList.contains("vms-hidden") ? 0 : strip.offsetHeight) + "px");
+  }
+
+  /* Şerit görünürlüğü: Ana Sayfa'da her zaman; diğer sayfalarda "Anladım" onayına kadar */
+  var ACK = "vitatakip_disclaimer_ack";
+  function acked() { try { return localStorage.getItem(ACK) === "1"; } catch (_) { return false; } }
+  function onHome() { var h = document.getElementById("view-home"); return !!h && !h.classList.contains("hidden"); }
+  function syncStrip() {
+    if (!strip) return;
+    var show = onHome() || !acked();
+    strip.classList.toggle("vms-hidden", !show);
+    document.documentElement.classList.toggle("vms-off", !show);
+    layout();
   }
 
   function openMedicalDrawer() {
@@ -147,6 +164,7 @@
     sheet = root.querySelector(".vmd-sheet");
 
     root.addEventListener("click", function (e) {
+      if (e.target.closest(".vmd-btn")) { try { localStorage.setItem(ACK, "1"); } catch (_) {} syncStrip(); }
       if (e.target.closest("[data-vmd-close]")) closeMedicalDrawer();
     });
     document.addEventListener("keydown", function (e) {
@@ -160,6 +178,15 @@
     /* Nav sonradan çizilirse yeniden hesapla */
     setTimeout(layout, 300);
     setTimeout(layout, 1500);
+    /* Sayfa değişiminde görünürlüğü güncelle */
+    var nav = window.navigateToView;
+    if (typeof nav === "function" && !nav.__vms) { window.navigateToView = function () { var r = nav.apply(this, arguments); syncStrip(); return r; }; window.navigateToView.__vms = true; }
+    syncStrip(); setTimeout(syncStrip, 600);
+    /* Yüzen asistan düğmesi kaydırırken gizlenir: çekmece oklarının üstüne binmez */
+    var st = 0;
+    window.addEventListener("scroll", function () { document.documentElement.classList.add("vt-scrolling"); clearTimeout(st); st = setTimeout(function () { document.documentElement.classList.remove("vt-scrolling"); }, 700); }, { passive: true });
+    var home = document.getElementById("view-home");
+    if (home && window.MutationObserver) new MutationObserver(syncStrip).observe(home, { attributes: true, attributeFilter: ["class"] });
   }
 
   window.openMedicalDrawer = openMedicalDrawer;
