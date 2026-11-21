@@ -26,11 +26,11 @@
 <!-- Uses Inter when already available; otherwise falls back immediately to the system UI font. -->
 <!-- Font Awesome 6 CDN -->
 <!-- build:css -->
-<link rel="stylesheet" href="./css/app.css?v=9376c6065a">
-<script defer src="./js/app.1.js?v=9376c6065a"></script>
-<script defer src="./js/app.2.js?v=9376c6065a"></script>
-<script defer src="./js/app.3.js?v=9376c6065a"></script>
-<script defer src="./js/app.4.js?v=9376c6065a"></script>
+<link rel="stylesheet" href="./css/app.css?v=0bfcc2667d">
+<script defer src="./js/app.1.js?v=0bfcc2667d"></script>
+<script defer src="./js/app.2.js?v=0bfcc2667d"></script>
+<script defer src="./js/app.3.js?v=0bfcc2667d"></script>
+<script defer src="./js/app.4.js?v=0bfcc2667d"></script>
 <!-- /build:css -->
 <!-- Chart.js loads only if a trend chart is needed. -->
 <!-- PDF.js loads only when a user selects a PDF for analysis. -->
@@ -1947,6 +1947,16 @@ Anahtar girerseniz Vita AI sohbeti ve kutu fotoğrafı tanıma Google Gemini ile
 <span class="text-[10px] font-bold text-slate-500" id="settingsDataSummaryText">Yerel depolama aktif</span>
 </div>
 <div class="divide-y divide-slate-100 text-xs">
+<!-- Şifreli: 4 haneli kodla Oyun Merkezi'ne yönlendirir (js/day-compact.js). Kod sayfada düz yazılı değildir; yalnızca özeti saklanır. -->
+<details class="py-2.5 set-locked" id="settingsLockedRow">
+<summary class="flex items-center justify-between gap-3 cursor-pointer list-none"><span class="flex items-center gap-2 font-bold text-navy-900"><i class="fa-solid fa-lock text-slate-500" aria-hidden="true"></i>Şifreli</span><i class="fa-solid fa-chevron-down text-slate-400 text-[10px]" aria-hidden="true"></i></summary>
+<form class="mt-2.5 flex items-center gap-2" id="settingsLockedForm" autocomplete="off">
+<label class="sr-only" for="settingsLockedCode">Şifre</label>
+<input class="w-28 min-h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-center text-base tracking-[.4em] font-bold" id="settingsLockedCode" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••"/>
+<button class="min-h-10 rounded-xl bg-navy-900 px-4 text-xs font-black text-white" type="submit">Aç</button>
+<span class="text-[11px] font-bold text-rose-600 hidden" id="settingsLockedError" role="alert">Şifre yanlış</span>
+</form>
+</details>
 <div class="py-2.5 flex items-center justify-between gap-3">
 <div>
 <div class="font-bold text-navy-900">Tüm Verileri Yedekle (JSON)</div>

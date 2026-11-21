@@ -187,3 +187,7 @@ details.lab-manual-quiet > summary{font-size:12px}
 .vg-steps li.vg-optional button{border-style:dashed;background:#f8fafc}
 .vg-steps li.vg-optional b{background:#e2e8f0;color:#475569}
 .vg-steps li.vg-optional.is-done b{background:#16a34a;color:#fff}
+
+/* Ayarlar: Şifreli satırı */
+#settingsLockedRow > summary::-webkit-details-marker{display:none}
+#settingsLockedRow[open] > summary .fa-chevron-down{transform:rotate(180deg)}

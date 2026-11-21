@@ -243,6 +243,38 @@
   }
   document.addEventListener("DOMContentLoaded", labsCompact);
   window.vitaLabsCompact = labsCompact;
+
+  /* 4) Ayarlar > Veriler ve yedek > "Şifreli": doğru kodla Oyun Merkezi açılır.
+     Bu bir giriş kilididir, güvenlik değildir: statik sitede yalnızca kodun özeti (SHA-256) tutulur. */
+  var GAMES_URL = "https://asawet.github.io/oyunlar/";
+  var LOCK_HASH = "7808a273f49e8223cf1868bb67c8daeb8a2a6ca3b82ccd0042d46230439fd97d";
+  function sha256(text) {
+    if (!(window.crypto && crypto.subtle && window.TextEncoder)) return Promise.resolve("");
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)).then(function (buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ("0" + b.toString(16)).slice(-2); }).join("");
+    });
+  }
+  function initLocked() {
+    var form = document.getElementById("settingsLockedForm"); if (!form || form.__vt) return; form.__vt = true;
+    var input = document.getElementById("settingsLockedCode"), err = document.getElementById("settingsLockedError");
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var code = String(input.value || "").trim();
+      sha256("vitatakip:" + code).then(function (h) {
+        if (h && h === LOCK_HASH) {
+          if (err) err.classList.add("hidden");
+          input.value = "";
+          var w = window.open(GAMES_URL, "_blank", "noopener");
+          if (!w) window.location.href = GAMES_URL;
+        } else {
+          if (err) err.classList.remove("hidden");
+          input.value = ""; input.focus();
+        }
+      });
+    });
+    input.addEventListener("input", function () { if (err) err.classList.add("hidden"); });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initLocked); else initLocked();
   /* Switch the Tahlillerim tab without opening the chart (used by tests and deep links) */
   window.vitaLabsTab = function (k) { labTab = k === "grafik" ? "grafik" : "gecmis"; paintTabs(); };
 })();
