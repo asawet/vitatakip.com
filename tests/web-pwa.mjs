@@ -56,7 +56,7 @@ const help = await p.evaluate(() => { VitaPwaInstall.openHelp(); const m = docum
 log('Kurulum olayı yoksa "Ana Ekrana Ekle" yardımı açılır', help.open && /Ana ekrana ekle|Ana Ekrana Ekle/i.test(help.text));
 
 /* 4) Hesap aç; görünümlerde yasak ifade ve yatay taşma */
-await p.evaluate(() => document.getElementById('authTabRegisterBtn').click());
+await p.evaluate(() => (window.VitaAuthUI && window.VitaAuthUI.showLocal(), document.getElementById('authTabRegisterBtn').click()));
 await p.type('#authInputFullName', 'Ayşe Örnek');
 await p.type('#authInputPassword', 'pwasifre123');
 await p.evaluate(() => { document.getElementById('authInputPasswordConfirm').value = 'pwasifre123'; document.getElementById('authSubmitBtn').click(); });

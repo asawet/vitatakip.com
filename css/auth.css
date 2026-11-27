@@ -129,3 +129,34 @@
 #btnQuickLoginRemembered:hover{background:#065f46}
 #btnQuickLoginRemembered:focus-visible{outline:3px solid #6ee7b7;outline-offset:2px}
 #btnQuickLoginRemembered i{color:#a7f3d0}
+
+/* ===== Bulut hesabı paneli (js/bulut-giris.js) ===== */
+.vta-kind{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
+.vta-kind button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:40px;border:1.5px solid #e2e8f0;border-radius:12px;background:#fff;color:#475569;font-size:12.5px;font-weight:800;cursor:pointer}
+.vta-kind button[aria-pressed="true"]{border-color:#14b8a6;background:#f0fdfa;color:#0f766e}
+.vta-kind button:focus-visible{outline:3px solid #99f6e4;outline-offset:2px}
+.vta-hint{margin:5px 2px 0;font-size:11.5px;color:#64748b;line-height:1.4}
+.vta-warn{display:flex;gap:8px;align-items:flex-start;margin:0 0 10px;padding:9px 11px;border-radius:12px;background:#fffbeb;border:1px solid #fde68a;color:#92400e;font-size:11.5px;font-weight:600;line-height:1.45}
+.vta-warn i{margin-top:2px}
+.vta-check{display:flex;gap:9px;align-items:flex-start;margin:2px 0 10px;font-size:12.5px;font-weight:600;color:#334155;line-height:1.45;cursor:pointer}
+.vta-check input{flex:none;width:18px;height:18px;margin-top:1px;accent-color:#0d9488;cursor:pointer}
+.vta-check small{font-weight:500;color:#64748b}
+.vta-check button{border:0;background:none;padding:0;color:#0f766e;font-weight:800;font-size:inherit;cursor:pointer;text-decoration:underline}
+.vta-msg{margin-bottom:12px;padding:10px 12px;border-radius:12px;font-size:12px;font-weight:700;line-height:1.4}
+.vta-msg-err{background:#fff1f2;color:#be123c;border:1px solid #fecdd3}
+.vta-msg-info{background:#f0fdfa;color:#115e59;border:1px solid #99f6e4}
+#authShowLocalBtn,#authShowCloudBtn{margin-top:10px}
+/* .vta-* bileşenleri kendi display değerini taşır; giriş ekranında .hidden her zaman kazanmalı */
+#authModal .hidden{display:none !important}
+html[data-theme="dark"] .vta-kind button{background:#111c31;border-color:rgba(148,163,184,.22);color:#cbd5e1}
+html[data-theme="dark"] .vta-kind button[aria-pressed="true"]{background:rgba(20,184,166,.14);border-color:#2dd4bf;color:#5eead4}
+html[data-theme="dark"] .vta-hint,html[data-theme="dark"] .vta-check small{color:#94a3b8}
+html[data-theme="dark"] .vta-check{color:#e2e8f0}
+html[data-theme="dark"] .vta-check button{color:#5eead4}
+html[data-theme="dark"] .vta-warn{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.35);color:#fcd34d}
+html[data-theme="dark"] .vta-msg-err{background:rgba(244,63,94,.12);border-color:rgba(244,63,94,.35);color:#fda4af}
+html[data-theme="dark"] .vta-msg-info{background:rgba(20,184,166,.12);border-color:rgba(45,212,191,.35);color:#99f6e4}
+
+/* fontawesome.css yalnız kullanılan simgeleri tanımlar; bulut paneli simgeleri (font dosyasında var) */
+.fa-at{--fa:"\40"}
+.fa-cloud{--fa:"\f0c2"}

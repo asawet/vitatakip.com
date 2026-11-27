@@ -23,11 +23,14 @@ const JS = [
   'js/supplement_db.js', 'js/app/10-daily-tracking-deprescribing.js', 'js/app/11-cdss-analysis.js',
   'js/app/12-report-notifications-ai-chat.js', 'js/app/13-ai-summary-barcode.js', 'js/app/14-spotlight-tour.js',
   'js/app/15-fridge-schedule.js', 'js/app/16-lab-evidence.js', 'js/app/17-lab-insights.js', 'js/app/18-food-alternatives.js', 'js/app/18a-urun-modulleri.js',
-  'js/lab-trend.js', 'js/recharts-lab-dashboard.js', 'js/app/19-app-startup.js',
+  'js/lab-trend.js', 'js/recharts-lab-dashboard.js',
+  // Bulut modülleri açılıştan ÖNCE: 19-app-startup defer sırasında hemen çalışır (readyState "interactive"),
+  // kayıtlı bulut oturumunu ve giriş ekranı panelini tanıyabilmesi için VitaCloud/VitaAuthUI hazır olmalı.
+  'js/bulut.js', 'js/bulut-giris.js', 'js/app/19-app-startup.js',
   'js/legal-onboarding.js', 'js/medical-drawer.js', 'js/doctor-tests.js', 'js/clinical-simple.js', 'js/report-simple.js',
   'js/age-stage.js', 'js/day-compact.js', 'js/add-sup-simple.js', 'js/scanner-simple.js', 'js/ui-enhancements.js',
   'js/compact-labs-neyim.js', 'js/neyimvar-final-tidy.js', 'js/simplify-ui.js', 'js/ayarlar-akordeon.js', 'js/evidence-guide.js',
-  'js/neyim-wizard.js', 'js/visual-reference.js', 'js/egfr-calculator.js', 'js/pwa-install.js', 'js/gorsel-coz.js', 'js/profil-foto.js', 'js/takviye-sayfa.js', 'js/ilac-sayfa.js', 'js/izin-merkezi.js', 'js/ana-sekmeler.js', 'js/profil-adimlar.js', 'js/tema.js', 'js/boyut-ayari.js', 'js/bulut.js', 'js/kaynak-bilgi.js', 'js/kontrol-hatirlatma.js', 'js/paylasim-karti.js'
+  'js/neyim-wizard.js', 'js/visual-reference.js', 'js/egfr-calculator.js', 'js/pwa-install.js', 'js/gorsel-coz.js', 'js/profil-foto.js', 'js/takviye-sayfa.js', 'js/ilac-sayfa.js', 'js/izin-merkezi.js', 'js/ana-sekmeler.js', 'js/profil-adimlar.js', 'js/tema.js', 'js/boyut-ayari.js', 'js/kaynak-bilgi.js', 'js/kontrol-hatirlatma.js', 'js/paylasim-karti.js'
 ];
 
 const banner = f => `\n/* ===== ${f} ===== */\n`;

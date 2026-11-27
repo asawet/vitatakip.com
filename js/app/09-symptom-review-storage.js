@@ -1129,7 +1129,9 @@ function checkPendingSymptomReviews() {
     window.addEventListener("storage", event => {
       try {
         if (!activeUserId || !event.key) return;
-        if (event.key === "vitatakip_users_db" && !getUsersDb().some(u => u && u.id === activeUserId)) {
+        // Bulut hesapları yerel hesap listesinde bulunmaz; bu kural yalnız yerel hesaplar içindir.
+        const isCloudSession = Boolean(window.VitaCloud && window.VitaCloud.isCloudUserId(activeUserId));
+        if (event.key === "vitatakip_users_db" && !isCloudSession && !getUsersDb().some(u => u && u.id === activeUserId)) {
           /* Hesap başka sekmede silindi: bu sekmede oturum kapatılır. */
           activeUserId = null;
           resetApplicationDOMAndState();

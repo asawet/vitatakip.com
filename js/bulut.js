@@ -124,7 +124,10 @@
     }
     try {
       var c = await getClient();
-      var res = await c.auth.signUp({ email: email, password: password, options: { data: { full_name: fullName, username: username } } });
+      // consent_at: KVKK açık rıza zamanı (kayıt ekranındaki onay kutusu); kullanıcı meta verisinde saklanır.
+      var meta = { full_name: fullName, username: username };
+      if (opts.consentAt) meta.consent_at = String(opts.consentAt);
+      var res = await c.auth.signUp({ email: email, password: password, options: { data: meta } });
       if (res.error) return fail(res.error);
       // Supabase, var olan bir e-postayla tekrar kayıtta (onay kapalıyken) kimlikleri boş kullanıcı döndürebilir.
       if (res.data && res.data.user && Array.isArray(res.data.user.identities) && res.data.user.identities.length === 0) {
@@ -169,6 +172,18 @@
   }
   /* Cihazda kayıtlı bir bulut oturumu var mı? (kütüphaneyi yüklemeden hızlı kontrol) */
   function hasStoredSession() { return authStorage.getItem(CONFIG.sessionStorageKey) !== null; }
+  /* Kayıtlı oturumdaki kullanıcı kimliği — kütüphane yüklenmeden, ağ isteği olmadan (çevrimdışı açılış için). */
+  function storedUserId() {
+    try {
+      var raw = authStorage.getItem(CONFIG.sessionStorageKey);
+      if (!raw) return null;
+      var obj = JSON.parse(raw);
+      var id = obj && obj.user && obj.user.id;
+      return isCloudUserId(id) ? id : null;
+    } catch (_) { return null; }
+  }
+  /* Bulut hesabı kimliği Supabase uuid'idir; yerel hesaplar "usr_..." biçimindedir. */
+  function isCloudUserId(id) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id || "")); }
 
   window.VitaCloud = {
     config: CONFIG,
@@ -178,6 +193,9 @@
     signOut: signOut,
     getSession: getSession,
     hasStoredSession: hasStoredSession,
+    storedUserId: storedUserId,
+    isCloudUserId: isCloudUserId,
+    authStorage: authStorage,
     normalizeUsername: normalizeUsername,
     isValidUsername: isValidUsername,
     usernameToEmail: usernameToEmail,

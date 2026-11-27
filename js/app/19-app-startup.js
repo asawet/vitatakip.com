@@ -53,7 +53,9 @@
         (rememberMeActive ? safeLocalStorageGetItem("vitatakip_active_session_id") : null);
       const savedUsers = getUsersDb().filter(u => u && u.id !== "usr_guest_local");
 
-      if (savedSessionId && savedSessionId !== "usr_guest_local" && savedUsers.some(user => user.id === savedSessionId)) {
+      // Bulut hesabı: oturum belirteci cihazda kayıtlıysa (ağ gerekmez, çevrimdışı açılır) kimlik eşleşmesi yeterli.
+      const cloudSessionValid = Boolean(savedSessionId && window.VitaCloud && window.VitaCloud.isCloudUserId(savedSessionId) && window.VitaCloud.storedUserId() === savedSessionId);
+      if (savedSessionId && savedSessionId !== "usr_guest_local" && (savedUsers.some(user => user.id === savedSessionId) || cloudSessionValid)) {
         activeUserId = savedSessionId;
         safeSessionStorageSetItem("vitatakip_active_session_id", activeUserId);
         if (rememberMeActive) {
@@ -62,6 +64,8 @@
         loadUserSessionData(savedSessionId);
         closeAuthModal();
         renderAllAppViews();
+        // Oturumun sunucuda hâlâ geçerli olduğu açılıştan sonra doğrulanır (kütüphane açılışla yarışmasın).
+        if (cloudSessionValid && window.VitaAuthUI) setTimeout(() => window.VitaAuthUI.verifySessionInBackground(savedSessionId), 4000);
         if (typeof navigateToView === "function") {
           navigateToView(state.activeTab || "view-home");
         }
@@ -70,16 +74,17 @@
         safeSessionStorageRemoveItem("vitatakip_active_session_id");
         activeUserId = null;
         resetApplicationDOMAndState();
-        openAuthModal();
+        // Önce yerel panelin modu, sonra ekran (openAuthModal bulut/yerel paneli seçer; sıra ters olursa başlık ezilir)
         switchAuthMode(savedUsers.length === 0 ? "register" : "login");
+        openAuthModal();
         if (typeof hydrateRememberMeOnAuthModal === "function") hydrateRememberMeOnAuthModal();
       }
     } catch (startupError) {
       console.error("VitaTakip başlangıç hazırlığında hata:", startupError);
       try {
         resetApplicationDOMAndState();
-        openAuthModal();
         switchAuthMode("login");
+        openAuthModal();
       } catch (_) {}
     } finally {
       dismissVitaSplash();

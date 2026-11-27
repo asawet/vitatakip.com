@@ -837,6 +837,8 @@ let currentAuthMode = "login";
       const modal = document.getElementById("authModal");
       if (modal) { modal.classList.remove("hidden"); modal.style.display = "flex"; }
       hydrateRememberMeOnAuthModal();
+      // Bulut / yerel panel seçimi (js/bulut-giris.js)
+      if (window.VitaAuthUI && typeof window.VitaAuthUI.onOpen === "function") window.VitaAuthUI.onOpen();
     }
 
     function closeAuthModal() {
@@ -1095,13 +1097,16 @@ let currentAuthMode = "login";
     function handleLogout() {
       if (confirm("Oturumunuz kapatılacaktır. Onaylıyor musunuz?")) {
         TTSVoice.stop();
+        const wasCloudSession = Boolean(window.VitaCloud && window.VitaCloud.isCloudUserId(activeUserId));
         safeLocalStorageRemoveItem("vitatakip_active_session_id");
         safeSessionStorageRemoveItem("vitatakip_active_session_id");
         activeUserId = null;
+        // Bulut hesabıysa bu cihazdaki bulut oturumu da kapatılır (verileri cihazda kalır).
+        if (window.VitaAuthUI) window.VitaAuthUI.onLogout(wasCloudSession);
         resetApplicationDOMAndState();
-        openAuthModal();
         const users = getUsersDb();
         switchAuthMode(users.length === 0 ? "register" : "login");
+        openAuthModal();
         showToast("Çıkış Yapıldı", "Oturumunuz kapatıldı.", "info");
       }
     }
@@ -1157,8 +1162,8 @@ let currentAuthMode = "login";
         resetApplicationDOMAndState();
         closeProfileModal();
         closeAuthModal();
-        openAuthModal();
         switchAuthMode(users.length === 0 ? "register" : "login");
+        openAuthModal();
         const notice = document.getElementById("authNoticeMsg");
         if (indexedPurged) {
           if (notice) { notice.textContent = "Hesap ve sağlık verileri bu tarayıcıdan silindi. Yeni bir hesap oluşturabilir veya başka bir hesaba giriş yapabilirsiniz."; notice.classList.remove("hidden"); }

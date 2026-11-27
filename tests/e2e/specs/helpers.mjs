@@ -18,6 +18,8 @@ export async function registerUser(page, { name = 'E2E Kullanici', gender = 'E',
   await page.addInitScript(() => { try { localStorage.setItem('vitatakip_legal_accepted', 'true'); } catch (_) {} });
   await page.goto('/index.html');
   await page.waitForFunction(() => typeof navigateToView === 'function' && document.getElementById('authTabRegisterBtn'));
+  // Yeni cihazda giriş ekranı bulut paneliyle açılır; E2E testleri yerel hesap paneline geçer (js/bulut-giris.js)
+  await page.evaluate(() => { if (window.VitaAuthUI) window.VitaAuthUI.showLocal(); });
   await page.locator('#authTabRegisterBtn').click();
   await page.locator('#authInputFullName').fill(name);
   await page.locator('#authInputPassword').fill('e2eSifre123');

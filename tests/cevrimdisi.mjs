@@ -35,7 +35,7 @@ const cached = await p.evaluate(async n => {
 log('Servis çalışanı tüm dosyaları önbelleğe aldı', cached >= core.length, `${cached}/${core.length}`);
 
 /* Hesap + örnek veri (çevrimdışında da görünmeli) */
-await p.evaluate(() => document.getElementById('authTabRegisterBtn').click());
+await p.evaluate(() => (window.VitaAuthUI && window.VitaAuthUI.showLocal(), document.getElementById('authTabRegisterBtn').click()));
 await p.type('#authInputFullName', 'Çevrimdışı Deneme');
 await p.type('#authInputPassword', 'offline12345');
 await p.evaluate(() => { document.getElementById('authInputPasswordConfirm').value = 'offline12345'; document.getElementById('authSubmitBtn').click(); });

@@ -14,8 +14,8 @@ export async function boot(opts = {}) {
   await p.goto('http://localhost:' + (process.env.VT_PORT || 8080) + '/index.html' + (opts.hash || ''), { waitUntil: 'networkidle2' });
   await new Promise(r => setTimeout(r, 1500));
   if (opts.register === false) return { b, p, errs };
-  // kayıt ol
-  await p.evaluate(() => { document.getElementById('authTabRegisterBtn').click(); });
+  // kayıt ol — yeni cihazda giriş ekranı bulut paneliyle açılır; testler yerel hesap paneline geçer (js/bulut-giris.js)
+  await p.evaluate(() => { if (window.VitaAuthUI) window.VitaAuthUI.showLocal(); document.getElementById('authTabRegisterBtn').click(); });
   await p.type('#authInputFullName', 'Test Kullanici');
   await p.type('#authInputPassword', 'testpass123');
   await p.evaluate(() => { document.getElementById('authInputPasswordConfirm').value = 'testpass123'; });
