@@ -2,8 +2,8 @@
 
 <html lang="tr">
 <head>
-<!-- Gizlilik: sayfa yalnızca kendi adresine ve (kullanıcı kendi anahtarını girerse) Google Gemini API'ye bağlanabilir. Sunucu yok. -->
-<meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://generativelanguage.googleapis.com https://world.openfoodfacts.org https://world.openproductsfacts.org https://formsubmit.co; form-action 'self'">
+<!-- Gizlilik (CSP connect-src): sayfa yalnızca kendi adresine, bulut hesabı seçilirse VitaTakip'in Supabase projesine (Frankfurt; RLS ile herkes yalnız kendi verisi), kullanıcı kendi anahtarını girerse Google Gemini API'ye ve ürün kataloglarına (Open Food/Products Facts) bağlanabilir. -->
+<meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://lwcdtfwtecomsvucmipp.supabase.co wss://lwcdtfwtecomsvucmipp.supabase.co https://generativelanguage.googleapis.com https://world.openfoodfacts.org https://world.openproductsfacts.org https://formsubmit.co; form-action 'self'">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
 <!-- Ana ekrana eklenebilir web sayfası (PWA): sunucu yok; servis çalışanı yalnızca bu sitenin dosyalarını önbelleğe alır -->
 <link rel="manifest" href="./manifest.json">
@@ -27,11 +27,11 @@
 <!-- Uses Inter when already available; otherwise falls back immediately to the system UI font. -->
 <!-- Font Awesome 6 CDN -->
 <!-- build:css -->
-<link rel="stylesheet" href="./css/app.css?v=2fcf8c0aec">
-<script defer src="./js/app.1.js?v=2fcf8c0aec"></script>
-<script defer src="./js/app.2.js?v=2fcf8c0aec"></script>
-<script defer src="./js/app.3.js?v=2fcf8c0aec"></script>
-<script defer src="./js/app.4.js?v=2fcf8c0aec"></script>
+<link rel="stylesheet" href="./css/app.css?v=aaf7f55e97">
+<script defer src="./js/app.1.js?v=aaf7f55e97"></script>
+<script defer src="./js/app.2.js?v=aaf7f55e97"></script>
+<script defer src="./js/app.3.js?v=aaf7f55e97"></script>
+<script defer src="./js/app.4.js?v=aaf7f55e97"></script>
 <!-- /build:css -->
 <!-- Chart.js loads only if a trend chart is needed. -->
 <!-- PDF.js loads only when a user selects a PDF for analysis. -->

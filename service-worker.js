@@ -1,16 +1,16 @@
 /* VitaTakip servis çalışanı — çevrimdışı açılış ve hızlı önbellek.
    Sunucu yoktur; yalnızca bu sitenin kendi dosyaları önbelleğe alınır. Kullanıcı verileri (localStorage/IndexedDB)
    burada tutulmaz. CACHE_VERSION ve CORE_FILES `node tools/build.mjs` ile otomatik güncellenir. */
-const CACHE_VERSION = 'vitatakip-2fcf8c0aec';
+const CACHE_VERSION = 'vitatakip-aaf7f55e97';
 const CORE_FILES = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./css/app.css?v=2fcf8c0aec",
-  "./js/app.1.js?v=2fcf8c0aec",
-  "./js/app.2.js?v=2fcf8c0aec",
-  "./js/app.3.js?v=2fcf8c0aec",
-  "./js/app.4.js?v=2fcf8c0aec",
+  "./css/app.css?v=aaf7f55e97",
+  "./js/app.1.js?v=aaf7f55e97",
+  "./js/app.2.js?v=aaf7f55e97",
+  "./js/app.3.js?v=aaf7f55e97",
+  "./js/app.4.js?v=aaf7f55e97",
   "./icons/apple-touch-icon.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -33,6 +33,7 @@ const CORE_FILES = [
   "./vendor/html5-qrcode/html5-qrcode.min.js",
   "./vendor/pdfjs/pdf.min.js",
   "./vendor/pdfjs/pdf.worker.min.js",
+  "./vendor/supabase/supabase.js",
   "./vendor/zxing/zxing-browser.min.js"
 ];
 const NAV_TIMEOUT_MS = 2500;

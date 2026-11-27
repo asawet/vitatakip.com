@@ -27,7 +27,7 @@ const JS = [
   'js/legal-onboarding.js', 'js/medical-drawer.js', 'js/doctor-tests.js', 'js/clinical-simple.js', 'js/report-simple.js',
   'js/age-stage.js', 'js/day-compact.js', 'js/add-sup-simple.js', 'js/scanner-simple.js', 'js/ui-enhancements.js',
   'js/compact-labs-neyim.js', 'js/neyimvar-final-tidy.js', 'js/simplify-ui.js', 'js/ayarlar-akordeon.js', 'js/evidence-guide.js',
-  'js/neyim-wizard.js', 'js/visual-reference.js', 'js/egfr-calculator.js', 'js/pwa-install.js', 'js/gorsel-coz.js', 'js/profil-foto.js', 'js/takviye-sayfa.js', 'js/ilac-sayfa.js', 'js/izin-merkezi.js', 'js/ana-sekmeler.js', 'js/profil-adimlar.js', 'js/tema.js', 'js/boyut-ayari.js', 'js/kaynak-bilgi.js', 'js/kontrol-hatirlatma.js', 'js/paylasim-karti.js'
+  'js/neyim-wizard.js', 'js/visual-reference.js', 'js/egfr-calculator.js', 'js/pwa-install.js', 'js/gorsel-coz.js', 'js/profil-foto.js', 'js/takviye-sayfa.js', 'js/ilac-sayfa.js', 'js/izin-merkezi.js', 'js/ana-sekmeler.js', 'js/profil-adimlar.js', 'js/tema.js', 'js/boyut-ayari.js', 'js/bulut.js', 'js/kaynak-bilgi.js', 'js/kontrol-hatirlatma.js', 'js/paylasim-karti.js'
 ];
 
 const banner = f => `\n/* ===== ${f} ===== */\n`;
