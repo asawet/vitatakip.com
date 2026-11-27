@@ -317,10 +317,11 @@
 @media (max-width:767px){html body main{padding-bottom:calc(6.25rem + 50px + 64px + env(safe-area-inset-bottom)) !important}}
 @media (prefers-reduced-motion:reduce){#vitaAiFab{transition:none}}
 /* Üst bar: günlük özet göstergeleri simgesi + açılır panel */
-.vds-btn{position:relative;flex:0 0 auto;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid #334155;background:#1e293b;color:#5eead4;cursor:pointer;font-size:15px}
+.vds-btn{position:relative;flex:0 0 auto;width:calc(40px * var(--vt-icon-scale, 1));height:calc(40px * var(--vt-icon-scale, 1));display:flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid #334155;background:#1e293b;color:#5eead4;cursor:pointer;font-size:15px}
 .vds-btn:hover{background:#0f172a}
 .vds-btn[aria-expanded="true"]{border-color:#2dd4bf;box-shadow:0 0 0 2px rgba(45,212,191,.35)}
-.vds-badge{position:absolute;top:-6px;right:-6px;min-width:22px;height:18px;padding:0 4px;border-radius:999px;background:#14b8a6;color:#042f2e;font-size:9.5px;font-weight:900;line-height:18px;text-align:center;border:2px solid #0f172a}
+/* Düğme simge boyutu ayarıyla büyür; rozet alt kenarın üstünde ortalanır: "66%" gibi geniş değerler simgenin üstüne binmez; yükseklik içeriğe göre (yazı boyutu ayarıyla büyür) */
+.vds-badge{position:absolute;bottom:0;left:50%;transform:translate(-50%,55%);min-width:22px;padding:1px 4px;border-radius:999px;background:#14b8a6;color:#042f2e;font-size:9.5px;font-weight:900;line-height:1.25;white-space:nowrap;text-align:center;border:2px solid #0f172a;pointer-events:none}
 .vds-panel{position:fixed;right:12px;left:auto;z-index:60;width:min(380px,calc(100vw - 24px));padding:12px;border-radius:18px;background:#fff;border:1px solid #e2e8f0;box-shadow:0 18px 40px rgba(15,23,42,.28);color:#0f172a}
 .vds-panel.hidden{display:none}
 .vds-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}

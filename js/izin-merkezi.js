@@ -35,16 +35,19 @@
   /* ---------- İzin durumu ---------- */
   async function queryState(kind) {
     if (kind === "notifications") {
+      if (typeof window.getNotificationPermissionState === "function") return window.getNotificationPermissionState();
       if (!("Notification" in window)) return "unsupported";
       return Notification.permission === "default" ? "prompt" : Notification.permission;
     }
+    // Oturumda verilen onay (VitaPermSession): tarayıcı izni kaydetmese de (file://) "İzin Verildi" görünür
+    var eff = function (s) { return window.VitaPermSession ? window.VitaPermSession.effective(kind, s) : s; };
     try {
       if (navigator.permissions && navigator.permissions.query) {
         var st = await navigator.permissions.query({ name: kind });
-        return st.state; // granted | denied | prompt
+        return eff(st.state); // granted | denied | prompt
       }
     } catch (_) { /* tarayıcı bu izni sorgulatmıyor */ }
-    return "prompt";
+    return eff("prompt");
   }
   function stateText(s) { return s === "granted" ? "İzin Verildi" : s === "denied" ? "Reddedildi" : s === "unsupported" ? "Desteklenmiyor" : "Henüz İstenmedi"; }
 
@@ -69,11 +72,13 @@
     try {
       var stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       stream.getTracks().forEach(function (t) { t.stop(); });
+      if (window.VitaPermSession) window.VitaPermSession.mark("microphone");
       if (typeof showToast === "function") showToast("Mikrofon hazır", "Mikrofon izni verildi ve çalışıyor. Ses kaydedilmedi, hiçbir yere gönderilmedi.", "success");
       await renderMic();
       return true;
     } catch (e) {
       var denied = e && (e.name === "NotAllowedError" || e.name === "SecurityError");
+      if (denied && window.VitaPermSession) window.VitaPermSession.clear("microphone");
       if (typeof showToast === "function") showToast(denied ? "Mikrofon engellendi" : "Mikrofon açılamadı", denied ? "Tarayıcı mikrofon iznini engelledi. Aşağıdaki adımlarla açabilirsiniz." : "Mikrofon bulunamadı veya başka bir uygulama kullanıyor.", "warning");
       await renderMic();
       if (denied) showBlockedHelp("microphone");
@@ -119,7 +124,7 @@
         if (typeof showToast === "function") showToast("Bildirim izni açık", "Dozaj hatırlatmaları etkinleştirildi.", "success");
         return true;
       }
-      if (s === "prompt" && typeof toggleBrowserNotifications === "function") { await toggleBrowserNotifications(); return Notification.permission === "granted"; }
+      if (s === "prompt" && typeof toggleBrowserNotifications === "function") { await toggleBrowserNotifications(); return (await queryState("notifications")) === "granted"; }
     } else if (kind === "microphone") {
       if (s !== "denied") return testMicrophone();
       await renderMic();
@@ -158,6 +163,16 @@
     renderMic();
     try { if (navigator.permissions && navigator.permissions.query) navigator.permissions.query({ name: "microphone" }).then(function (st) { st.onchange = renderMic; }).catch(function () {}); } catch (_) {}
     if ("Notification" in window && Notification.permission === "denied") showBlockedHelp("notifications");
+    // Dosyadan açılınca tarayıcı izinleri kalıcı olmaz: kullanıcıya açıkça söylenir.
+    if (location.protocol === "file:") { var note = $("permFileProtocolNote"); if (note) note.classList.remove("hidden"); }
+    // Kilit simgesinden izin değişince veya sekmeye dönülünce durumlar beklemeden yenilenir.
+    var refreshAll = function () {
+      if (typeof updateNotificationToggleUI === "function") updateNotificationToggleUI();
+      renderMic();
+      if ("Notification" in window && Notification.permission !== "denied") hideBlockedHelp("notifications");
+    };
+    try { if (navigator.permissions && navigator.permissions.query) navigator.permissions.query({ name: "notifications" }).then(function (st) { st.onchange = refreshAll; }).catch(function () {}); } catch (_) {}
+    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") refreshAll(); });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true }); else init();
 })();

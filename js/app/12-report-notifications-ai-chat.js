@@ -1193,8 +1193,32 @@ function getDoctorReportMode() {
     /* ========================================================================= */
     let notificationSchedulerInterval = null;
 
+    /* Bu oturumda verilen izinler (yalnız bellekte; sayfa yenilenince sıfırlanır).
+       Tarayıcı izni KAYDETMEDİĞİNDE de verilen onayı tanır: uygulama dosyadan (file://) açılınca Chrome
+       "İzin ver" sonrası requestPermission() → "granted" döndürür ama Notification.permission "default",
+       permissions.query → "prompt" kalır; arayüz "Henüz İstenmedi / İzin Bekleniyor"da takılı kalıyordu.
+       Tarayıcı açıkça "denied" diyorsa her zaman o geçerlidir. */
+    const vitaPermSessionGrants = new Set();
+    window.VitaPermSession = {
+      mark(kind) { vitaPermSessionGrants.add(kind); },
+      clear(kind) { vitaPermSessionGrants.delete(kind); },
+      has(kind) { return vitaPermSessionGrants.has(kind); },
+      // Tarayıcının bildirdiği durumu oturum onayıyla birleştirir: granted | denied | prompt
+      effective(kind, browserState) {
+        if (browserState === "denied" || browserState === "granted") return browserState;
+        return vitaPermSessionGrants.has(kind) ? "granted" : (browserState || "prompt");
+      }
+    };
+
+    function getNotificationPermissionState() {
+      if (!("Notification" in window)) return "unsupported";
+      const raw = Notification.permission === "default" ? "prompt" : Notification.permission;
+      return window.VitaPermSession.effective("notifications", raw);
+    }
+    window.getNotificationPermissionState = getNotificationPermissionState;
+
     function isNotificationPermissionGranted() {
-      return ("Notification" in window) && Notification.permission === "granted";
+      return getNotificationPermissionState() === "granted";
     }
 
     function isNotificationEnabled() {
@@ -1213,7 +1237,7 @@ function getDoctorReportMode() {
       const prefEnabled = isNotificationEnabled();
       const permGranted = isNotificationPermissionGranted();
       const enabled = prefEnabled && permGranted;
-      const rawPerm = ("Notification" in window) ? Notification.permission : (permGranted ? "granted" : "default");
+      const rawPerm = getNotificationPermissionState();
 
       if (quickDrawerBtn) {
         quickDrawerBtn.setAttribute("aria-checked", enabled ? "true" : "false");
@@ -1302,7 +1326,7 @@ function getDoctorReportMode() {
         try {
           const permObj = await navigator.permissions.query({ name: "camera" });
           if (permObj && permObj.state) {
-            osStatus = permObj.state;
+            osStatus = window.VitaPermSession.effective("camera", permObj.state);
             permObj.onchange = () => {
               updateCameraPermissionUI();
             };
@@ -1474,6 +1498,7 @@ function getDoctorReportMode() {
             audio: false
           });
           stream.getTracks().forEach(t => { try { t.stop(); } catch (_) {} });
+          window.VitaPermSession.mark("camera");
           cachedCameraPermState = "granted";
           safeLocalStorageSetItem("vitatakip_camera_perm_status", "granted");
           await updateCameraPermissionUI();
@@ -1486,6 +1511,7 @@ function getDoctorReportMode() {
           }
           return true;
         } catch (err) {
+          if (err?.name === "NotAllowedError") window.VitaPermSession.clear("camera");
           cachedCameraPermState = err?.name === "NotAllowedError" ? "denied" : "prompt";
           safeLocalStorageSetItem("vitatakip_camera_perm_status", cachedCameraPermState);
           await updateCameraPermissionUI();
@@ -1673,6 +1699,7 @@ function getDoctorReportMode() {
           permission = await Notification.requestPermission();
         } catch (_) {}
       }
+      if (permission === "granted") window.VitaPermSession.mark("notifications");
 
       if (permission === "granted" || isNotificationPermissionGranted()) {
         safeLocalStorageSetItem("vitatakip_notifications_enabled", "true");
@@ -1692,7 +1719,7 @@ function getDoctorReportMode() {
     /* Bildirim gösterimi: önce servis çalışanı (Android Chrome'da "new Notification()" yasak, yalnızca bu yol çalışır),
        olmazsa klasik Notification. Aynı "tag" ile tekrar eden bildirim üst üste binmez. */
     async function vitaShowNotification(title, body, tag) {
-      if (!("Notification" in window) || Notification.permission !== "granted") return false;
+      if (!("Notification" in window) || !isNotificationPermissionGranted()) return false;
       const options = { body, tag, icon: "./icons/icon-192.png", badge: "./icons/icon-192.png", renotify: false, data: { url: "./#view-home" } };
       try {
         if (navigator.serviceWorker && typeof navigator.serviceWorker.getRegistration === "function") {

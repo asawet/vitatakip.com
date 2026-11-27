@@ -146,7 +146,7 @@
     due.forEach(function (r) {
       if (r.notified === t) return;
       r.notified = t; changed = true;
-      if (typeof vitaShowNotification === "function" && window.Notification && Notification.permission === "granted") {
+      if (typeof vitaShowNotification === "function" && typeof isNotificationPermissionGranted === "function" && isNotificationPermissionGranted()) {
         try { vitaShowNotification("Kontrol tahlili zamanı", r.labels.join(", ") + " için planladığınız kontrol ölçümü bugün.", "vita-recheck-" + r.id); } catch (_) {}
       }
     });

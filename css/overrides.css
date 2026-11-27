@@ -90,27 +90,17 @@
 
 /* ===== yazı ve simge boyutu (js/boyut-ayari.js) =====
    --vt-text-scale: derleme px/rem yazı boyutlarını bununla çarpar (tools/build.mjs → scaleTextSizes).
-   --vt-icon-scale: Font Awesome simgeleri zoom ile ayrıca büyür/küçülür. Kutu içine mutlak konumlanmış
+   --vt-icon-scale: Font Awesome simgeleri zoom ile büyür (Görünüm kartındaki tek seçici ikisini birlikte ayarlar). Kutu içine mutlak konumlanmış
    simgeler (arama kutusundaki büyüteç vb.) kaymasın diye hariç; onlar yalnız yazı ölçeğiyle büyür. */
 :root { --vt-text-scale: 1; --vt-icon-scale: 1; }
 :is(.fa, .fa-solid, .fa-regular, .fa-brands, .fas, .far, .fab):not(.absolute):not(.fixed) { zoom: var(--vt-icon-scale, 1); }
 @media print { :root { --vt-text-scale: 1 !important; --vt-icon-scale: 1 !important; } }
 
-.vt-size-row { display: grid; grid-template-columns: 1fr; gap: .5rem; }
-.vt-size-head { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; }
-.vt-size-head label { font-size: 12px; font-weight: 800; color: var(--vt-text); }
-.vt-size-value { font-size: 12px; font-weight: 800; color: var(--vt-teal-700); font-variant-numeric: tabular-nums; }
-.vt-size-track { display: flex; align-items: center; gap: .625rem; }
-.vt-size-track .vt-size-min, .vt-size-track .vt-size-max { flex: none; color: var(--vt-slate-500); font-weight: 800; line-height: 1; }
-.vt-size-track .vt-size-min { font-size: 12px; }
-.vt-size-track .vt-size-max { font-size: 20px; }
-.vt-size-track input[type="range"] { flex: 1; min-width: 0; height: 32px; margin: 0; accent-color: var(--vt-teal-600); cursor: pointer; }
-.vt-size-ticks { display: flex; justify-content: space-between; padding: 0 1.6rem; font-size: 10px; color: var(--vt-slate-500); font-weight: 700; }
-.vt-size-preview { display: flex; align-items: center; gap: .75rem; padding: .75rem .875rem; border-radius: 14px; background: var(--vt-bg); border: 1px solid var(--vt-border); }
-.vt-size-preview .vt-size-preview-icon { flex: none; width: 2.25rem; height: 2.25rem; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--vt-teal-50); color: var(--vt-teal-700); font-size: 15px; }
-.vt-size-preview strong { display: block; font-size: 13px; font-weight: 800; color: var(--vt-text); }
-.vt-size-preview span { display: block; font-size: 11px; color: var(--vt-text-muted); }
-.vt-size-reset { border: 0; background: none; padding: .25rem 0; font-size: 12px; font-weight: 800; color: var(--vt-teal-700); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
-.vt-size-reset[disabled] { color: var(--vt-slate-500); text-decoration: none; cursor: default; }
-/* fontawesome.css yalnız kullanılan simgeleri tanımlar; yazı boyutu kartının simgesi (font dosyasında var) */
-.fa-text-height { --fa: "\f034"; }
+/* Görünüm kartı satırları: etiket solda, seçici sağda; dar ekranda alt alta */
+.vt-pref-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem .75rem; padding-top: .75rem; border-top: 1px solid var(--vt-border); }
+.vt-pref-label { font-size: 12px; font-weight: 800; color: var(--vt-text); }
+.vt-size-seg button { min-width: 44px; justify-content: center; padding: 0 10px; }
+.vt-aa { line-height: 1; font-weight: 900; }
+.vt-aa-1 { font-size: 12px; }
+.vt-aa-2 { font-size: 15px; }
+.vt-aa-3 { font-size: 18px; }
