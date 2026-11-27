@@ -1,16 +1,16 @@
 /* VitaTakip servis çalışanı — çevrimdışı açılış ve hızlı önbellek.
    Sunucu yoktur; yalnızca bu sitenin kendi dosyaları önbelleğe alınır. Kullanıcı verileri (localStorage/IndexedDB)
    burada tutulmaz. CACHE_VERSION ve CORE_FILES `node tools/build.mjs` ile otomatik güncellenir. */
-const CACHE_VERSION = 'vitatakip-0bfcc2667d';
+const CACHE_VERSION = 'vitatakip-714ff70e00';
 const CORE_FILES = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./css/app.css?v=0bfcc2667d",
-  "./js/app.1.js?v=0bfcc2667d",
-  "./js/app.2.js?v=0bfcc2667d",
-  "./js/app.3.js?v=0bfcc2667d",
-  "./js/app.4.js?v=0bfcc2667d",
+  "./css/app.css?v=714ff70e00",
+  "./js/app.1.js?v=714ff70e00",
+  "./js/app.2.js?v=714ff70e00",
+  "./js/app.3.js?v=714ff70e00",
+  "./js/app.4.js?v=714ff70e00",
   "./icons/apple-touch-icon.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -56,10 +56,24 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('notificationclick', event => {
   event.notification.close();
+  // Bildirimdeki hedef (örn. "./#view-home"); yalnız aynı kökenli adreslere izin verilir.
+  let target = './';
+  try {
+    const raw = event.notification.data && event.notification.data.url;
+    if (raw) {
+      const u = new URL(raw, self.registration.scope);
+      if (u.origin === self.location.origin) target = u.href;
+    }
+  } catch (_) { /* varsayılan './' */ }
   event.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    for (const client of all) if ('focus' in client) return client.focus();
-    if (self.clients.openWindow) return self.clients.openWindow('./');
+    for (const client of all) {
+      if ('focus' in client) {
+        if (target !== './' && 'navigate' in client) { try { await client.navigate(target); } catch (_) {} }
+        return client.focus();
+      }
+    }
+    if (self.clients.openWindow) return self.clients.openWindow(target);
   })());
 });
 

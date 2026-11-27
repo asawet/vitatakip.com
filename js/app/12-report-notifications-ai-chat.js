@@ -1679,13 +1679,8 @@ function getDoctorReportMode() {
         updateNotificationToggleUI();
         startNotificationScheduler();
         showToast("Bildirimler Açıldı", "Sayfa açık ve tarayıcı çalışır durumdayken çizelge hatırlatmaları üretilebilir; kapalı arka plan bildirimi garanti edilmez.", "success");
-        try {
-          if ("Notification" in window && Notification.permission === "granted") {
-            new Notification("VitaTakip Dozaj Hatırlatıcı Aktif", {
-              body: "Çizelgenizde kayıtlı takviye saatlerinde bildirim alacaksınız."
-            });
-          }
-        } catch (e) {}
+        // Tek yol: servis çalışanı (Android Chrome doğrudan "new Notification()" çağrısını reddeder).
+        vitaShowNotification("VitaTakip Dozaj Hatırlatıcı Aktif", "Çizelgenizde kayıtlı takviye saatlerinde bildirim alacaksınız.", "vita-test").catch(() => {});
       } else {
         safeLocalStorageSetItem("vitatakip_notifications_enabled", "false");
         updateNotificationToggleUI();
@@ -1710,29 +1705,101 @@ function getDoctorReportMode() {
     window.vitaShowNotification = vitaShowNotification;
 
     /* Uygulama açıkken (veya arka planda sekme canlıyken) 30 sn'de bir: takviye ve ilaç alım saatleri.
-       İlaç: "İlaç Vakti: [ad] alma zamanınız geldi" — "Aldım" işaretlenmiş dozlar için gönderilmez. */
+       İlaç: "İlaç Vakti: [ad] alma zamanınız geldi" — "Aldım" işaretlenmiş dozlar için gönderilmez.
+
+       Tam dakika eşleşmesi yerine ZAMAN PENCERESİ kullanılır: tarayıcı arka plandaki sekmenin zamanlayıcısını
+       yavaşlatır (Chrome dakikada bire kadar düşürür), "08:00" dakikası atlanırsa hatırlatma hiç gelmezdi.
+       - Saati son VITA_NOTIF_ONTIME_MIN dakika içinde gelen doz → normal hatırlatma
+       - Saati VITA_NOTIF_ONTIME_MIN..VITA_NOTIF_CATCHUP_MIN dakika önce geçmiş, gönderilmemiş doz → tek özet
+         ("Kaçırılan hatırlatmalar") — uygulama geç açıldığında veya sekme uykudan döndüğünde.
+       Gönderim kaydı doz başına ve günlüktür (gün değişince kendiliğinden sıfırlanır, birikmez).
+       Saatler cihazın yerel saatine göredir: kullanıcı "08:00" dediğinde bulunduğu yerin 08:00'ini kastediyor. */
+    const VITA_NOTIF_ONTIME_MIN = 2;
+    const VITA_NOTIF_CATCHUP_MIN = 60;
+
+    function vitaLocalDateKey(d) {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+    function vitaHMToMinutes(hm) {
+      const m = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(String(hm || ""));
+      return m ? Number(m[1]) * 60 + Number(m[2]) : -1;
+    }
+    /* Günlük gönderim kaydı. Anahtar öneki eskisiyle aynı ("vitatakip_notif_fired_" / "vitatakip_med_notif_fired_"),
+       böylece öneki temizleyen mevcut kod ve testler aynı şekilde çalışır. */
+    function readVitaNotifLog(prefix, today) {
+      const storageKey = `${prefix}${activeUserId || "guest"}_log`;
+      let log = null;
+      try { log = JSON.parse(safeLocalStorageGetItem(storageKey) || "null"); } catch (_) { log = null; }
+      if (!log || log.date !== today || typeof log.sent !== "object" || !log.sent) log = { date: today, sent: {} };
+      return {
+        has: k => Boolean(log.sent[k]),
+        mark: k => { log.sent[k] = Date.now(); },
+        save: () => safeLocalStorageSetItem(storageKey, JSON.stringify(log))
+      };
+    }
+    /* Eski sürüm her dakika için ayrı anahtar açıyordu ve hiç silinmiyordu: bir kez temizlenir. */
+    let legacyNotifKeysPurged = false;
+    function purgeLegacyNotifKeys() {
+      if (legacyNotifKeysPurged) return;
+      legacyNotifKeysPurged = true;
+      try {
+        Object.keys(localStorage)
+          .filter(k => /^vitatakip_(med_)?notif_fired_/.test(k) && !/_log$/.test(k))
+          .forEach(k => safeLocalStorageRemoveItem(k));
+      } catch (_) {}
+    }
+
     function checkAndFireScheduledNotifications() {
       if (!isNotificationEnabled() || !isNotificationPermissionGranted()) return;
+      purgeLegacyNotifKeys();
       const now = new Date();
-      const hours = String(now.getHours()).padStart(2, "0");
-      const minutes = String(now.getMinutes()).padStart(2, "0");
-      const currentHM = `${hours}:${minutes}`;
-      const todayStr = now.toLocaleDateString("tr-TR");
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      const today = vitaLocalDateKey(now);
+      const missed = []; // { hm, name }
+      // dueMin ≤ nowMin ve pencere içinde mi? "ontime" | "missed" | null
+      const classify = hm => {
+        const t = vitaHMToMinutes(hm);
+        if (t < 0 || t > nowMin) return null;
+        const ago = nowMin - t;
+        if (ago < VITA_NOTIF_ONTIME_MIN) return "ontime";
+        if (ago < VITA_NOTIF_CATCHUP_MIN) return "missed";
+        return null;
+      };
+      // Doz saatinden SONRA eklenen öğe "kaçırılmış" sayılmaz (ör. 21:35'te 21:15 saatiyle yeni eklenen ilaç).
+      const existedAt = (createdTs, hm) => {
+        const ts = Number(createdTs);
+        if (!(ts > 0)) return true; // eski kayıtlarda ekleme zamanı yoksa kaçırılmış say
+        const due = new Date(now); due.setHours(0, 0, 0, 0);
+        return ts <= due.getTime() + vitaHMToMinutes(hm) * 60000 + 59999;
+      };
 
-      const firedKey = `vitatakip_notif_fired_${activeUserId || 'guest'}_${todayStr}_${currentHM}`;
-      if (Array.isArray(state.supplements) && state.supplements.length && safeLocalStorageGetItem(firedKey) !== "true") {
-        const pendingItems = state.supplements.filter(item => getSupplementTimeLabel(item) === currentHM && isSupplementScheduledToday(item, now) && !item.taken && !(typeof isSupplementSkippedToday === "function" && isSupplementSkippedToday(item, now)));
-        if (pendingItems.length) {
-          safeLocalStorageSetItem(firedKey, "true");
-          // "Demir (Fe) alma zamanı — Aç karnına 1 kapsül": aç/tok bilgisi ve miktar bildirimin içinde.
-          const howTo = item => {
-            const amount = Number(item.gunlukDoz) > 0 && item.dozBirimi ? `${item.gunlukDoz} ${item.dozBirimi}` : String(item.doseText || "").split(" • ")[0];
-            return [item.aclikDurumu, amount].filter(Boolean).join(" ");
-          };
-          const lines = pendingItems.map(item => `${item.name} alma zamanı${howTo(item) ? ` — ${howTo(item)}` : ""}`);
-          const title = pendingItems.length === 1 ? `⏰ ${pendingItems[0].name} alma zamanı (${currentHM})` : `⏰ VitaTakip: ${currentHM} takviye zamanı`;
-          vitaShowNotification(title, `${lines.join("; ")}.`, `vita-sup-${currentHM}`);
-        }
+      const supLog = readVitaNotifLog("vitatakip_notif_fired_", today);
+      let supLogDirty = false;
+      if (Array.isArray(state.supplements) && state.supplements.length) {
+        const onTimeByHM = new Map();
+        state.supplements.forEach(item => {
+          const hm = getSupplementTimeLabel(item);
+          const kind = classify(hm);
+          if (!kind) return;
+          if (!isSupplementScheduledToday(item, now) || item.taken) return;
+          if (typeof isSupplementSkippedToday === "function" && isSupplementSkippedToday(item, now)) return;
+          const k = `sup|${item.id}|${hm}`;
+          if (supLog.has(k)) return;
+          supLog.mark(k); supLogDirty = true;
+          if (kind === "missed") { if (existedAt(item.addedDate, hm)) missed.push({ hm, name: item.name }); return; }
+          if (!onTimeByHM.has(hm)) onTimeByHM.set(hm, []);
+          onTimeByHM.get(hm).push(item);
+        });
+        // "Demir (Fe) alma zamanı — Aç karnına 1 kapsül": aç/tok bilgisi ve miktar bildirimin içinde.
+        const howTo = item => {
+          const amount = Number(item.gunlukDoz) > 0 && item.dozBirimi ? `${item.gunlukDoz} ${item.dozBirimi}` : String(item.doseText || "").split(" • ")[0];
+          return [item.aclikDurumu, amount].filter(Boolean).join(" ");
+        };
+        onTimeByHM.forEach((items, hm) => {
+          const lines = items.map(item => `${item.name} alma zamanı${howTo(item) ? ` — ${howTo(item)}` : ""}`);
+          const title = items.length === 1 ? `⏰ ${items[0].name} alma zamanı (${hm})` : `⏰ VitaTakip: ${hm} takviye zamanı`;
+          vitaShowNotification(title, `${lines.join("; ")}.`, `vita-sup-${hm}`);
+        });
       }
 
       /* Kutu bitmeden uyarı: stoğu ≤ 5 gün kalan her takviye (vakit grubu tek ürün sayılır) için günde bir kez, 09:00'dan sonra. */
@@ -1744,31 +1811,53 @@ function getDoctorReportMode() {
           seenStock.add(key);
           const g = getSupplementGroupStock(item);
           if (g.days > (typeof VITA_LOW_STOCK_DAYS === "number" ? VITA_LOW_STOCK_DAYS : 5)) return;
-          const stockKey = `vitatakip_notif_fired_${activeUserId || 'guest'}_${todayStr}_stock_${key}`;
-          if (safeLocalStorageGetItem(stockKey) === "true") return;
-          safeLocalStorageSetItem(stockKey, "true");
+          const k = `stock|${key}`;
+          if (supLog.has(k)) return;
+          supLog.mark(k); supLogDirty = true;
           vitaShowNotification(`📦 ${item.name} bitmek üzere`, `${item.name}: ${g.days} gün yetecek kadar kaldı (${g.remaining} adet). Yeni kutuyu açınca uygulamada “Yeni kutu açtım”a dokunun.`, `vita-stock-${key}`);
         });
       }
+      if (supLogDirty) supLog.save();
 
       if (typeof getTodayVitaMedicationDoses === "function") {
-        const medKey = `vitatakip_med_notif_fired_${activeUserId || 'guest'}_${todayStr}_${currentHM}`;
-        if (safeLocalStorageGetItem(medKey) === "true") return;
-        const dueMeds = getTodayVitaMedicationDoses().filter(r => r.dose === currentHM && !r.taken);
-        if (!dueMeds.length) return;
-        safeLocalStorageSetItem(medKey, "true");
-        dueMeds.forEach(r => {
+        const medLog = readVitaNotifLog("vitatakip_med_notif_fired_", today);
+        let medLogDirty = false;
+        getTodayVitaMedicationDoses().forEach(r => {
+          if (r.taken) return;
+          const kind = classify(r.dose);
+          if (!kind) return;
+          const k = `med|${r.med.id}|${r.dose}`;
+          if (medLog.has(k)) return;
+          medLog.mark(k); medLogDirty = true;
+          if (kind === "missed") { if (existedAt(r.med.addedAt, r.dose)) missed.push({ hm: r.dose, name: r.med.name }); return; }
           const howTo = typeof describeVitaMedicationHowTo === "function" ? describeVitaMedicationHowTo(r.med) : "";
-          vitaShowNotification(`💊 İlaç Vakti: ${r.med.name}`, `İlaç Vakti: ${r.med.name} alma zamanınız geldi (${currentHM})${howTo ? ` — ${howTo}` : ""}.`, `vita-med-${r.med.id}-${currentHM}`);
+          vitaShowNotification(`💊 İlaç Vakti: ${r.med.name}`, `İlaç Vakti: ${r.med.name} alma zamanınız geldi (${r.dose})${howTo ? ` — ${howTo}` : ""}.`, `vita-med-${r.med.id}-${r.dose}`);
         });
+        if (medLogDirty) medLog.save();
+      }
+
+      /* Kaçırılanlar: tek özet bildirim (her biri için ayrı bildirim yağdırılmaz). */
+      if (missed.length) {
+        missed.sort((a, b) => a.hm.localeCompare(b.hm) || a.name.localeCompare(b.name, "tr"));
+        const body = missed.map(m => `${m.hm} ${m.name}`).join("; ");
+        const title = missed.length === 1 ? `⏰ Kaçırılan hatırlatma: ${missed[0].name}` : `⏰ ${missed.length} hatırlatma kaçırıldı`;
+        vitaShowNotification(title, `${body}. Aldıysanız uygulamada "Aldım" olarak işaretleyin.`, "vita-missed");
       }
     }
     window.checkAndFireScheduledNotifications = checkAndFireScheduledNotifications;
 
+    let notificationVisibilityHooked = false;
     function startNotificationScheduler() {
       if (notificationSchedulerInterval) clearInterval(notificationSchedulerInterval);
       checkAndFireScheduledNotifications();
       notificationSchedulerInterval = setInterval(checkAndFireScheduledNotifications, 30000);
+      // Sekme uykudan dönünce beklemeden kontrol et (kaçırılanlar özetlenir).
+      if (!notificationVisibilityHooked) {
+        notificationVisibilityHooked = true;
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") checkAndFireScheduledNotifications();
+        });
+      }
     }
 
     /* ========================================================================= */
