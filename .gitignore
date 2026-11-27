@@ -7,3 +7,6 @@ _site/
 tests/*.png
 tests/e2e/test-results/
 tests/e2e/playwright-report/
+
+# graphify bilgi grafiği (yerel, üretilmiş)
+graphify-out/
