@@ -27,11 +27,17 @@ const JS = [
   'js/legal-onboarding.js', 'js/medical-drawer.js', 'js/doctor-tests.js', 'js/clinical-simple.js', 'js/report-simple.js',
   'js/age-stage.js', 'js/day-compact.js', 'js/add-sup-simple.js', 'js/scanner-simple.js', 'js/ui-enhancements.js',
   'js/compact-labs-neyim.js', 'js/neyimvar-final-tidy.js', 'js/simplify-ui.js', 'js/ayarlar-akordeon.js', 'js/evidence-guide.js',
-  'js/neyim-wizard.js', 'js/visual-reference.js', 'js/egfr-calculator.js', 'js/pwa-install.js', 'js/gorsel-coz.js', 'js/profil-foto.js', 'js/takviye-sayfa.js', 'js/ilac-sayfa.js', 'js/izin-merkezi.js', 'js/ana-sekmeler.js', 'js/profil-adimlar.js', 'js/tema.js', 'js/kaynak-bilgi.js', 'js/kontrol-hatirlatma.js', 'js/paylasim-karti.js'
+  'js/neyim-wizard.js', 'js/visual-reference.js', 'js/egfr-calculator.js', 'js/pwa-install.js', 'js/gorsel-coz.js', 'js/profil-foto.js', 'js/takviye-sayfa.js', 'js/ilac-sayfa.js', 'js/izin-merkezi.js', 'js/ana-sekmeler.js', 'js/profil-adimlar.js', 'js/tema.js', 'js/boyut-ayari.js', 'js/kaynak-bilgi.js', 'js/kontrol-hatirlatma.js', 'js/paylasim-karti.js'
 ];
 
 const banner = f => `\n/* ===== ${f} ===== */\n`;
-const css = CSS.map(f => banner(f) + rd(f)).join('\n');
+/* Yazı boyutu ayarı (Ayarlar > Yazı ve simge boyutu, js/boyut-ayari.js): px/rem cinsinden her yazı boyutu ve satır yüksekliği
+   --vt-text-scale ile çarpılır. Kaynak CSS dosyaları değişmez; ölçek 1 iken hesaplanan değerler birebir aynıdır.
+   (Kök font-size büyütülseydi yalnız rem değerleri büyür, ~900 adet "text-[10px]" sınıfı küçük kalırdı.) */
+// Tailwind v4 yazı belirteçleri de (--text-xs: .75rem …) dahil; satır yükseklikleri orada birimsiz orandır.
+const scaleTextSizes = s => s.replace(/(\bfont-size|\bline-height|--text-[a-z0-9]+)(\s*:\s*)(\d*\.?\d+)(px|rem)\b/g,
+  (_, prop, sep, n, unit) => `${prop}${sep}calc(${n}${unit} * var(--vt-text-scale, 1))`);
+const css = scaleTextSizes(CSS.map(f => banner(f) + rd(f)).join('\n'));
 // Her dosya kendi satırında biter; ";" bir önceki dosyanın son ifadesinin sonrakiyle birleşmesini önler.
 const js = JS.map(f => banner(f) + rd(f) + '\n;').join('\n');
 

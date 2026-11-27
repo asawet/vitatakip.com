@@ -21,16 +21,17 @@
 <meta content="#0f172a" name="theme-color"/>
 <meta content="light" name="color-scheme"/>
 <script>/* Tema: sayfa çizilmeden uygulanır (beyaz parlama olmasın). Ayrıntı: js/tema.js */(function(){try{var t=localStorage.getItem("vitatakip_theme")||"light";if(t==="dark"||(t==="system"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.setAttribute("data-theme","dark");}}catch(e){}})();</script>
+<script>/* Yazı ve simge boyutu: sayfa çizilmeden uygulanır. Ayrıntı: js/boyut-ayari.js */(function(){try{var r=document.documentElement.style,t=Number(localStorage.getItem("vitatakip_text_scale")),i=Number(localStorage.getItem("vitatakip_icon_scale"));if([0.9,1.1,1.2,1.3].indexOf(t)!==-1)r.setProperty("--vt-text-scale",String(t));if([0.85,1.15,1.3].indexOf(i)!==-1)r.setProperty("--vt-icon-scale",String(i));}catch(e){}})();</script>
 <!-- Tailwind utilities are bundled locally to avoid blocking first render. -->
 <!-- Google Fonts: Inter -->
 <!-- Uses Inter when already available; otherwise falls back immediately to the system UI font. -->
 <!-- Font Awesome 6 CDN -->
 <!-- build:css -->
-<link rel="stylesheet" href="./css/app.css?v=714ff70e00">
-<script defer src="./js/app.1.js?v=714ff70e00"></script>
-<script defer src="./js/app.2.js?v=714ff70e00"></script>
-<script defer src="./js/app.3.js?v=714ff70e00"></script>
-<script defer src="./js/app.4.js?v=714ff70e00"></script>
+<link rel="stylesheet" href="./css/app.css?v=4c52bfcc36">
+<script defer src="./js/app.1.js?v=4c52bfcc36"></script>
+<script defer src="./js/app.2.js?v=4c52bfcc36"></script>
+<script defer src="./js/app.3.js?v=4c52bfcc36"></script>
+<script defer src="./js/app.4.js?v=4c52bfcc36"></script>
 <!-- /build:css -->
 <!-- Chart.js loads only if a trend chart is needed. -->
 <!-- PDF.js loads only when a user selects a PDF for analysis. -->
@@ -1738,6 +1739,27 @@ Bu belge, hastanın VitaTakip sistemine beyan ettiği demografik veriler, seçil
 <button type="button" data-vt-theme="dark" aria-pressed="false"><i class="fa-solid fa-moon" aria-hidden="true"></i> Koyu</button>
 <button type="button" data-vt-theme="system" aria-pressed="false"><i class="fa-solid fa-mobile-screen" aria-hidden="true"></i> Sistem</button>
 </div>
+</div>
+
+<!-- Yazı ve simge boyutu (js/boyut-ayari.js; tercih bu cihazda saklanır, yazdırma/PDF etkilenmez) -->
+<div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 space-y-4" id="settingsSectionTextSize">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center shrink-0"><i class="fa-solid fa-text-height" aria-hidden="true"></i></div>
+<div class="min-w-0"><h3 class="text-xs sm:text-sm font-black text-navy-900">Yazı ve simge boyutu</h3><p class="text-[11px] text-slate-500">Okumayı kolaylaştırmak için yazıları ve simgeleri büyütün.</p></div>
+</div>
+<div class="vt-size-row">
+<div class="vt-size-head"><label for="vtTextSizeRange">Yazı boyutu</label><span class="vt-size-value" data-vt-size-value="text" aria-hidden="true">Normal · %100</span></div>
+<div class="vt-size-track"><span class="vt-size-min" aria-hidden="true">A</span><input id="vtTextSizeRange" type="range" min="0" max="4" step="1" value="1" data-vt-size="text"/><span class="vt-size-max" aria-hidden="true">A</span></div>
+</div>
+<div class="vt-size-row">
+<div class="vt-size-head"><label for="vtIconSizeRange">Simge boyutu</label><span class="vt-size-value" data-vt-size-value="icon" aria-hidden="true">Normal · %100</span></div>
+<div class="vt-size-track"><span class="vt-size-min" aria-hidden="true"><i class="fa-solid fa-image" style="zoom:1" aria-hidden="true"></i></span><input id="vtIconSizeRange" type="range" min="0" max="3" step="1" value="1" data-vt-size="icon"/><span class="vt-size-max" aria-hidden="true"><i class="fa-solid fa-image" style="zoom:1" aria-hidden="true"></i></span></div>
+</div>
+<div class="vt-size-preview" aria-hidden="true">
+<div class="vt-size-preview-icon"><i class="fa-solid fa-capsules"></i></div>
+<div class="min-w-0"><strong>D3 Vitamini · 08:00</strong><span>Önizleme: Tok karnına 1 kapsül. Değişiklik tüm ekranlara hemen uygulanır.</span></div>
+</div>
+<div class="flex justify-end"><button type="button" class="vt-size-reset" data-vt-size-reset disabled>Varsayılana dön</button></div>
 </div>
 
 <!-- 5.1. Profil ve Kişisel Bilgiler -->
