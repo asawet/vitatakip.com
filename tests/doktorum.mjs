@@ -95,6 +95,10 @@ if (process.env.VT_SHOTS) {
   await (await p.$('#settingsSectionDoctors')).screenshot({ path: process.env.VT_SHOTS + '/doktorum.png' });
 }
 
+/* 8b) KVKK metni: şifre sıfırlama e-postası AB'de (Resend, İrlanda) */
+const kvR = await p.evaluate(() => document.getElementById('kvkkInfoBody').innerText.replace(/\s+/g, ' '));
+log("KVKK: sıfırlama e-postası Resend ile AB (İrlanda) sunucularından; yalnız e-posta adresi işlenir", /Resend aracılığıyla, Avrupa Birliği'ndeki \(İrlanda\) sunucular/.test(kvR) && /yalnızca e-posta adresiniz işlenir/.test(kvR), '');
+
 /* 8) KVKK metni: doktor paylaşımı, yalnız onaylı doktor, salt okuma, izni geri alma, notların akıbeti */
 const kv = await p.evaluate(() => document.getElementById('kvkkInfoBody').innerText.replace(/\s+/g, ' '));
 log('KVKK: doktorla paylaşım (yalnız okuma, onaylı doktor, geri alma) ve notların anonimleşmesi yazılı', /Doktorunuzla paylaşım/.test(kv) && /yalnızca okuyabilir/.test(kv) && /onaylanmış doktor/.test(kv) && /geri alırsınız/.test(kv) && /Anonim hasta/.test(kv), kv.slice(kv.indexOf('Doktorunuzla'), kv.indexOf('Doktorunuzla') + 80));
