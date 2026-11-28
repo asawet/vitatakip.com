@@ -9,6 +9,8 @@ export async function boot(opts = {}) {
   const errs = [];
   p.on('pageerror', e => errs.push('PAGEERR ' + e.message));
   await p.evaluateOnNewDocument(() => { localStorage.setItem('vitatakip_legal_accepted', 'true'); });
+  // Varsayılan tema "Sistem": testler işletim sisteminin koyu/açık ayarından bağımsız olsun (açık)
+  await p.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'light' }]);
   if (opts.preload) await p.evaluateOnNewDocument(opts.preload, opts.preloadArg);
   if (opts.ua) await p.setUserAgent(opts.ua);
   await p.goto('http://localhost:' + (process.env.VT_PORT || 8080) + '/index.html' + (opts.hash || ''), { waitUntil: 'networkidle2' });

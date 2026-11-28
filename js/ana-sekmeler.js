@@ -30,7 +30,7 @@
   }
   function showHome(i, opts) {
     if (!home.wrap) return;
-    home.idx = i ? 1 : 0;
+    home.idx = i > 0 ? 1 : 0; // kaydırma -1 verebilir (ilk sekmede sağa kaydırma): ilk sekmede kalır
     home.track.style.transform = "translateX(" + (-100 * home.idx) + "%)";
     home.panes.forEach(function (p, n) { var on = n === home.idx; p.setAttribute("aria-hidden", on ? "false" : "true"); p.classList.toggle("is-active", on); });
     home.dots.forEach(function (d, n) { var on = n === home.idx; d.classList.toggle("is-on", on); d.setAttribute("aria-selected", on ? "true" : "false"); });
@@ -137,7 +137,7 @@
   }
   function showSummary(i) {
     if (!sum.built) return;
-    sum.idx = i ? 1 : 0;
+    sum.idx = i > 0 ? 1 : 0;
     var track = $("vdsTrack"); if (track) track.style.transform = "translateX(" + (-100 * sum.idx) + "%)";
     var title = $("dailySummaryPanelTitle"); if (title) title.lastChild.textContent = " " + TITLES[sum.idx];
     document.querySelectorAll("#dailySummaryPanel .vds-pane").forEach(function (p, n) { p.setAttribute("aria-hidden", n === sum.idx ? "false" : "true"); });

@@ -84,6 +84,7 @@
      Yeni bulut hesabının profili varsayılan değerlerle (28 yaş, 168 cm, 68 kg) başlar; bu "dolu" sayılmamalı. */
   function profileFilled(u) {
     if (!u || typeof u !== "object") return false;
+    if (typeof window.vitaProfileIsComplete === "function") return window.vitaProfileIsComplete(u);
     if (u.profileCompleted === true) return true;
     if (u.profileCompleted === false) return false;
     var d = typeof defaultUserProfile !== "undefined" ? defaultUserProfile : { age: 28, gender: "K", height: 168, weight: 68 };

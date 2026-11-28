@@ -12,7 +12,7 @@ log('Rozetler: selamlama + VKİ', /VKİ: \d+/.test(H.bmi) && H.time.length > 3, 
 log('Selamlama ikonu saate göre', (H.hour >= 6 && H.hour < 12 ? /fa-sun/ : H.hour >= 12 && H.hour < 18 ? /fa-cloud-sun/ : /fa-moon/).test(H.icon), H.icon);
 log('Başlık: "<selam>, Ayşe Demir!"', H.name === H.time + ', Ayşe Demir!', H.name);
 log('Özet: evre • kg, cm • odak', /Yetişkinlik/.test(H.desc) && /82 kg, 165 cm/.test(H.desc), H.desc);
-log('Yalnız 2 buton, Yardım yok', H.btns.length === 2 && /Buzdolabı Çizelgesi Yazdır/.test(H.btns[0]) && /Belirtilerimi değerlendir/.test(H.btns[1]) && !/Yardım/i.test(H.text), H.btns.join(' | '));
+log('Yalnız 2 buton, Yardım yok', H.btns.length === 2 && /Buzdolabı çizelgesi yazdır/.test(H.btns[0]) && /Belirtilerimi değerlendir/.test(H.btns[1]) && !/Yardım/i.test(H.text), H.btns.join(' | '));
 for (const [date, vals] of [['2026-05-14', { inputLabMg: '1.5', inputLabB12: '180' }], ['2026-08-01', { inputLabMg: '1.9', inputLabB12: '230' }], ['2026-11-01', { inputLabMg: '2.1', inputLabB12: '420' }]]) {
   await p.evaluate(() => navigateToView('view-labs')); await sleep(250);
   await p.evaluate((date, vals) => { for (const el of document.querySelectorAll('[id^="inputLab"]')) if (!el.id.includes('Date')) el.value = ''; document.getElementById('inputLabDate').value = date; for (const [id, v] of Object.entries(vals)) { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); } saveCurrentLabRecordWithDate(); }, date, vals); await sleep(500);

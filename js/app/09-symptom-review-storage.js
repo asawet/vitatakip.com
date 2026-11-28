@@ -84,9 +84,9 @@ function checkPendingSymptomReviews() {
       const cfg = fKey && FORM_DOSAGE_CONFIG[fKey] ? FORM_DOSAGE_CONFIG[fKey] : null;
       const weeks = cfg ? Math.round(cfg.reviewDays / 7) : 4;
 
-      if (title) title.textContent = `${weeks}. Hafta ${escapeHtmlText(sup.name)} Klinik Kontrolü`;
+      if (title) title.textContent = `${weeks}. Hafta ${sup.name} Klinik Kontrolü`; // textContent: kaçış gerekmez ("D3 & K2")
       if (intro) {
-        intro.textContent = `${escapeHtmlText(sup.name)} takviyesinin kararlı doku doygunluğuna ulaşması için beklenen süre dolmuştur. Bu takviyeyle ilişkili başlangıç şikayetlerinizin mevcut durumunu işaretleyiniz:`;
+        intro.textContent = `${sup.name} takviyesinin kararlı doku doygunluğuna ulaşması için beklenen süre dolmuştur. Bu takviyeyle ilişkili başlangıç şikayetlerinizin mevcut durumunu işaretleyiniz:`;
       }
 
       const relatedSymptomKeys = Object.keys(ANAMNESIS_DICTIONARY).filter(key => {
@@ -506,8 +506,9 @@ function checkPendingSymptomReviews() {
         const [lo, hi] = extraDef.plausible;
         return (!Number.isFinite(r.min) || (r.min >= lo * 0.2 && r.min <= hi)) && (!Number.isFinite(r.max) || (r.max >= lo && r.max <= hi * 1.5));
       }
-      const units =["ng/ml", "ug/ml", "ug/dl", "pg/ml", "mg/dl", "mmol/l", "nmol/l", "pmol/l", "umol/l", "ug/l", "u/l", "iu/l", "g/dl", "g/l", "fl", "mg/l", "meq/l"];
-      const detected = units.find(unit => text.includes(unit));
+      const units =["ng/ml", "ug/ml", "ug/dl", "pg/ml", "mg/dl", "mmol/l", "nmol/l", "pmol/l", "umol/l", "ug/l", "ng/l", "u/l", "iu/l", "g/dl", "g/l", "fl", "mg/l", "meq/l"];
+      // En uzun birim önce denenir: "mg/l" ve "ng/l" metninde "g/l" de geçer, "iu/l" içinde "u/l" de geçer
+      const detected = units.slice().sort((a, b) => b.length - a.length).find(unit => text.includes(unit));
       const allowed = {
         d3: ["ng/ml", "nmol/l"], b12: ["pg/ml", "ng/l", "pmol/l"], ferritin: ["ng/ml", "ug/l", "pmol/l"], mg: ["mg/dl", "mmol/l", "meq/l"],
         ca: ["mg/dl", "mmol/l"], zinc: ["ug/dl", "umol/l"], creatinine: ["mg/dl", "umol/l"], folate: ["ng/ml", "nmol/l"], alt: ["u/l", "iu/l"],
@@ -750,7 +751,7 @@ function checkPendingSymptomReviews() {
             hydrationTagEl.textContent = "⚠️ Böbrek / Diüretik: Sıvı Miktarını Hekiminize Göre Ayarlayın";
             hydrationTagEl.className = "text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300";
           } else {
-            hydrationTagEl.textContent = "35ml/kg + Takviye Bonusu";
+            hydrationTagEl.textContent = "35 ml/kg + takviye payı";
             hydrationTagEl.className = "text-[10px] font-bold px-2.5 py-1 rounded-full bg-sky-100 text-sky-800";
           }
         }
@@ -792,8 +793,11 @@ function checkPendingSymptomReviews() {
         const hIcon = document.getElementById("homeGreetingIcon");
         if (hIcon) hIcon.className = "fa-solid " + (hour >= 6 && hour < 12 ? "fa-sun" : (hour >= 12 && hour < 18 ? "fa-cloud-sun" : "fa-moon"));
         if (hName) hName.textContent = `${slot}, ${p.name || 'Kullanıcı'}!`;
-        if (hBmi) hBmi.textContent = `VKİ: ${p.bmi} (${p.bmiCategory})`;
-        if (hDesc) {
+        const profileOk = vitaProfileIsComplete(p);
+        if (hBmi) hBmi.textContent = profileOk ? `VKİ: ${p.bmi} (${p.bmiCategory})` : "VKİ: —";
+        if (hDesc && !profileOk) {
+          hDesc.textContent = "Profiliniz tamamlanmadı · Yaş, cinsiyet, boy ve kilonuzu Ayarlar > Profil'den girin; öneriler buna göre kişiselleşir.";
+        } else if (hDesc) {
           hDesc.innerHTML = `
             <span>${escapeHtmlText(stageInfo.stage)}</span> • 
             <span class="font-bold text-teal-200">${escapeHtmlText(p.weight)} kg, ${escapeHtmlText(p.height)} cm</span> • 
@@ -802,8 +806,8 @@ function checkPendingSymptomReviews() {
         }
         if (headerName) headerName.textContent = p.name || "Kullanıcı";
         if (drawerName) drawerName.textContent = p.name || "Kullanıcı";
-        if (drawerBmi) drawerBmi.textContent = `VKİ: ${p.bmi}`;
-        if (drawerHW) drawerHW.textContent = `${p.weight} kg / ${p.height} cm`;
+        if (drawerBmi) drawerBmi.textContent = profileOk ? `VKİ: ${p.bmi}` : "VKİ: —";
+        if (drawerHW) drawerHW.textContent = profileOk ? `${p.weight} kg / ${p.height} cm` : "Profil tamamlanmadı";
       }
     }
 
@@ -991,7 +995,7 @@ function checkPendingSymptomReviews() {
           medications = customMedStr.split(/[,;]+/).map(s => s.trim()).filter(Boolean);
           if (typeof VITA_CLINICAL_DRUG_NUTRIENT_DB !== "undefined") {
             medications.forEach(med => {
-              const lower = med.toLowerCase();
+              const lower = vitaFoldLower(med);
               VITA_CLINICAL_DRUG_NUTRIENT_DB.quickMedicationClasses.forEach(cls => {
                 if (cls.keywords.some(kw => lower.includes(kw)) && !chronic.includes(cls.code)) {
                   chronic.push(cls.code);
@@ -1064,7 +1068,8 @@ function checkPendingSymptomReviews() {
             item.doseText = evaluated.doseText || `Günde ${Math.max(1, Number(item.gunlukDoz) || 1)} ${item.dozBirimi || (/damla/i.test(String(item.selectedForm || "")) ? "damla" : "adet")}`;
             item.subText = evaluated.subText;
             item.instruction = evaluated.instruction;
-            item.timing = evaluated.timing;
+            // Saat dilimi kiloya bağlı değildir: kullanıcının (ya da "Saat Dilimine Taşı" düzeltmesinin) seçtiği dilim korunur
+            if (!item.timing) item.timing = evaluated.timing;
           }
         }
       });
@@ -1088,11 +1093,7 @@ function checkPendingSymptomReviews() {
 
     function isVitaProfileComplete() {
       const u = typeof state !== "undefined" ? state.user : null;
-      if (!u) return false;
-      if (u.profileCompleted === true) return true;
-      if (u.profileCompleted === false) return false;
-      const d = defaultUserProfile;
-      return !(Number(u.age) === d.age && u.gender === d.gender && Number(u.height) === d.height && Number(u.weight) === d.weight);
+      return vitaProfileIsComplete(u);
     }
     window.isVitaProfileComplete = isVitaProfileComplete;
 
@@ -1111,7 +1112,7 @@ function checkPendingSymptomReviews() {
           text.innerHTML = "<strong>Profiliniz tamamlanmadı.</strong> Yaş, cinsiyet, boy ve kilo girilmeden yapılan değerlendirmeler genel varsayımlara dayanır; eGFR hesaplanmaz.";
           const btn = document.createElement("button");
           btn.type = "button";
-          btn.className = "rounded-lg bg-amber-600 hover:bg-amber-700 px-3 py-1.5 text-[11px] font-black text-white";
+          btn.className = "vt-btn-amber rounded-lg px-3 py-1.5 text-[11px] font-black"; // renk: css/overrides.css (derlenmiş CSS'te bg-amber-600 yok)
           btn.textContent = "Profili tamamla";
           btn.addEventListener("click", () => openProfileModal(true));
           box.append(text, btn);

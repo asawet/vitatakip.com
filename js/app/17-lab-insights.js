@@ -96,7 +96,8 @@
           else if (ev.status === "urgent") direction = ev.clinical?.side === "low" ? "low" : "high";
           else if (ev.status === "borderline") direction = (lvl === "high_review") ? "high" : (lvl === "low_likely" ? "low" : "borderline");
           else if (ev.status === "below_ref") direction = (ev.referenceUsed === "lab" || lvl === "low_likely") ? "low" : "borderline";
-          else if (ev.status === "above_ref") direction = ev.referenceUsed === "lab" ? "high" : "normal";
+          // Laboratuvar aralığı yoksa genel aralığın üstü "normal" sayılmaz (ör. referanssız ferritin 900): alttaki gibi "sınırda"
+          else if (ev.status === "above_ref") direction = (ev.referenceUsed === "lab" || lvl === "high_review") ? "high" : "borderline";
           return { direction, status: ev.status, source: ev.referenceUsed === "lab" ? "lab" : "app", reference: ev.reference, statusText: ev.statusText, message: ev.message, evidence: ev };
         }
         // Extra CBC / thyroid / metabolic markers
@@ -192,7 +193,8 @@
         const patterns = [];
         const add = (title, text) => patterns.push({ title, text });
         const ironLowish = has("ferritin") && (dir("ferritin") === "low" || dir("ferritin") === "borderline");
-        const anemia = has("hb") && by.hb.evidence?.clinical?.level === "low_likely";
+        const hbClin = has("hb") ? by.hb.evidence?.clinical : null; // ağır anemi: "urgent" + side "low"
+        const anemia = Boolean(hbClin && (hbClin.level === "low_likely" || (hbClin.level === "urgent" && hbClin.side === "low")));
         const mcvBelow = has("mcv") && by.mcv.evidence?.refStatus === "below";
         const mcvAbove = has("mcv") && by.mcv.evidence?.refStatus === "above";
 

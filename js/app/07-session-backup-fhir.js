@@ -199,8 +199,9 @@ function checkMidnightReset(userId) {
       user.height = height !== null ? height : defaultUserProfile.height;
       user.weight = weight !== null ? weight : defaultUserProfile.weight;
       /* Aralık dışı/eksik profil "tamamlandı" sayılmaz; kullanıcıdan profili gözden geçirmesi istenir.
-         Eski yedeklerde bayrak yoktur: geçerli yaş/boy/kilo varsa tamamlanmış kabul edilir. */
-      user.profileCompleted = (src.profileCompleted === undefined || src.profileCompleted === true) && age !== null && height !== null && weight !== null;
+         Bayrak yoksa (eski yedek ya da hiç doldurulmamış profil) değerler varsayılanlardan farklıysa tamamlanmış sayılır;
+         28 yaş / K / 168 cm / 68 kg varsayılanları "tamamlandı" sayılmaz. */
+      user.profileCompleted = vitaProfileIsComplete(src) && age !== null && height !== null && weight !== null;
       user.chronic = Array.isArray(src.chronic) ? src.chronic.filter(item => typeof item === "string").map(item => item.slice(0, 60)).slice(0, 50) : [];
       ["medications", "prescriptionDrugRecords"].forEach(key => { if (key in src && !Array.isArray(src[key])) delete user[key]; });
       ["bmiCategory", "bmiBadgeColor"].forEach(key => { if (typeof user[key] !== "string") delete user[key]; });

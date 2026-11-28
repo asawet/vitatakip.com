@@ -45,7 +45,7 @@
 
   var stripHtml =
     '<span class="vms-ico" aria-hidden="true">ℹ️</span>' +
-    '<span class="vms-txt">Eğitim ve klinik karar destek amaçlıdır — tanı koymaz, nihai karar hekime aittir.</span>' +
+    '<span class="vms-txt">Tanı koymaz; karar hekiminizindir.</span>' + // Ö7: dar ekranda da tamamı sığar; ayrıntı çekmecede
     '<span class="vms-arrow" aria-hidden="true">›</span>';
 
   var sheetHtml =

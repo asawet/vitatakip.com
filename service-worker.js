@@ -1,16 +1,16 @@
 /* VitaTakip servis çalışanı — çevrimdışı açılış ve hızlı önbellek.
    Sunucu yoktur; yalnızca bu sitenin kendi dosyaları önbelleğe alınır. Kullanıcı verileri (localStorage/IndexedDB)
    burada tutulmaz. CACHE_VERSION ve CORE_FILES `node tools/build.mjs` ile otomatik güncellenir. */
-const CACHE_VERSION = 'vitatakip-ed6d4aaa13';
+const CACHE_VERSION = 'vitatakip-3af46fc804';
 const CORE_FILES = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./css/app.css?v=ed6d4aaa13",
-  "./js/app.1.js?v=ed6d4aaa13",
-  "./js/app.2.js?v=ed6d4aaa13",
-  "./js/app.3.js?v=ed6d4aaa13",
-  "./js/app.4.js?v=ed6d4aaa13",
+  "./css/app.css?v=3af46fc804",
+  "./js/app.1.js?v=3af46fc804",
+  "./js/app.2.js?v=3af46fc804",
+  "./js/app.3.js?v=3af46fc804",
+  "./js/app.4.js?v=3af46fc804",
   "./icons/apple-touch-icon.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -97,7 +97,8 @@ self.addEventListener('fetch', event => {
   if (req.mode === 'navigate') {
     event.respondWith((async () => {
       const cached = (await caches.match(req, { ignoreSearch: true })) || (await caches.match('./index.html')) || (await caches.match('./'));
-      const network = fetch(req).then(res => putInCache(req, res));
+      // Sayfa sorgu dizesi olmadan saklanır (şifre sıfırlama bağlantısının token_hash'i önbelleğe yazılmaz)
+      const network = fetch(req).then(res => putInCache(url.search ? new Request(url.origin + url.pathname) : req, res));
       if (!cached) return network.catch(() => Response.error());
       const timeout = new Promise(resolve => setTimeout(() => resolve(cached), NAV_TIMEOUT_MS));
       return Promise.race([network.catch(() => cached), timeout]);

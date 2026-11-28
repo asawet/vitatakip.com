@@ -7,7 +7,8 @@
   var KEY = "vitatakip_theme";
   var mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
 
-  function pref() { try { var v = localStorage.getItem(KEY); return v === "dark" || v === "system" ? v : "light"; } catch (_) { return "light"; } }
+  // Seçim yapılmamışsa cihazın teması izlenir ("Sistem"); kullanıcı Açık/Koyu seçerse o kalıcıdır
+  function pref() { try { var v = localStorage.getItem(KEY); return v === "dark" || v === "light" ? v : "system"; } catch (_) { return "system"; } }
   function isDark(p) { return p === "dark" || (p === "system" && !!(mq && mq.matches)); }
   function meta(name, content) { var m = document.querySelector('meta[name="' + name + '"]'); if (m) m.setAttribute("content", content); }
 

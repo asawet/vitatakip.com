@@ -113,7 +113,7 @@
   function num(v) {
     if (v === null || v === undefined || v === "") return null;
     var n = Number(String(v).trim().replace(",", "."));
-    return isFinite(n) && n > 0 ? n : null;
+    return isFinite(n) && n >= 0 ? n : null; // 0 geçerli bir sonuçtur (ör. CRP 0); boş alan yukarıda ayıklanır
   }
   /* Eş anlamlı test adlarını tek adda birleştir (Ferritin / Serum Ferritin, Folat / Folat (B9) gibi) */
   var CANON = [

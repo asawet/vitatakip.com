@@ -20,18 +20,19 @@
 <meta content="VitaTakip" name="apple-mobile-web-app-title"/>
 <meta content="#0f172a" name="theme-color"/>
 <meta content="light" name="color-scheme"/>
-<script>/* Tema: sayfa çizilmeden uygulanır (beyaz parlama olmasın). Ayrıntı: js/tema.js */(function(){try{var t=localStorage.getItem("vitatakip_theme")||"light";if(t==="dark"||(t==="system"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.setAttribute("data-theme","dark");}}catch(e){}})();</script>
+<script>/* Tema: sayfa çizilmeden uygulanır (beyaz parlama olmasın). Ayrıntı: js/tema.js */(function(){try{var t=localStorage.getItem("vitatakip_theme")||"system";if(t==="dark"||(t==="system"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.setAttribute("data-theme","dark");}}catch(e){}})();</script>
 <script>/* Yazı ve simge boyutu: sayfa çizilmeden uygulanır. Ayrıntı: js/boyut-ayari.js */(function(){try{var v=Number(localStorage.getItem("vitatakip_text_scale"));if(v>0&&v!==1){var s=[1,1.15,1.3].reduce(function(b,x){return Math.abs(x-v)<Math.abs(b-v)?x:b},1),r=document.documentElement.style;r.setProperty("--vt-text-scale",String(s));r.setProperty("--vt-icon-scale",String(s));}}catch(e){}})();</script>
 <!-- Tailwind utilities are bundled locally to avoid blocking first render. -->
 <!-- Google Fonts: Inter -->
 <!-- Uses Inter when already available; otherwise falls back immediately to the system UI font. -->
 <!-- Font Awesome 6 CDN -->
+<link rel="preload" href="./vendor/fontawesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin=""/><!-- Ö12: giriş ekranında simgeler kare görünmesin (yazı tipi tanımı js/lazy-icon-fonts.js ile gelir) -->
 <!-- build:css -->
-<link rel="stylesheet" href="./css/app.css?v=ed6d4aaa13">
-<script defer src="./js/app.1.js?v=ed6d4aaa13"></script>
-<script defer src="./js/app.2.js?v=ed6d4aaa13"></script>
-<script defer src="./js/app.3.js?v=ed6d4aaa13"></script>
-<script defer src="./js/app.4.js?v=ed6d4aaa13"></script>
+<link rel="stylesheet" href="./css/app.css?v=3af46fc804">
+<script defer src="./js/app.1.js?v=3af46fc804"></script>
+<script defer src="./js/app.2.js?v=3af46fc804"></script>
+<script defer src="./js/app.3.js?v=3af46fc804"></script>
+<script defer src="./js/app.4.js?v=3af46fc804"></script>
 <!-- /build:css -->
 <!-- Chart.js loads only if a trend chart is needed. -->
 <!-- PDF.js loads only when a user selects a PDF for analysis. -->
@@ -359,12 +360,11 @@
 </div>
 <div class="grid grid-cols-2 gap-2 w-full sm:w-auto shrink-0" id="homeHeroActions">
 <button class="vh-act px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition flex items-center justify-center gap-2 cursor-pointer text-center leading-tight" onclick="if(window.SoundEffects) SoundEffects.playClick(); printFridgeSchedule()" type="button">
-<i class="fa-solid fa-print text-sm"></i><span>Buzdolabı Çizelgesi Yazdır</span>
+<i class="fa-solid fa-print text-sm"></i><span>Buzdolabı çizelgesi yazdır</span>
 </button>
 <button class="vh-act px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition flex items-center justify-center gap-2 cursor-pointer text-center leading-tight" onclick="if(window.SoundEffects) SoundEffects.playClick(); navigateToView('view-neyim')" type="button">
 <i class="fa-solid fa-clipboard-question text-amber-300"></i><span>Belirtilerimi değerlendir</span>
 </button>
-</div>
 </div>
 </div>
 </div>
@@ -846,7 +846,6 @@
           </p>
 </div>
 </div>
-</div>
 <!-- SADELEŞTİRİLMİŞ NEYİMVAR? FORMU: ÇEKMECELİ VERİ ÖZETİ + 5 SEKMELİ ANAMNEZ -->
 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 sm:p-7 space-y-6">
 <!-- KULLANICI DOSTU ÇEKMECE: OTOMATİK ENTEGRE KLİNİK VERİ ÖZETİ (AÇILIR KAPANIR AKORDEON) -->
@@ -1209,7 +1208,6 @@
 </nav>
 <div id="aiClinicalSynthesisSlot"></div>
 </div>
-</div>
 </section> <!-- view-neyim Sonu -->
 <section class="space-y-4 sm:space-y-6 hidden" id="view-clinical-results">
 <div class="rounded-2xl border border-slate-200 bg-white p-6 text-center" id="cdssResultsEmptyState" data-alias-id="clinical-empty-state">
@@ -1389,7 +1387,7 @@
 </button>
 <button class="px-5 py-2.5 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-bold text-xs shadow transition flex items-center justify-center gap-2 cursor-pointer" id="btnPrintDoctorReport" onclick="if(window.SoundEffects) SoundEffects.playClick(); printDoctorReport()" type="button">
 <i class="fa-solid fa-print"></i>
-<span>Raporu Yazdır / PDF İndir</span>
+<span>Raporu yazdır / PDF indir</span>
 </button>
 </div>
 </div>
@@ -1815,6 +1813,7 @@ Bu belge, hastanın VitaTakip sistemine beyan ettiği demografik veriler, seçil
 <ul class="vdp-patients" id="vdpPatientList"></ul>
 <p class="vdp-updated" id="vdpUpdatedAt"></p>
 </div>
+<div class="vdp-panel vdp-placeholder" id="vdpDetailPlaceholder" aria-hidden="true"><i class="fa-solid fa-user-doctor"></i><p>Kayıtlarını görmek için soldan bir hasta seçin.</p><small>Hastalarınız yalnız izin verdikleri kayıtları paylaşır; buradan salt okunur görürsünüz ve not yazabilirsiniz.</small></div>
 <div class="vdp-panel hidden" id="vdpDetailPanel" aria-live="polite">
 <div class="vdp-panel-head"><button class="vdp-back" id="vdpBackBtn" type="button"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Hastalar</button><span class="vdp-readonly"><i class="fa-solid fa-eye" aria-hidden="true"></i> Yalnız okuma</span></div>
 <div id="vdpDetail"></div>
@@ -2307,7 +2306,7 @@ HL7 FHIR
 <section class="vsa-find" id="addMedFindSection">
 <div class="vsa-search">
 <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-<input autocomplete="off" id="addMedSearchInput" inputmode="search" maxlength="64" oninput="addMedSearch(this.value)" onkeydown="addMedSearchKey(event)" placeholder="İlaç adı veya barkod numarası" type="search" aria-controls="addMedSuggest"/>
+<input autocomplete="off" id="addMedSearchInput" inputmode="search" maxlength="64" oninput="addMedSearch(this.value)" onkeydown="addMedSearchKey(event)" placeholder="İlaç adı veya barkod" type="search" aria-controls="addMedSuggest"/>
 </div>
 <div class="vsa-suggest hidden" id="addMedSuggest" role="listbox" aria-label="Eşleşen ilaçlar"></div>
 <div class="vsa-actions">
@@ -2391,7 +2390,7 @@ HL7 FHIR
 <section class="vsa-find" id="addSupBoxBarcodeSection">
 <div class="vsa-search">
 <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-<input autocomplete="off" id="addSupBarcodeInput" inputmode="search" maxlength="64" oninput="vsAddSearch(this.value)" onkeydown="vsAddSearchKey(event)" placeholder="Ürün adı veya barkod numarası" type="search"/>
+<input autocomplete="off" id="addSupBarcodeInput" inputmode="search" maxlength="64" oninput="vsAddSearch(this.value)" onkeydown="vsAddSearchKey(event)" placeholder="Ürün adı veya barkod" type="search"/>
 </div>
 <div class="vsa-suggest hidden" id="vsAddSuggest" role="listbox"></div>
 <div class="hidden vsp-quick" id="vspQuick" role="group" aria-label="Hızlı ekle: son kullandığınız takviyeler"></div>
@@ -2814,7 +2813,7 @@ HL7 FHIR
 <p class="hidden vta-warn vta-info" id="cloudDoctorInfo" role="note"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i> <span>Doktor hesabı <strong>onay bekliyor</strong> olarak açılır ve size bir doktor kodu verilir (ör. DR-4829). Hastalar kodunuzla size erişim izni verebilmesi için hesabınızın VitaTakip yöneticisince onaylanması gerekir. Onaylandıktan sonra <strong>adınız ve doktor kodunuz</strong> hastaların uygulamadaki onaylı doktor listesinde görünür; hastalarınızı takma adı ya da e-postasıyla davet edebilirsiniz.</span></p>
 <label class="hidden vta-check" id="cloudDoctorConsentRow"><input id="cloudDoctorConsentCheckbox" type="checkbox"/> <span>Hekim taahhüdü: hasta verilerini yalnızca hastanın verdiği izinle ve takip/tedavi amacıyla görüntüleyeceğimi, başkasıyla paylaşmayacağımı ve hastanın izni istediği an geri alabileceğini kabul ediyorum. <button onclick="openKvkkInfoModal()" type="button">Gizlilik metni</button></span></label>
 <label class="hidden vta-check" id="cloudConsentRow"><input id="cloudConsentCheckbox" type="checkbox"/> <span>Sağlık verilerimin (takviye, ilaç, tahlil, belirti kayıtlarım) hesabımla eşitlenmek üzere VitaTakip bulut veritabanında (Supabase, Frankfurt / AB) saklanmasına <strong>açık rıza</strong> veriyorum. Verilerime yalnızca ben erişebilirim. <button onclick="openKvkkInfoModal()" type="button">Gizlilik metni</button></span></label>
-<label class="vta-check vta-remember"><input id="cloudRememberMeCheckbox" type="checkbox"/> <span>Beni hatırla</span></label>
+<label class="vta-check vta-remember"><input id="cloudRememberMeCheckbox" type="checkbox"/> <span>Beni hatırla <small>(Her sekme kendi oturumunu kullanır; işaretlerseniz yeni sekmeler de bu hesapla açılır.)</small></span></label>
 <div aria-live="assertive" class="hidden vta-msg vta-msg-err" id="cloudErrorMsg" role="alert" tabindex="-1"></div>
 <div aria-live="polite" class="hidden vta-msg vta-msg-info" id="cloudNoticeMsg" role="status"></div>
 <button class="vta-primary" id="cloudSubmitBtn" type="submit"><span>Giriş Yap</span></button>
@@ -3007,7 +3006,6 @@ HL7 FHIR
   <button type="button" id="vitaGuideStartTour" data-start-index="0" onclick="closeOnboardingModal(); startVitaSpotlightTour(true, Number(this.dataset.startIndex) || 0)" class="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-medTeal-600 to-teal-500 px-4 py-2 text-xs font-black text-white shadow-md hover:from-medTeal-700"><i class="fa-solid fa-wand-magic-sparkles"></i><span id="vitaGuideStartLabel">Turu başlat</span></button>
 </div>
 </div>
-</div>
 <!-- MODAL: DEPRESCRIBING MODALI -->
 <div class="fixed inset-0 z-50 bg-navy-950/80 backdrop-blur-md hidden items-center justify-center p-4" id="deprescribingModal">
 <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border-2 border-emerald-400 relative animate-bounce-short max-h-[92vh] overflow-y-auto">
@@ -3091,9 +3089,7 @@ HL7 FHIR
 <i class="fa-solid fa-file-pdf"></i>
 </div>
 <div>
-<span class="text-[10px] font-black tracking-wider uppercase text-teal-800 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
-            PDF.js Akıllı Satır Ayrıştırıcı v9.5 (Dinamik Satır &amp; Düzenlenebilir Referans Destekli)
-          </span>
+<span class="text-[10px] font-black tracking-wider uppercase text-teal-800 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">Cihazınızda okunur</span>
 <h3 class="text-base font-black text-navy-900 mt-0.5">e-Nabız Tahlil PDF'i Yükle</h3>
 </div>
 </div>
@@ -3307,7 +3303,6 @@ HL7 FHIR
 <button class="w-full py-3 rounded-xl bg-gradient-to-r from-medTeal-600 to-teal-500 text-white font-bold transition active:scale-95 cursor-pointer" onclick="if(window.SoundEffects) SoundEffects.playClick(); saveUserProfileFromModal()">
             Profili Kaydet ve Güncelle
           </button>
-</div>
 </div>
 </div>
 </div>
@@ -3528,7 +3523,7 @@ HL7 FHIR
 <li><strong>Saklama yeri.</strong> VitaTakip hesabınızda (açık rızanızla) kayıtlarınız önce bu cihaza yazılır, ardından hesabınızla eşitlenmek üzere VitaTakip bulut veritabanında (Supabase, Frankfurt / Avrupa Birliği) saklanır. Bulutta takviye, ilaç, tahlil, belirti, profil, su takibi ve notlarınız bulunur; e-Nabız PDF dosyaları, profil fotoğrafı ve Gemini API anahtarınız buluta gönderilmez, bu cihazda kalır. Bulut kayıtlarınızı yalnızca siz, kendi hesabınızla görebilirsiniz; erişim veritabanı düzeyinde satır güvenliğiyle (RLS) sınırlandırılmıştır. <em>Şifre sıfırlama:</em> e-postayla açılan hesaplarda sıfırlama bağlantısı, e-posta gönderim hizmeti Resend aracılığıyla, Avrupa Birliği'ndeki (İrlanda) sunucular üzerinden gönderilir; bu amaçla yalnızca e-posta adresiniz işlenir, sağlık kayıtlarınız e-postaya konmaz. Takma adla açılan hesaplarda size bir kurtarma kodu verilir; kodun kendisi hiçbir yerde saklanmaz, veritabanında yalnızca geri döndürülemez özeti (SHA-256) tutulur. Kurtarma denemeleri kötüye kullanımı önlemek için takma ad ve IP adresiyle en fazla 1 gün kaydedilir.</li>
 <li><strong>Üçüncü taraflarla paylaşım.</strong> Reklam, pazarlama veya profilleme amacıyla hiçbir üçüncü tarafla veri paylaşılmaz. <em>Doktorunuzla paylaşım (bulut hesabı, isteğe bağlı):</em> Rapor &gt; Doktorum bölümüne doktorunuzun kodunu girip onaylarsanız, yalnızca o doktor profil, takviye, ilaç, tahlil ve belirti kayıtlarınızı ve doktora notlarınızı <strong>yalnızca okuyabilir</strong>; su takibi ve günlük işaretleriniz paylaşılmaz. Yalnızca VitaTakip yöneticisince onaylanmış doktor hesaplarına izin verilebilir. Doktorunuz size not yazabilir; notları yalnızca siz ve o doktor görür. İzni Rapor &gt; Doktorum'dan istediğiniz an geri alırsınız; geri alındığı anda doktorun erişimi veritabanı düzeyinde sona erer. Onaylı doktorların yalnızca adı ve doktor kodu, hastalara seçim için liste olarak gösterilir. Bir doktor sizi takma adınız ya da e-postanızla davet edebilir; siz kabul edene kadar hiçbir kaydınızı göremez, reddederseniz 7 gün yeni istek gönderemez. Ayarlar'da Google Gemini API anahtarı eklerseniz: Vita AI sohbetinde yalnızca paylaşım onayını açtığınızda o soru ve soruyla ilgili sağlık bağlamı; "Yapay Zekâ ile Kutuyu Tanı"yı kullandığınızda yalnızca onayladığınız kutu fotoğrafı yanıt üretimi için Google'a gönderilir. Bulut hesabında kendi anahtarınızı girmezseniz aynı istekler, onayınızla, VitaTakip sunucusu (Supabase, Frankfurt) üzerinden Google Gemini'nin ücretsiz hizmetine iletilir; ücretsiz hizmette Google gönderilen içeriği inceleyebilir ve ürün geliştirmede kullanabilir; adınız gönderilmez ve günlük soru hakkı sınırlıdır. Anahtar ve bulut hesabı yoksa veya onay kapalıysa yanıtlar cihazınızdaki yerel motorla üretilir ve hiçbir şey gönderilmez. Geri bildirim yazarsanız mesajınız cihazınıza kaydedilir; göndermek isterseniz kendi e-posta uygulamanız hazır mesajla açılır ve gönderim kararı size aittir.</li>
 <li><strong>Yurt dışına aktarım.</strong> Bulut hesabı açarsanız sağlık kayıtlarınız Avrupa Birliği'ndeki (Frankfurt) sunucularda saklanır; bu, kayıt ekranında verdiğiniz açık rızaya dayanır ve tamamen isteğe bağlıdır (yerel hesap kullanabilirsiniz). Google Gemini kullanımı da gönderilen soru veya fotoğrafın yurt dışındaki sunucularda işlenmesi anlamına gelir; isteğe bağlıdır. Yerel hesapta Gemini kullanmadığınız sürece verileriniz cihazınızdan çıkmaz; başka cihaza taşımak için Ayarlar'daki "Yedek İndir" dosyasını kendiniz aktarırsınız.</li>
-<li><strong>Güvenlik ve sınırlar.</strong> Bulut bağlantısı şifrelidir (HTTPS); bulut hesabının şifresi bizde değil, kimlik doğrulama hizmetinde özetlenmiş olarak tutulur. Bulut için otomatik yedekleme yoktur; kayıtlarınızı korumak için Ayarlar'dan düzenli olarak "Yedek İndir" dosyası alın. Takma adla açılan hesapta e-posta olmadığından şifre unutulursa sıfırlanamaz. Tarayıcı yerel depolaması şifrelenmemiştir; cihazı ortak kullanıyorsanız gerçek sağlık verisi girmeyin. API anahtarı tarayıcıda saklandığından bu cihaza erişen biri tarafından görülebilir; anahtarınızı Google hesabınızdan dilediğiniz zaman iptal edebilirsiniz. Tarayıcı verilerini temizlerseniz kayıtlarınız silinir; düzenli olarak yedek dosyası almanız önerilir. Bu uygulama otomatik KVKK uyumluluğu garantisi vermez.</li>
+<li><strong>Güvenlik ve sınırlar.</strong> Bulut bağlantısı şifrelidir (HTTPS); bulut hesabının şifresi bizde değil, kimlik doğrulama hizmetinde özetlenmiş olarak tutulur. Bulut için otomatik yedekleme yoktur; kayıtlarınızı korumak için Ayarlar'dan düzenli olarak "Yedek İndir" dosyası alın. Takma adla açılan hesapta e-posta olmadığından şifre yalnız size verilen kurtarma koduyla sıfırlanabilir; kodu saklamadıysanız şifre sıfırlanamaz (yeni kodu Ayarlar &gt; Hesap ve güvenlik'ten alabilirsiniz). Tarayıcı yerel depolaması şifrelenmemiştir; cihazı ortak kullanıyorsanız gerçek sağlık verisi girmeyin. API anahtarı tarayıcıda saklandığından bu cihaza erişen biri tarafından görülebilir; anahtarınızı Google hesabınızdan dilediğiniz zaman iptal edebilirsiniz. Tarayıcı verilerini temizlerseniz kayıtlarınız silinir; düzenli olarak yedek dosyası almanız önerilir. Bu uygulama otomatik KVKK uyumluluğu garantisi vermez.</li>
 <li><strong>Haklarınız.</strong> KVKK madde 11 uyarınca verilerinize erişme, düzeltme, silme ve işlenmesine itiraz etme hakkınız vardır. Yerel verilerinizi tarayıcı verilerini temizleyerek veya uygulamadaki yedekleme/silme araçlarıyla kendiniz silebilirsiniz. Bulut hesabında Ayarlar'daki "Hesabımı ve verilerimi sil" giriş bilgilerinizi, buluttaki tüm kayıtlarınızı ve bu tarayıcıdaki kopyaları kalıcı olarak siler; açık rızanızı bu yolla geri alabilirsiniz. Hesabınızı silerseniz doktorunuzun size yazdığı notlar doktorda kalır ancak kimliğinizden ayrıştırılır ("Anonim hasta"); hem siz hem doktor hesabını silerse not da kalıcı olarak silinir.</li>
 <li><strong>Tıbbi sorumluluk ve değişiklikler.</strong> VitaTakip tanı koymaz, tedavi başlatmaz ve reçete düzenlemez; nihai karar hekiminize aittir. Acil durumlarda 112'yi arayın. Bu metin güncellenebilir ve hukuki danışmanlık niteliği taşımaz.</li>
 </ol>

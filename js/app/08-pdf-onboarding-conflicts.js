@@ -358,8 +358,8 @@ function applyParsedPdfValues() {
       const customMeds = Array.isArray(state.user?.medications) ? [...state.user.medications] : [];
 
       // Ayrıca takip listesine "İlaç" veya ilaç adıyla eklenmiş öğeleri de gerçek zamanlı tara
-      const supplementText = (state.supplements || []).map(s => `${s.name || ""} ${s.subText || ""}`).join(" ").toLowerCase();
-      const customMedText = customMeds.join(" ").toLowerCase();
+      const supplementText = vitaFoldLower((state.supplements || []).map(s => `${s.name || ""} ${s.subText || ""}`).join(" "));
+      const customMedText = vitaFoldLower(customMeds.join(" "));
       const combinedText = `${supplementText} ${customMedText}`;
 
       const activeCodes = new Set(chronicList);
@@ -370,7 +370,7 @@ function applyParsedPdfValues() {
           matchedLabelsByCode[cls.code] = cls.label;
         } else if (cls.keywords.some(kw => combinedText.includes(kw))) {
           activeCodes.add(cls.code);
-          const matchedCustom = customMeds.find(m => cls.keywords.some(kw => m.toLowerCase().includes(kw)));
+          const matchedCustom = customMeds.find(m => cls.keywords.some(kw => vitaFoldLower(m).includes(kw)));
           matchedLabelsByCode[cls.code] = matchedCustom ? `${cls.label} (${matchedCustom})` : cls.label;
         }
       });
@@ -1321,6 +1321,10 @@ function applyParsedPdfValues() {
           dailyAlert.classList.add("hidden");
           dailyAlert.innerHTML = "";
         }
+        // Etkileşim olmasa da böbrek kartı güncellenir (aşağıdaki son adımla aynı)
+        if (typeof parseKidneyFunctionAndCompareMedications === "function") {
+          try { parseKidneyFunctionAndCompareMedications(null, { triggerSource: "conflict_scan", renderUI: true }); } catch (_) {}
+        }
         return;
       }
 
@@ -1509,6 +1513,7 @@ function applyParsedPdfValues() {
       {
         id: "KIDNEY_MED_NSAID_OR_RAAS",
         drugCode: "nsaid_raas",
+        aliasCodes: ["ace_arb"], // profildeki hızlı seçim "Tansiyon ACE / ARB" bu kurala bağlanır
         drugLabel: "NSAİİ Ağrı Kesici veya ACEİ/ARB Tansiyon İlacı",
         keywords: ["ibuprofen", "naproksen", "diklofenak", "ketoprofen", "meloksikam", "deksketoprofen", "arveles", "majezik", "voltaren", "apranax", "brufen", "advil", "dolorex", "ramipril", "enalapril", "lisinopril", "perindopril", "valsartan", "losartan", "kandesartan", "telmisartan", "irbesartan", "delix", "cozaar", "atacand", "micardis"],
         evaluate: function (creatinine, egfr, gender) {
@@ -1679,13 +1684,14 @@ function applyParsedPdfValues() {
 
       // 1. Reçeteli İlaçlar ile Kreatinin / eGFR Karşılaştırması
       VITA_KIDNEY_MEDICATION_SAFETY_RULES.forEach(rule => {
-        const hasCode = activeCodes.includes(rule.drugCode);
+        const hasCode = [rule.drugCode].concat(rule.aliasCodes || []).some(code => activeCodes.includes(code));
         const matchedCustomMed = customMeds.find(m =>
-          rule.keywords.some(kw => String(m).toLocaleLowerCase("tr-TR").includes(kw))
+          rule.keywords.some(kw => vitaFoldLower(m).includes(kw))
         );
         if (!hasCode && !matchedCustomMed) return;
 
-        const matchedMedDisplay = matchedCustomMed || (medProfile.matchedLabelsByCode && medProfile.matchedLabelsByCode[rule.drugCode]) || rule.drugLabel;
+        const labels = medProfile.matchedLabelsByCode || {};
+        const matchedMedDisplay = matchedCustomMed || labels[rule.drugCode] || (rule.aliasCodes || []).map(code => labels[code]).find(Boolean) || rule.drugLabel;
         const evalOutcome = rule.evaluate(cr, egfr, gender);
         if (evalOutcome) {
           warnings.push({

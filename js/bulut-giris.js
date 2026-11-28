@@ -161,7 +161,7 @@
         : await VitaCloud.signIn(identifier, password);
     } finally { setBusy(false); }
     if (!res || !res.ok) { setMessage((res && res.error) || "İşlem tamamlanamadı.", true, true); return false; }
-    if (!res.session) { setMessage("Hesap oluşturuldu ancak oturum açılamadı. Lütfen Giriş Yap sekmesinden giriş yapın.", false); setMode("login"); return false; }
+    if (!res.session) { setMode("login"); setMessage("Hesap oluşturuldu ancak oturum açılamadı. Lütfen giriş yapın.", false); return false; } // setMode mesajı temizler: önce mod
     if (pwInput) pwInput.value = "";
     if ($("cloudInputPasswordConfirm")) $("cloudInputPasswordConfirm").value = "";
     lsSet(PANEL_KEY, "cloud");

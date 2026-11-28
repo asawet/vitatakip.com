@@ -126,6 +126,14 @@
         if (!statusRow) { statusRow = document.createElement("div"); statusRow.className = "vst-status"; body.insertBefore(statusRow, body.firstChild); }
         statusRow.appendChild(child);
       });
+      // Başlıkta ek düğme varsa (ör. "Profili Düzenle") açılır ok diğer kartlardaki gibi en sağda durur;
+      // ok dokunulunca bölüm açılır/kapanır. Dar ekranda düğme yalnız simge olur (css/overrides.css).
+      var headActions = Array.prototype.filter.call(header.children, function (c) { return c !== newH3 && c.tagName === "BUTTON"; });
+      if (headActions.length) {
+        var chev = btn.querySelector(".vst-chev");
+        if (chev) { chev.classList.add("vst-chev-out"); header.appendChild(chev); chev.addEventListener("click", function () { btn.click(); }); }
+        headActions.forEach(function (a) { a.classList.add("vst-head-action"); if (!a.getAttribute("aria-label")) a.setAttribute("aria-label", String(a.textContent || "").trim()); });
+      }
       btn.addEventListener("click", function () {
         if (window.SoundEffects) window.SoundEffects.playClick();
         setOpen(section, !section.classList.contains("vst-open"));

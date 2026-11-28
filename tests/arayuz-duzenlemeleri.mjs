@@ -33,7 +33,7 @@ await p.evaluate(() => VitaAIChat.toggle(false));
 
 /* 2) Ana sayfa düğmeleri + kompakt takviye kartları */
 const hero = await p.evaluate(() => { const bs = Array.from(document.querySelectorAll('#homeHeroActions > button')).map(x => x.getBoundingClientRect()); return { n: bs.length, sameRow: bs.length === 2 && Math.abs(bs[0].top - bs[1].top) < 2, fit: bs.every(r => r.right <= innerWidth && r.left >= 0), h: bs.map(r => Math.round(r.height)) }; });
-log('"Buzdolabı Çizelgesi Yazdır" ve "Belirtilerimi değerlendir" tek satırda iki sütun (400px)', hero.n === 2 && hero.sameRow && hero.fit, JSON.stringify(hero));
+log('"Buzdolabı çizelgesi yazdır" ve "Belirtilerimi değerlendir" tek satırda iki sütun (400px)', hero.n === 2 && hero.sameRow && hero.fit, JSON.stringify(hero));
 await p.evaluate(() => {
   state.supplements.push({ id: 'sup_test_1', name: 'Test D3 1000 IU', timing: 'Sabah', doseText: 'Günde 1 kapsül (1000 IU) • Tok karnına', toplamKutuAdedi: 30, kalanAdet: 2, gunlukDoz: 1, instruction: 'Uzun kullanım talimatı metni burada.', taken: false, scheduleDays: [0,1,2,3,4,5,6], scheduledDate: vitaLocalToday(), addedDate: Date.now() });
   saveState(); renderDailyTab();

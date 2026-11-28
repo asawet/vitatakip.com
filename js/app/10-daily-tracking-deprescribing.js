@@ -200,7 +200,7 @@
                 ${!isSkipped && !item.taken ? `<button type="button" class="vsc-act" onclick="if(window.SoundEffects) SoundEffects.playClick(); skipSupplementToday(${safeJsStringAttribute(item.id)})"><i class="fa-solid fa-ban" aria-hidden="true"></i> Bugün atla</button>` : ""}
               </div>`;
             const headerFlags = [
-              isCriticalStock && !isLowStock ? `<span class="vsc-flag vsc-flag-stock" title="Kritik stok: ${kalanGun} gün yetecek"><i class="fa-solid fa-triangle-exclamation"></i>${kalanGun}g</span>` : "",
+              // Kritik stok (≤3 gün) kartın "Kutu bitmek üzere" şeridinde kırmızı (is-critical) gösterilir; ayrı başlık rozeti yok
               itemInteractions.length ? `<span class="vsc-flag vsc-flag-ix" title="${itemInteractions.length} etkileşim uyarısı — ayrıntılar için dokunun"><i class="fa-solid fa-bolt"></i>${itemInteractions.length}</span>` : ""
             ].join("");
             card.innerHTML = `
@@ -1842,13 +1842,15 @@
             safeLocalStorageRemoveItem("currentLabResults");
             safeLocalStorageRemoveItem("labArchiveHistory");
           } catch (_) {}
-        } else
-        state.labValues = typeof buildLabValuesFromRecord === "function"
-          ? buildLabValuesFromRecord(state.labHistory[0] || mergedRecord)
-          : { ...enteredValues };
-        state.labReferences = typeof safeStructuredClone === "function"
-          ? safeStructuredClone((state.labHistory[0] || mergedRecord).references || {})
-          : { ...((state.labHistory[0] || mergedRecord).references || {}) };
+          state.labReferences = {}; // son kayıt silindi: silinen kaydın referansları geri yazılmaz
+        } else {
+          state.labValues = typeof buildLabValuesFromRecord === "function"
+            ? buildLabValuesFromRecord(state.labHistory[0] || mergedRecord)
+            : { ...enteredValues };
+          state.labReferences = typeof safeStructuredClone === "function"
+            ? safeStructuredClone((state.labHistory[0] || mergedRecord).references || {})
+            : { ...((state.labHistory[0] || mergedRecord).references || {}) };
+        }
         saveLabDraft();
       } else {
         clearLabDraft();

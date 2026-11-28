@@ -3160,7 +3160,7 @@ YANIT BİÇİMİ (zorunlu): Sıradan bir kullanıcının anlayacağı sade dille
         };
         const abnormalLabs = presentLabs.map(item => ({ ...item, value: val(item.key), evaluation: evaluateLab(item) }))
           .filter(item => item.evaluation && (item.evaluation.isLow || item.evaluation.isHigh || item.evaluation.isToxic));
-        const altRisk = val("alt") !== null && val("alt") > 50;
+        const altRisk = val("alt") !== null && val("alt") > (p.gender === "E" ? 60 : 50); // klinik motorla aynı uyarı eşiği (05-clinical-rules)
         let egfrResult = null;
         try { egfrResult = typeof calculateCKDEPI_eGFR === "function" ? calculateCKDEPI_eGFR(val("creatinine"), Number(p.age), p.gender) : null; } catch (_) {}
         const renalRisk = chronic.includes("kidney") || Boolean(egfrResult && egfrResult.egfr < 60);

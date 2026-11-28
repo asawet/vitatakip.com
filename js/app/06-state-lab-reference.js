@@ -37,6 +37,22 @@ let currentAuthMode = "login";
       activity: "sedentary"
     };
 
+    /* Profil dolu mu? (saf işlev; hasta, doktor paneli, yedek ve taşıma aynı kuralı kullanır)
+       profileCompleted bayrağı varsa o; yoksa (eski kayıt / hiç doldurulmamış yeni hesap) varsayılanlardan farklılık. */
+    function vitaProfileIsComplete(u) {
+      if (!u || typeof u !== "object") return false;
+      if (u.profileCompleted === true) return true;
+      if (u.profileCompleted === false) return false;
+      const d = defaultUserProfile;
+      return !(Number(u.age) === d.age && u.gender === d.gender && Number(u.height) === d.height && Number(u.weight) === d.weight);
+    }
+    window.vitaProfileIsComplete = vitaProfileIsComplete;
+
+    /* İlaç/takviye adı eşleştirme için küçük harf: "İndapamid".toLowerCase() "i̇ndapamid" (noktalı i) verir ve
+       "indapamid" anahtarıyla eşleşmez. İ önce i yapılır; Latin I → i kalır (IBUPROFEN → ibuprofen). */
+    function vitaFoldLower(s) { return String(s == null ? "" : s).replace(/İ/g, "i").toLowerCase().replace(/\u0307/g, ""); }
+    window.vitaFoldLower = vitaFoldLower;
+
     const ALL_VITA_LAB_KEYS = [
       "d3", "b12", "ferritin", "iron", "tsat", "crp", "mg", "hba1c",
       "alt", "creatinine", "ca", "rbc", "hgb", "hb", "hct", "mcv",

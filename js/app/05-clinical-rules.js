@@ -395,7 +395,9 @@ const KDSSRuleEngine = {
         if (val >= 100) return mk('Bozulmuş açlık glukozu aralığı (100–125 mg/dL)', 'yellow', 'borderline_high', false, true, 'above_ref');
       }
       if (val < range[0]) return mk('Referansın altında', 'yellow', 'low', true, false, 'below_ref');
-      if (val > range[1]) return mk('Referansın üstünde', 'blue', 'high', false, true, 'above_ref');
+      // Genel aralığın üst sınırı (HbA1c 5,6 / glukoz 99) ile ADA eşiği (5,7 / 100) arası boşluk: ADA'ya göre normaldir
+      const adaNormal = source === 'app' && ((key === 'hba1c' && val < 5.7) || (key === 'glucose' && val < 100));
+      if (val > range[1] && !adaNormal) return mk('Referansın üstünde', 'blue', 'high', false, true, 'above_ref');
       return mk('Referans aralığında', 'green', 'optimal', false, false, 'in_ref');
     }
     window.evaluateVitaExtraLab = evaluateVitaExtraLab;

@@ -90,11 +90,15 @@ function openAppDrawer() {
       const dataSummaryEl = document.getElementById("settingsDataSummaryText");
 
       if (nameEl) nameEl.textContent = p.name || "Kullanıcı";
-      if (ageGenderEl) {
+      const profileOk = typeof vitaProfileIsComplete === "function" ? vitaProfileIsComplete(p) : true;
+      if (!profileOk) {
+        if (ageGenderEl) ageGenderEl.textContent = "Profil tamamlanmadı";
+        if (bodyMetricsEl) bodyMetricsEl.textContent = "Yaş, cinsiyet, boy ve kilo girilmedi";
+      } else if (ageGenderEl) {
         const gLabel = p.gender === "E" ? "Erkek" : "Kadın";
         ageGenderEl.textContent = `${p.age || 28} yaş • ${gLabel}`;
       }
-      if (bodyMetricsEl) {
+      if (bodyMetricsEl && profileOk) {
         const h = p.height || 170;
         const w = p.weight || 68;
         const bmiInfo = typeof calculateBmiValue === "function"
@@ -196,11 +200,11 @@ function openAppDrawer() {
       } else {
         if (headerBar) headerBar.classList.remove("hidden");
         const titles = {
-          "view-labs": "Laboratuvar Tahlillerim & e-Nabız PDF Arşivi",
-          "view-neyim": "NeyimVar? Belirti değerlendirmesi",
-          "view-clinical-results": "Klinik Karar Analizi Sonuçları",
-          "view-report": "Doktor Görüşmesi İçin Hasta Özeti",
-          "view-settings": "Ayarlar & Uygulama Yönetimi",
+          "view-labs": "Tahliller & e-Nabız PDF",
+          "view-neyim": "NeyimVar? Belirtiler",
+          "view-clinical-results": "Klinik Analiz",
+          "view-report": "Doktora Rapor",
+          "view-settings": "Ayarlar",
           "view-add-supplement": "Takviye Ekle",
           "view-add-medication": "İlaç Ekle",
           "view-doctor": "Doktor Paneli", "view-admin": "Yönetici Paneli"

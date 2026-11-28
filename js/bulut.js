@@ -224,7 +224,13 @@
      sunucudaki "hesap-sil" Edge Function'ı çağrılır (supabase/functions/hesap-sil); fonksiyon yalnız oturum sahibini siler. */
   async function deleteAccount() {
     try {
-      var c = await rawClient();
+      /* Geri alınamaz işlem: kimlik denetimli istemci (getClient). Başka sekmede "Beni hatırla" ile başka hesaba
+         girildiyse bu sekmedeki istek O hesabın belirteciyle gitmesin; ayrıca oturum sahibi ekrandaki hesapla eşleşmeli. */
+      var c = await getClient();
+      var g = await c.auth.getSession();
+      var su = g && g.data && g.data.session && g.data.session.user;
+      var app = typeof activeUserId !== "undefined" ? activeUserId : null;
+      if (!su || (isCloudUserId(app) && su.id !== app)) return { ok: false, code: "identity_mismatch", error: describeError({ code: "identity_mismatch" }).message };
       var res = await c.functions.invoke("hesap-sil", { method: "POST" });
       if (res.error) return fail(res.error);
       if (!res.data || res.data.ok !== true) return { ok: false, code: "delete_failed", error: "Hesap silinemedi. Lütfen tekrar deneyin." };
@@ -273,6 +279,8 @@
       var session = null, user = null;
       if (verifiedRecoveryToken !== tokenHash) {
         var v = await c.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" });
+        // Geçici ağ hatası "bağlantının süresi doldu" sayılmaz (belirteç atılmaz, kullanıcı tekrar deneyebilir)
+        if (v.error && (v.error.status === 0 || /fetch|network|failed to/i.test(String(v.error.name || "") + " " + String(v.error.message || "")))) return fail(v.error);
         if (v.error || !v.data || !v.data.session) return { ok: false, code: "link_expired", error: describeError({ code: "otp_expired" }).message };
         verifiedRecoveryToken = tokenHash; session = v.data.session; user = v.data.user || v.data.session.user;
       }

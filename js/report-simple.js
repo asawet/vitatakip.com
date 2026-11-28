@@ -135,8 +135,14 @@
     var h = '<header class="rs-head"><div><div class="rs-kicker">VitaTakip · Hekim özeti</div><h1>Doktora Özet Raporu</h1></div>' +
       '<div class="rs-meta"><b>' + esc(new Date().toLocaleDateString("tr-TR")) + '</b>' + (code ? '<span>' + esc(code) + '</span>' : "") + '</div></header>';
 
-    h += '<section class="rs-sec rs-patient"><div class="rs-row"><b>' + esc(u.name || "—") + '</b><span>' + esc(u.age || "—") + ' yaş · ' + (u.gender === "E" ? "Erkek" : "Kadın") + '</span>' +
-      '<span>' + esc(u.height || "—") + ' cm · ' + esc(u.weight || "—") + ' kg · VKİ ' + esc(bmiTxt) + '</span>' + (pTxt ? '<span class="rs-tag">' + esc(pTxt) + '</span>' : "") + '</div>' +
+    /* Profil doldurulmadıysa yaş/cinsiyet/boy/kilo uygulamanın varsayılanlarıdır; hekime gerçek veri gibi gösterilmez */
+    var complete = typeof window.vitaProfileIsComplete === "function" ? window.vitaProfileIsComplete(u) : true;
+    h += '<section class="rs-sec rs-patient"><div class="rs-row"><b>' + esc(u.name || "—") + '</b>' +
+      (complete
+        ? '<span>' + esc(u.age || "—") + ' yaş · ' + (u.gender === "E" ? "Erkek" : "Kadın") + '</span>' +
+          '<span>' + esc(u.height || "—") + ' cm · ' + esc(u.weight || "—") + ' kg · VKİ ' + esc(bmiTxt) + '</span>'
+        : '<span class="rs-tag" data-profile-incomplete="1">Profil tamamlanmadı: yaş, cinsiyet, boy ve kilo girilmedi</span>') +
+      (pTxt ? '<span class="rs-tag">' + esc(pTxt) + '</span>' : "") + '</div>' +
       '<div class="rs-line"><i>Kronik/ilaç:</i> ' + (meds.length ? esc(meds.join(", ")) : "bildirilmedi") + '</div>' +
       (supps.length ? '<div class="rs-line"><i>Takviye:</i> ' + esc(supps.join(", ")) + '</div>' : "") + '</section>';
 

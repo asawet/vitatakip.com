@@ -33,6 +33,11 @@
     if (Object.prototype.hasOwnProperty.call(d, "t")) return String(d.t);
     return null;
   }
+  /* Türkçe sayı biçimi (12,1); sayı değilse olduğu gibi */
+  function fmtNum(v) {
+    var n = typeof v === "number" ? v : (typeof v === "string" && /^-?\d+(\.\d+)?$/.test(v.trim()) ? Number(v) : NaN);
+    return isFinite(n) ? n.toLocaleString("tr-TR", { maximumFractionDigits: 2 }) : String(v);
+  }
 
   /* ---------------- Başlık, menü, görünürlük ---------------- */
   function updateChrome() {
@@ -115,12 +120,15 @@
 
     var prof = section("Profil", "fa-id-card");
     var dl = el("dl", "vdp-kv");
-    kv(dl, "Yaş", u.age ? u.age + " yaş" : "");
-    kv(dl, "Cinsiyet", u.gender === "E" ? "Erkek" : u.gender === "K" ? "Kadın" : "");
-    kv(dl, "Boy / Kilo", u.height && u.weight ? u.height + " cm · " + u.weight + " kg" : "");
-    kv(dl, "VKİ", u.bmi ? u.bmi + (u.bmiCategory ? " (" + u.bmiCategory + ")" : "") : "");
+    /* Profil doldurulmadıysa yaş/cinsiyet/boy/kilo uygulamanın varsayılanlarıdır (28 · K · 168 · 68); gerçek veri gibi gösterilmez */
+    var complete = typeof window.vitaProfileIsComplete === "function" ? window.vitaProfileIsComplete(u) : u.profileCompleted !== false;
+    if (complete) {
+      kv(dl, "Yaş", u.age ? u.age + " yaş" : "");
+      kv(dl, "Cinsiyet", u.gender === "E" ? "Erkek" : u.gender === "K" ? "Kadın" : "");
+      kv(dl, "Boy / Kilo", u.height && u.weight ? fmtNum(u.height) + " cm · " + fmtNum(u.weight) + " kg" : "");
+      kv(dl, "VKİ", u.bmi ? fmtNum(u.bmi) + (u.bmiCategory ? " (" + u.bmiCategory + ")" : "") : "");
+    } else prof.appendChild(el("p", "vdp-muted", "Hasta profilini henüz tamamlamadı; yaş, cinsiyet, boy ve kilo bilinmiyor."));
     kv(dl, "Kronik durumlar", Array.isArray(u.chronic) && u.chronic.length ? u.chronic.join(", ") : "");
-    if (u.profileCompleted === false) prof.appendChild(el("p", "vdp-muted", "Hasta profilini henüz tamamlamadı."));
     prof.appendChild(dl); box.appendChild(prof);
 
     var sup = section("Takviyeler", "fa-capsules");
@@ -171,8 +179,8 @@
         var prev = hist.slice(1).find(function (r) { return r[k] !== undefined && r[k] !== null && r[k] !== ""; });
         var tr = el("tr");
         tr.appendChild(el("td", "", meta.name));
-        var td = el("td", "", v + " " + (meta.unit || ""));
-        if (prev) td.appendChild(el("small", "vdp-prev", " (önceki " + prev[k] + ")"));
+        var td = el("td", "", fmtNum(v) + " " + (meta.unit || ""));
+        if (prev) td.appendChild(el("small", "vdp-prev", " (önceki " + fmtNum(prev[k]) + ")"));
         tr.appendChild(td);
         tr.appendChild(el("td", "vdp-muted", (refs[k] || meta.value || "") + (refs[k] ? "" : " · genel")));
         tb.appendChild(tr); rows++;
@@ -233,6 +241,9 @@
   }
   function closeDetail() {
     selected = null;
+    // Önceki hastanın kayıtları gizli DOM'da da kalmasın
+    ["vdpDetail", "vdpNoteList"].forEach(function (id) { var b = $(id); if (b) b.textContent = ""; });
+    noteMsg("");
     var panel = $("vdpDetailPanel"); if (panel) panel.classList.add("hidden");
     var view = $("view-doctor"); if (view) view.classList.remove("vdp-has-detail");
     renderPatients(lastPatients);
@@ -276,13 +287,14 @@
     var input = $("vdpNoteInput"); var body = input ? input.value.trim() : "";
     if (!body) { noteMsg("Not boş olamaz.", "error"); return; }
     busy = true; var btn = $("vdpNoteSave"); if (btn) btn.disabled = true;
+    var pid = selected.id; // yanıt beklenirken "Hastalar"a dönülürse selected null olur
     try {
       var c = await VitaCloud.getClient();
-      var r = await c.from("doctor_notes").insert({ doctor_id: cloudUid(), patient_id: selected.id, body: body }).select("id");
+      var r = await c.from("doctor_notes").insert({ doctor_id: cloudUid(), patient_id: pid, body: body }).select("id");
       if (r.error) throw r.error;
       if (input) input.value = "";
       noteMsg("Not gönderildi; hasta Rapor > Doktorum'da görür.", "ok");
-      await loadDetail(selected.id, true);
+      if (selected && selected.id === pid) await loadDetail(pid, true);
     } catch (e) {
       noteMsg(/row-level security|42501/.test(String(e && (e.message || e.code))) ? "Bu hastaya not yazma izniniz yok (izin geri alınmış olabilir)." : VitaCloud.describeError(e).message, "error");
     } finally { busy = false; if (btn) btn.disabled = false; }
@@ -327,6 +339,8 @@
   }
   document.addEventListener("vita:cloud-profile", function (e) { land(e.detail && e.detail.userId); });
   document.addEventListener("vita:cloud-pulled", function (e) { land(e.detail && e.detail.userId); });
+  // Yeni oturum (başka hesap): önceki doktorun açık hasta ayrıntısı ve listesi temizlenir
+  document.addEventListener("vita:cloud-session", function () { lastPatients = []; closeDetail(); });
   document.addEventListener("click", function (e) {
     var t = e.target && e.target.closest ? e.target : null; if (!t) return;
     var p = t.closest("[data-patient-id]"); if (p) { loadDetail(p.getAttribute("data-patient-id")); return; }

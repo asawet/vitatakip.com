@@ -1195,7 +1195,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const isZnLow = lowSide(znEvalResult);
 
       const ironLowish = ferritin !== null && isFerritinLow;
-      const anemia = hb !== null && hbEvalResult.clinical?.level === "low_likely";
+      // Ağır anemi (Hb < 8,5 → "urgent", side: low) de anemi örüntüsüne dahildir; yalnız "low_likely" bakılırsa "hemoglobin düşük değil" denirdi
+      const anemia = hb !== null && (hbEvalResult.clinical?.level === "low_likely" || (hbEvalResult.clinical?.level === "urgent" && hbEvalResult.clinical?.side === "low"));
       if (anemia) {
         const mcvBelow = mcv !== null && mcvEvalResult.refStatus === "below";
         const mcvAbove = mcv !== null && mcvEvalResult.refStatus === "above";

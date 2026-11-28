@@ -53,6 +53,9 @@
     show($("resetLinkForm"), name === "link");
     show($("recoveryCodeBox"), name === "code");
     show($("resetBackBtn"), name !== "code");
+    // Hata/bilgi kutuları görünen formun içine (kaydet düğmesinin üstüne) taşınır; gizli formda kalırsa mesaj görünmez
+    var anchor = $(name === "link" ? "resetLinkSubmitBtn" : "resetSubmitBtn");
+    ["resetErrorMsg", "resetNoticeMsg"].forEach(function (id) { var m = $(id); if (m && anchor && anchor.parentNode) anchor.parentNode.insertBefore(m, anchor); });
     msg("");
   }
   function open(prefill) {
