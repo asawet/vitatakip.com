@@ -874,7 +874,7 @@
         // Yapay zekâ hazır değilse (anahtar / onay yok) ipucu + doğrudan Ayarlar bağlantısı
         const aiHint = document.getElementById("addSupFallbackAiHint");
         if (aiHint) {
-          const hasKey = typeof getGeminiApiKey === "function" && Boolean(getGeminiApiKey());
+          const hasKey = typeof isVitaAIAvailable === "function" ? isVitaAIAvailable() : (typeof getGeminiApiKey === "function" && Boolean(getGeminiApiKey()));
           const hasConsent = typeof vitaHasAiHealthConsent === "function" ? vitaHasAiHealthConsent() : true;
           aiHint.innerHTML = hasKey && hasConsent ? "" : `${hasKey ? "Yapay zekâ için veri paylaşım onayı gerekir." : "Yapay zekâ için Gemini API anahtarı gerekir."} ${typeof vitaAiSettingsLinkHtml === "function" ? vitaAiSettingsLinkHtml() : ""}`;
           aiHint.classList.toggle("hidden", hasKey && hasConsent);
@@ -976,7 +976,7 @@
         let aiInfo = {};
 
         if (typeof window.callGeminiWithFallback === "function") {
-          if (typeof getGeminiApiKey === "function" && getGeminiApiKey()) showAddSupFeedback("⏳ Kutu fotoğrafı Gemini yapay zekâ ile tanınıyor...", "info");
+          if (typeof isVitaAIAvailable === "function" ? isVitaAIAvailable() : (typeof getGeminiApiKey === "function" && getGeminiApiKey())) showAddSupFeedback("⏳ Kutu fotoğrafı Gemini yapay zekâ ile tanınıyor...", "info");
           const aiResp = await window.callGeminiWithFallback(promptText, base64Data, mimeType, {
             expectBoxJson: true,
             fileName: file.name || "",

@@ -2043,6 +2043,16 @@ function getDoctorReportMode() {
 
     /* Tek giriş noktası: önerilen modelleri sırayla dener; model kaldırılmışsa erişilebilen modeli bulur. */
     async function vitaGeminiGenerate(apiKey, body, options = {}) {
+      // Bulut hesabı + kendi anahtarı yok: istek VitaTakip yapay zekâ proxy'sine gider (js/bulut-ai.js → ai-proxy).
+      // Model sırası ve kota sunucuda; hata/kota durumunda çağıran taraf her zamanki gibi yerel motora düşer.
+      if (window.VitaAIProxy && apiKey === window.VitaAIProxy.SENTINEL) {
+        setVitaGeminiActiveModel("VitaTakip AI", "trying");
+        try {
+          const proxied = await window.VitaAIProxy.generate(body, options);
+          setVitaGeminiActiveModel(proxied.model, "ok");
+          return proxied;
+        } catch (proxyError) { setVitaGeminiActiveModel("", "failed"); throw proxyError; }
+      }
       const tried = new Set();
       const lastGood = String(safeLocalStorageGetItem("vita_gemini_model_ok") || "");
       const queue = [...(options.models || []), lastGood, ...VITA_GEMINI_PREFERRED_MODELS].filter(Boolean);
@@ -2264,7 +2274,7 @@ function getDoctorReportMode() {
     /* Kutu fotoğrafı / yapılandırılmış istekler: anahtar varsa Gemini, yoksa veya hata olursa yerel motor.
        Fotoğraf yalnızca kullanıcının açık onayıyla gönderilir; hasta profili/tahlil bağlamı EKLENMEZ. */
     async function callGeminiWithFallback(promptText, base64Image = null, mimeType = "image/jpeg", options = {}) {
-      const apiKey = String(options.apiKey || getGeminiApiKey() || "").trim();
+      const apiKey = String(options.apiKey || (typeof getVitaAIKeyOrProxy === "function" ? getVitaAIKeyOrProxy() : getGeminiApiKey()) || "").trim();
       // Onay yalnızca gerçekten gönderilecekse (anahtar varsa) sorulur.
       const consentOk = !apiKey || !base64Image || ensureVitaPhotoAiConsent();
       if (apiKey && consentOk) {
@@ -2341,7 +2351,8 @@ function getDoctorReportMode() {
         if (!badge) return;
         const cur = badge.dataset.state;
         if (cur === "LOADING" && activeRequest && !activeRequest.settled) return;
-        const hasKey = Boolean(getGeminiApiKey());
+        if (window.VitaAIProxy) window.VitaAIProxy.updateNotice();
+        const hasKey = (typeof isVitaAIAvailable === "function" ? isVitaAIAvailable() : Boolean(getGeminiApiKey()));
         const consent = Boolean(document.getElementById("aiHealthDataConsent")?.checked);
         if (!hasKey) setRuntimeStatus("CONFIGURATION_REQUIRED");
         else if (!consent) setRuntimeStatus("LOCAL");
@@ -2925,7 +2936,7 @@ ${context.length ? context.join("\n") : "Bu soruyla ilgili kişisel sağlık kay
         const hint = document.getElementById("aiConsentHint");
         const text = document.getElementById("aiConsentHintText");
         if (!hint) return;
-        const hasKey = Boolean(getGeminiApiKey());
+        const hasKey = (typeof isVitaAIAvailable === "function" ? isVitaAIAvailable() : Boolean(getGeminiApiKey()));
         hint.classList.toggle("hidden", Boolean(checked) && hasKey);
         if (text) {
           text.textContent = !hasKey
@@ -2939,12 +2950,12 @@ ${context.length ? context.join("\n") : "Bu soruyla ilgili kişisel sağlık kay
         toggle(false);
         navigateToView("view-settings");
         window.setTimeout(() => {
-          const box = document.getElementById(getGeminiApiKey() ? "aiHealthDataConsentSettings" : "drawerGeminiApiKeyInput");
+          const box = document.getElementById((typeof isVitaAIAvailable === "function" ? isVitaAIAvailable() : Boolean(getGeminiApiKey())) ? "aiHealthDataConsentSettings" : "drawerGeminiApiKeyInput");
           if (box && typeof window.openSettingsSectionFor === "function") window.openSettingsSectionFor(box);
           if (!box) return;
           box.scrollIntoView({ behavior: "smooth", block: "center" });
           const card = document.getElementById("aiHealthDataConsentSettings");
-          if (card && getGeminiApiKey()) {
+          if (card && (typeof isVitaAIAvailable === "function" ? isVitaAIAvailable() : Boolean(getGeminiApiKey()))) {
             card.classList.add("vita-attention");
             window.setTimeout(() => card.classList.remove("vita-attention"), 1800);
           }
@@ -3044,7 +3055,7 @@ ${context.length ? context.join("\n") : "Bu soruyla ilgili kişisel sağlık kay
          Sabit süre aşımı yoktur: gerçek ağ/API hataları yerel motora düşer; kullanıcı beklerken yerel yanıtı da seçebilir. */
       async function callGeminiAPI(userPrompt, useHistory = true, options = {}) {
         const externalSignal = options && options.signal ? options.signal : undefined;
-        const apiKey = getGeminiApiKey();
+        const apiKey = typeof getVitaAIKeyOrProxy === "function" ? getVitaAIKeyOrProxy() : getGeminiApiKey();
         if (!apiKey) {
           const noKeyErr = new Error("API anahtarı girilmedi.");
           noKeyErr.noApiKey = true;
@@ -3089,7 +3100,7 @@ YANIT BİÇİMİ (zorunlu): Sıradan bir kullanıcının anlayacağı sade dille
 
       /* İLAÇ KUTUSU FOTOĞRAFI: yalnızca kullanıcı onayıyla fotoğraf gönderilir; hasta profili/tahlil bağlamı eklenmez. */
       async function analyzeMedicationImage(imageBase64, mimeType = "image/jpeg") {
-        const apiKey = getGeminiApiKey();
+        const apiKey = typeof getVitaAIKeyOrProxy === "function" ? getVitaAIKeyOrProxy() : getGeminiApiKey();
         if (!apiKey) throw new Error("Gemini API anahtarı bulunamadı. Ayarlar > Yapay zekâ bölümünden anahtar ekleyin.");
         if (!ensureVitaPhotoAiConsent()) throw new Error("Fotoğraf gönderimi onaylanmadı; fotoğraf hiçbir yere gönderilmedi.");
         if (!imageBase64 || typeof imageBase64 !== "string") throw new Error("Fotoğraf verisi okunamadı.");
@@ -3421,6 +3432,9 @@ YANIT BİÇİMİ (zorunlu): Sıradan bir kullanıcının anlayacağı sade dille
         if (err && err.aiPrivacyDeclined) return `${providerLabel} veri paylaşım onayı verilmedi (Ayarlar > Yapay zekâ); soru ve sağlık bilgileriniz dış servise gönderilmedi. Yanıt yerel VitaTakip motorundan hazırlanıyor.`;
         if (err && err.aiManualFallback) return `${providerLabel} yanıtı henüz gelmedi. Beklemek istemediğiniz için yerel VitaTakip motoru yanıt hazırladı.`;
         if (!err || err.noApiKey) return getAIProvider() === "local" ? "Yalnızca yerel yanıt modu seçili; sağlık verileriniz dış servise gönderilmedi." : `${providerLabel} API anahtarı ayarlı değil; yanıt VitaTakip'in yerel motorundan hazırlanıyor.`;
+        if (err.proxyQuota === "user") return `Bugünkü yapay zekâ hakkınız doldu (${err.limit || 10}/${err.limit || 10} soru); yarın yenilenir. Bu yanıtı VitaTakip'in yerel motoru hazırladı. Sınırsız kullanım için Ayarlar > Yapay zekâ bölümüne kendi Gemini anahtarınızı ekleyebilirsiniz.`;
+        if (err.proxyQuota === "global") return "VitaTakip yapay zekâ hizmetinin bugünkü toplam kotası doldu (ücretsiz hizmet); yarın yenilenir. Bu yanıtı yerel motor hazırladı.";
+        if (err.proxyUpstream) return "Ücretsiz yapay zekâ hizmeti şu an yoğun veya yanıt veremiyor; hakkınız düşülmedi. Bu yanıtı yerel motor hazırladı.";
         const status = Number(err.status || 0);
         const msg = String(err.message || "").toLowerCase();
         const code = String(err.code || "").toLowerCase();
@@ -3442,7 +3456,7 @@ YANIT BİÇİMİ (zorunlu): Sıradan bir kullanıcının anlayacağı sade dille
           fallbackHtml = generateFallbackClinicalReply(userText);
           if (err && err.aiPrivacyDeclined) setRuntimeStatus("LOCAL");
           else if (err && err.aiManualFallback) setRuntimeStatus("LOCAL");
-          else if (!getGeminiApiKey()) setRuntimeStatus("CONFIGURATION_REQUIRED");
+          else if (!(typeof isVitaAIAvailable === "function" ? isVitaAIAvailable() : Boolean(getGeminiApiKey()))) setRuntimeStatus("CONFIGURATION_REQUIRED");
           else if (typeof navigator !== "undefined" && navigator.onLine === false) setRuntimeStatus("OFFLINE");
           else setRuntimeStatus("DEGRADED");
         } catch (localError) {
@@ -3467,7 +3481,7 @@ YANIT BİÇİMİ (zorunlu): Sıradan bir kullanıcının anlayacağı sade dille
         appendMessage("user", userText);
         setRuntimeStatus("LOADING");
         const provider = getAIProvider();
-        const providerKeyAvailable = provider === "gemini" ? Boolean(getGeminiApiKey()) : false;
+        const providerKeyAvailable = provider === "gemini" ? (typeof isVitaAIAvailable === "function" ? isVitaAIAvailable() : Boolean(getGeminiApiKey())) : false;
         const consentInput = document.getElementById("aiHealthDataConsent");
         // Onay yalnızca Ayarlar > Yapay zekâ bölümünden verilir; sohbet açılır pencereyle onay istemez.
         // Onay yoksa soru yerel motorla yanıtlanır ve sohbetin altındaki küçük yazı Ayarlar'a yönlendirir.

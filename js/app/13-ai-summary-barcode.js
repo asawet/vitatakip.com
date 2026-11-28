@@ -1,7 +1,7 @@
 window.VitaAIChat = VitaAIChat;
-    VitaAIChat.setRuntimeStatus(getGeminiApiKey() ? "UNVERIFIED" : "CONFIGURATION_REQUIRED");
+    VitaAIChat.setRuntimeStatus((typeof isVitaAIAvailable === "function" ? isVitaAIAvailable() : Boolean(getGeminiApiKey())) ? "UNVERIFIED" : "CONFIGURATION_REQUIRED");
     window.addEventListener("offline", () => VitaAIChat.setRuntimeStatus("OFFLINE"));
-    window.addEventListener("online", () => VitaAIChat.setRuntimeStatus(getGeminiApiKey() ? "UNVERIFIED" : "CONFIGURATION_REQUIRED"));
+    window.addEventListener("online", () => VitaAIChat.setRuntimeStatus((typeof isVitaAIAvailable === "function" ? isVitaAIAvailable() : Boolean(getGeminiApiKey())) ? "UNVERIFIED" : "CONFIGURATION_REQUIRED"));
     document.addEventListener("keydown", event => {
       if (event.key === "Escape" && !document.getElementById("doctorQuestionsModal")?.classList.contains("hidden")) {
         VitaAIChat.closeDoctorQuestions();

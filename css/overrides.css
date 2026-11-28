@@ -150,3 +150,10 @@ html[data-theme="dark"] .vt-sync[data-tone="error"] { background: rgba(244,63,94
 .vt-migrate-go:disabled { opacity: .7; cursor: wait; }
 .vt-migrate-actions button:focus-visible { outline: 3px solid #99f6e4; outline-offset: 2px; }
 html[data-theme="dark"] .vt-migrate-error { background: rgba(244,63,94,.12); border-color: rgba(244,63,94,.35); color: #fda4af; }
+
+/* ===== Yapay zekâ proxy açıklaması (Ayarlar > Yapay zekâ; js/bulut-ai.js) ===== */
+.vita-proxy-note { margin: 10px 0 6px; padding: 10px 12px; border-radius: 12px; background: var(--vt-surface-tint); border: 1px solid var(--vt-teal-200); font-size: 11.5px; line-height: 1.5; color: var(--vt-text); }
+.vita-proxy-note.hidden { display: none; }
+.vita-proxy-note i { color: var(--vt-teal-700); }
+.vita-proxy-usage { margin-top: 6px; font-weight: 800; color: var(--vt-teal-700); }
+.vita-proxy-usage:empty { display: none; }

@@ -276,6 +276,7 @@
     return { tone: "ok", icon: "fa-cloud", text: status.lastSyncAt ? "Bulutla eşitlendi · " + relTime(status.lastSyncAt) : "Bulut hesabı" };
   }
   function updateStatus() {
+    if (window.VitaAIProxy) window.VitaAIProxy.updateNotice(); // Ayarlar > Yapay zekâ: proxy açıklaması (oturuma bağlı)
     status.pending = pendingCount();
     var info = statusText();
     // Ayarlar > hesap silme açıklaması hesap türüne göre (bulutta giriş kaydı ve buluttaki kayıtlar da silinir)

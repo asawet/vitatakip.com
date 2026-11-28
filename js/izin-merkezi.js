@@ -17,7 +17,7 @@
     if (typeof stopScanner === "function") try { stopScanner(); } catch (_) {}
     if (typeof navigateToView === "function") navigateToView("view-settings");
     setTimeout(function () {
-      var hasKey = typeof getGeminiApiKey === "function" && getGeminiApiKey();
+      var hasKey = typeof isVitaAIAvailable === "function" ? isVitaAIAvailable() : (typeof getGeminiApiKey === "function" && getGeminiApiKey());
       var target = $(hasKey ? "aiHealthDataConsentSettings" : "drawerGeminiApiKeyInput") || $("settingsSectionAiConnection");
       if (!target) return;
       if (typeof window.openSettingsSectionFor === "function") window.openSettingsSectionFor(target);
