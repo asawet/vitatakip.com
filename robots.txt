@@ -1,0 +1,13 @@
+# VitaTakip — https://vitatakip.com.tr
+# Uygulama tek sayfadır (index.html). Arama motorları sayfayı ve onu çizen
+# css/js/ikon/yazı tipi dosyalarını tarayabilir; geliştirme klasörleri taranmaz.
+User-agent: *
+Allow: /
+Disallow: /tests/
+Disallow: /supabase/
+Disallow: /tools/
+Disallow: /design/
+Disallow: /docs/
+Disallow: /*?type=recovery
+
+Sitemap: https://vitatakip.com.tr/sitemap.xml

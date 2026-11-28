@@ -2,7 +2,7 @@
   "id": "./",
   "name": "VitaTakip — Sağlık, Tahlil ve Takviye Takibi",
   "short_name": "VitaTakip",
-  "description": "Tahlil, belirti, ilaç ve takviye takibi. Veriler yalnızca bu cihazda saklanır; sunucu yoktur.",
+  "description": "Takviye, ilaç, tahlil ve belirti takibi; e-Nabız PDF okuma, etkileşim uyarıları ve doktora özet rapor. Veriler önce cihazda tutulur, hesabınızla AB'deki bulutla eşitlenir.",
   "lang": "tr",
   "dir": "ltr",
   "start_url": "./",
