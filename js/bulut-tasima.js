@@ -167,7 +167,7 @@
     if (!list.length) { if (opts.manual && typeof showToast === "function") showToast("Taşınacak veri yok", "Bu cihazda bulut hesabınıza taşınmamış yerel hesap verisi bulunamadı.", "info"); return false; }
     closeModal();
     var m = document.createElement("div");
-    m.id = "vtMigrateModal"; m.className = "vt-migrate"; m.setAttribute("role", "dialog"); m.setAttribute("aria-modal", "true"); m.setAttribute("aria-labelledby", "vtMigrateTitle");
+    m.id = "vtMigrateModal"; m.setAttribute("data-uid", uid); m.className = "vt-migrate"; m.setAttribute("role", "dialog"); m.setAttribute("aria-modal", "true"); m.setAttribute("aria-labelledby", "vtMigrateTitle");
     m.innerHTML =
       '<div class="vt-migrate-card">' +
       '<div class="vt-migrate-icon"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i></div>' +
@@ -212,23 +212,30 @@
     return true;
   }
 
+  function isDoctorUid(uid) { return Boolean(window.VitaCloud && VitaCloud.accountTypeOf && VitaCloud.accountTypeOf(uid) === "doctor"); }
   /* Ayarlar > Veriler ve yedek: "Bu cihazdaki yerel hesaptan veri taşı" satırı (yalnız bulut hesabında ve aday varsa) */
   function updateSettingsRow() {
     var row = $("settingsCloudImportRow"); if (!row) return;
     var uid = cloudUid();
-    row.classList.toggle("hidden", !(uid && candidates(uid).length));
+    row.classList.toggle("hidden", !(uid && !isDoctorUid(uid) && candidates(uid).length));
   }
 
   document.addEventListener("vita:cloud-pulled", function (e) {
     var uid = e.detail && e.detail.userId;
     updateSettingsRow();
     if (!uid || uid !== cloudUid() || get(skipKey(uid)) === "true" || $("vtMigrateModal")) return;
+    if (isDoctorUid(uid)) return; // doktor hesabına hasta kayıtları taşınmaz
     // Profil adımı (yeni kayıt) açıksa onun ardından sorulur
     var ask = function () { if (cloudUid() === uid && !$("vtMigrateModal")) open(); };
     var profile = $("profileModal");
     if (profile && !profile.classList.contains("hidden")) setTimeout(ask, 1500); else ask();
   });
-  document.addEventListener("vita:cloud-session", updateSettingsRow);
+  // Hesap değişince / çıkışta önceki hesaba ait taşıma sorusu ekranda kalmaz
+  document.addEventListener("vita:cloud-session", function (e) {
+    var m = $("vtMigrateModal"); var uid = e.detail && e.detail.userId;
+    if (m && m.getAttribute("data-uid") !== uid) closeModal();
+    updateSettingsRow();
+  });
   document.addEventListener("click", function (e) { if (e.target && e.target.closest && e.target.closest("#settingsCloudImportBtn")) open({ manual: true }); });
 
   window.VitaMigrate = { candidates: candidates, migrate: migrate, open: open, close: closeModal, mergeStore: mergeStore, updateSettingsRow: updateSettingsRow };

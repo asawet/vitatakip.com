@@ -1,4 +1,4 @@
-/* Doktor rehberi (hasta: Ayarlar > Doktorum) + doktordan hastaya erişim isteği (Doktor Paneli), sahte bulutla.
+/* Doktor rehberi (hasta: Rapor > Doktorum) + doktordan hastaya erişim isteği (Doktor Paneli), sahte bulutla.
    Gerçek kurallar: supabase/migrations/20261128200000_doktor_rehberi_davet.sql (SQL davranış testi oturumda: 21/21).
    Çalıştırma: VT_PORT=8090 node tests/doktor-davet.mjs  (VT_SHOTS=<klasör> ekran görüntüsü) */
 import { boot, sleep } from './lib.mjs';
@@ -28,7 +28,7 @@ async function login(id, pass) {
   await fill('cloudInputIdentifier', id); await fill('cloudInputPassword', pass); await p.click('#cloudSubmitBtn'); await sleep(2200); await close();
 }
 const logout = async () => { await p.evaluate(() => handleLogout()); await sleep(400); };
-const openDoctors = async () => { await p.evaluate(() => { navigateToView('view-settings'); window.openSettingsSectionFor(document.getElementById('doctorDirSearch')); }); await sleep(900); };
+const openDoctors = async () => { await p.evaluate(() => VitaDoctors.open()); await sleep(900); };
 const openPanel = async () => { await p.evaluate(() => { if (state.activeTab !== 'view-doctor') navigateToView('view-doctor'); }); await sleep(900); };
 const invite = async who => { await fill('vdpInviteInput', who); await p.click('#vdpInviteBtn'); await sleep(600); return txt('vdpInviteMsg'); };
 
@@ -119,7 +119,7 @@ log('Reddet: kutu kapanır, izin verilmez; doktor 7 gün yeni istek gönderemez'
 /* 7) Taşma, simgeler, sayfa hatası */
 const ov = await p.evaluate(() => ({ sw: document.scrollingElement.scrollWidth, iw: innerWidth }));
 log('Telefonda yatay taşma yok', ov.sw <= ov.iw + 1, JSON.stringify(ov));
-const icons = await p.evaluate(() => [...document.querySelectorAll('#vdpInviteBox i[class*="fa-"], #settingsSectionDoctors i[class*="fa-"]')].map(i => ({ c: [...i.classList].find(x => x.startsWith('fa-') && x !== 'fa-solid'), ok: (getComputedStyle(i, '::before').content || '').replace(/"/g, '').trim().length === 1 })).filter(x => !x.ok).map(x => x.c));
+const icons = await p.evaluate(() => [...document.querySelectorAll('#vdpInviteBox i[class*="fa-"], #doctorsPanel i[class*="fa-"]')].map(i => ({ c: [...i.classList].find(x => x.startsWith('fa-') && x !== 'fa-solid'), ok: (getComputedStyle(i, '::before').content || '').replace(/"/g, '').trim().length === 1 })).filter(x => !x.ok).map(x => x.c));
 log('Simgeler tanımlı', icons.length === 0, icons.join(', '));
 log('Sayfa hatası yok', errs.length === 0, errs.join(' | '));
 console.log(`ÖZET ${results.filter(Boolean).length}/${results.length}`);

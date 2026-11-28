@@ -1,6 +1,6 @@
 /* VitaTakip — Doktor Paneli: hastaya erişim isteği (davet) (VitaDoctorInvite).
    - Yalnız ONAYLI doktor: hastanın takma adı (ya da @takma_ad) veya e-postasıyla istek gönderir (request_patient_access).
-   - Hasta Ayarlar > Doktorum'da kabul edene kadar doktor HİÇBİR veri göremez; kabul = erişim izni (patient_doctor_links).
+   - Hasta Rapor > Doktorum'da kabul edene kadar doktor HİÇBİR veri göremez; kabul = erişim izni (patient_doctor_links).
    - Gönderilen istekler: Bekliyor (geri çekilebilir) / Kabul edildi / Reddedildi / Geri çekildi.
      Kabul edilen istek olunca "Hastalarım" listesi yenilenir.
    - Sunucu sınırları: günde 30 istek, aynı hastaya tek bekleyen istek, reddedilirse 7 gün yeni istek yok
@@ -91,7 +91,7 @@
       if (r.error) msg("İstek gönderilemedi. Lütfen tekrar deneyin.", "error");
       else if (!d.ok) msg(REASONS[d.reason] || "İstek gönderilemedi.", "error");
       else {
-        msg("İstek gönderildi. Hasta Ayarlar > Doktorum'da kabul ettiğinde Hastalarım listesine eklenir.", "ok");
+        msg("İstek gönderildi. Hasta Rapor > Doktorum'da kabul ettiğinde Hastalarım listesine eklenir.", "ok");
         if (input) input.value = "";
         var det = $("vdpRequestsDetails"); if (det) det.open = true;
       }

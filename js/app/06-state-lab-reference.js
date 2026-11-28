@@ -662,6 +662,27 @@ let currentAuthMode = "login";
       }
     }
 
+    /* Yerel hesap kaldırıldı (2026-11-28): bu cihazdaki eski yerel hesaplar ve verileri bir kez silinir.
+       Yalnız "usr_" kimlikli yerel hesaplar; bulut hesaplarının (uuid) cihazdaki kopyaları korunur. */
+    function purgeVitaLocalAccounts() {
+      const FLAG = "vitatakip_local_accounts_purged_v1";
+      if (safeLocalStorageGetItem(FLAG) === "1") return 0;
+      const isCloud = id => Boolean(window.VitaCloud && window.VitaCloud.isCloudUserId(id));
+      const locals = getUsersDb().filter(u => u && u.id && !isCloud(u.id));
+      locals.forEach(u => {
+        try { listVitaUserStorageKeys(u.id).forEach(key => safeLocalStorageRemoveItem(key)); } catch (_) {}
+        if (typeof purgeVitaUserIndexedData === "function") { try { purgeVitaUserIndexedData(u.id).catch(() => {}); } catch (_) {} }
+      });
+      saveUsersDb(getUsersDb().filter(u => u && u.id && isCloud(u.id)));
+      const remembered = safeLocalStorageGetItem("vitatakip_remembered_user_id");
+      if (remembered && !isCloud(remembered)) { safeLocalStorageRemoveItem("vitatakip_remembered_user_id"); safeLocalStorageRemoveItem("vitatakip_remembered_fullname"); }
+      ["vitatakip_active_session_id"].forEach(k => { const v = safeLocalStorageGetItem(k); if (v && !isCloud(v)) safeLocalStorageRemoveItem(k); });
+      try { const v = window.sessionStorage.getItem("vitatakip_active_session_id"); if (v && !isCloud(v)) window.sessionStorage.removeItem("vitatakip_active_session_id"); } catch (_) {}
+      safeLocalStorageSetItem("vitatakip_auth_panel", "cloud");
+      safeLocalStorageSetItem(FLAG, "1");
+      return locals.length;
+    }
+
     function purgeLegacyDemoAccounts() {
       // Yalnızca eski sürümlerin oluşturduğu sabit kimlikli misafir hesabı temizlenir.
       // ADA BAKILMAZ: "Ayşe Örnek", "Deneme" gibi gerçek ad/soyadlı hesaplar ve verileri asla silinmez.

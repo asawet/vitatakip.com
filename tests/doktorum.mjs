@@ -13,7 +13,8 @@ const results = []; const log = (n, ok, d) => { results.push(ok); console.log((o
 const vis = id => p.evaluate(id => { const e = document.getElementById(id); return !!e && e.getClientRects().length > 0; }, id);
 const fill = (id, v) => p.evaluate((id, v) => { document.getElementById(id).value = v; }, id, v);
 const msg = () => p.evaluate(() => ({ text: document.getElementById('doctorAddMsg').textContent, tone: document.getElementById('doctorAddMsg').getAttribute('data-tone') }));
-const openSettings = async () => { await p.evaluate(() => { navigateToView('view-settings'); window.openSettingsSectionFor(document.getElementById('doctorCodeInput') || document.getElementById('doctorsLocalNote')); }); await sleep(300); };
+// Doktorum artık Rapor sayfasının ikinci sekmesinde (Rapor | Doktorum)
+const openSettings = async () => { await p.evaluate(() => VitaDoctors.open()); await sleep(400); };
 const add = async code => { await fill('doctorCodeInput', code); await p.evaluate(() => doctorAddBtn.scrollIntoView({ block: 'center' })); await p.click('#doctorAddBtn'); await sleep(500); };
 
 /* 0) Yerel hesapta "bulut hesabı gerekir" notu */
@@ -22,7 +23,7 @@ await fill('authInputFullName', 'Yerel Kisi'); await fill('authInputPassword', '
 await p.click('#authSubmitBtn'); await sleep(1500);
 await p.evaluate(() => { try { closeProfileModal(); } catch (e) {} try { finishVitaSpotlightTour(true); } catch (e) {} });
 await openSettings();
-const s0 = { card: await vis('settingsSectionDoctors'), local: await vis('doctorsLocalNote'), body: await vis('doctorsCloudBody') };
+const s0 = { card: await vis('doctorsPanel'), local: await vis('doctorsLocalNote'), body: await vis('doctorsCloudBody') };
 log('Yerel hesapta Doktorum kartı "bulut hesabı gerekir" der, form yok', s0.card && s0.local && !s0.body, JSON.stringify(s0));
 await p.evaluate(() => handleLogout()); await sleep(300);
 
@@ -83,8 +84,8 @@ await p.evaluate(() => handleLogout()); await sleep(300);
 await p.evaluate(() => { VitaAuthUI.showCloud(); VitaAuthUI.setMode('register'); VitaAuthUI.setAcct('doctor'); });
 await fill('cloudInputFullName', 'Dr. Kendi'); await fill('cloudInputIdentifier', 'dr_kendi'); await fill('cloudInputPassword', 'doktor123'); await fill('cloudInputPasswordConfirm', 'doktor123');
 await p.evaluate(() => { cloudDoctorConsentCheckbox.checked = true; }); await p.click('#cloudSubmitBtn'); await sleep(1500);
-await p.evaluate(() => navigateToView('view-settings')); await sleep(300);
-log('Doktor hesabında "Doktorum" kartı görünmez', !(await vis('settingsSectionDoctors')));
+await p.evaluate(() => navigateToView('view-report')); await sleep(300);
+log('Doktor hesabında "Doktorum" sekmesi ve paneli görünmez', !(await vis('reportTabBtnDoctors')) && !(await vis('doctorsPanel')));
 
 if (process.env.VT_SHOTS) {
   await p.evaluate(() => handleLogout()); await sleep(300);
@@ -92,7 +93,7 @@ if (process.env.VT_SHOTS) {
   await fill('cloudInputIdentifier', 'pelin'); await fill('cloudInputPassword', 'hasta1234'); await p.click('#cloudSubmitBtn'); await sleep(1200);
   await p.evaluate(() => { try { closeProfileModal(); } catch (e) {} window.__dialogsOff = 1; }); dialogs = [];
   await openSettings(); await add('DR-4829'); await sleep(400);
-  await (await p.$('#settingsSectionDoctors')).screenshot({ path: process.env.VT_SHOTS + '/doktorum.png' });
+  await (await p.$('#doctorsPanel')).screenshot({ path: process.env.VT_SHOTS + '/doktorum.png' });
 }
 
 /* 8b) KVKK metni: şifre sıfırlama e-postası AB'de (Resend, İrlanda) */

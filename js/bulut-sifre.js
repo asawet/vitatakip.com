@@ -83,7 +83,7 @@
     if (on) { b.setAttribute("aria-busy", "true"); b.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i><span></span>'; b.lastChild.textContent = label; }
     else b.removeAttribute("aria-busy");
   }
-  function remember() { return lsGet("vitatakip_remember_me") === "true"; }
+  function remember() { var r = lsGet("vitatakip_remember_me") === "true"; if (window.VitaCloud && VitaCloud.setTabRemember) VitaCloud.setTabRemember(r); return r; }
 
   /* ---------------- Kurtarma kodunu göster ---------------- */
   function showCode(code, onContinue, opts) {

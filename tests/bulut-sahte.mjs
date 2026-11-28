@@ -23,7 +23,8 @@ export const fakeCloudPreload = () => {
   const doctorVerified = id => (window.__verifiedDoctors || []).includes(id) || Object.values(window.__fakeDoctors || {}).some(d => d.id === id && d.verified);
   const isDoctorOf = (doctorId, patientId) => doctorVerified(doctorId) && LINKS().some(l => l.doctor_id === doctorId && l.patient_id === patientId && l.status === 'active');
   const userName = id => { const u = Object.values(users).find(x => x.id === id); return u ? (u.meta.full_name || '') : ''; };
-  const mkSession = u => ({ access_token: 't', refresh_token: 'r', expires_at: 9e9, user: { id: u.id, email: u.email, user_metadata: u.meta } });
+  const b64 = o => btoa(JSON.stringify(o)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+  const mkSession = u => ({ access_token: b64({ alg: 'none' }) + '.' + b64({ sub: u.id, session_id: crypto.randomUUID() }) + '.x', refresh_token: 'r', expires_at: 9e9, user: { id: u.id, email: u.email, user_metadata: u.meta } });
   const fake = {
     auth: {
       async signUp({ email, password, options }) {
@@ -213,6 +214,23 @@ export const fakeCloudPreload = () => {
       }
     },
     from(table) {
+      // note_replies (RLS taklidi: notun hastası/doktoru görür; izin sürerken hasta ya da onaylı doktor yazar)
+      if (table === 'note_replies') {
+        const rows = () => J('__fakeReplies', []); const save = r => localStorage.setItem('__fakeReplies', JSON.stringify(r));
+        const notes = () => J('__fakeNotes', []);
+        const canSee = (me, r) => { const n = notes().find(x => x.id === r.note_id); return n && (n.patient_id === me || n.doctor_id === me); };
+        return {
+          select() { return { in(col, ids) { return { async order() { net(); const me = curUid(); return { data: rows().filter(r => ids.includes(r[col]) && canSee(me, r)).sort((a, b) => a.created_at.localeCompare(b.created_at)), error: null }; } }; } }; },
+          async insert(obj) {
+            net(); const me = curUid(); const n = notes().find(x => x.id === obj.note_id);
+            const linked = n && LINKS().some(l => l.patient_id === n.patient_id && l.doctor_id === n.doctor_id && l.status === 'active');
+            const ok = n && linked && obj.author_id === me && ((obj.author_role === 'patient' && n.patient_id === me) || (obj.author_role === 'doctor' && n.doctor_id === me && doctorVerified(me)));
+            if (!ok) return { error: { code: '42501', message: 'new row violates row-level security policy for table "note_replies"' } };
+            const r = rows(); r.push({ id: crypto.randomUUID(), note_id: obj.note_id, author_id: me, author_role: obj.author_role, body: obj.body, created_at: new Date().toISOString() }); save(r);
+            return { error: null };
+          }
+        };
+      }
       // access_requests (RLS: doktor ve hasta yalnız kendi isteklerini okur; yazma yalnız fonksiyonlarla)
       if (table === 'access_requests') {
         return { select() { return { async eq(col, v) { net(); const me = curUid(); return { data: J('__fakeRequests', []).filter(r => (r.doctor_id === me || r.patient_id === me) && r[col] === v), error: null }; } }; } };

@@ -406,3 +406,35 @@ html[data-theme="dark"] .vad-delete { background: rgba(244,63,94,.08); border-co
 html[data-theme="dark"] .vad-delete-warn { color: #fda4af; }
 html[data-theme="dark"] .vad-delete-input { background: #0f172a; color: #e2e8f0; border-color: rgba(244,63,94,.5); }
 html[data-theme="dark"] .vad-guide code { background: rgba(148,163,184,.12); }
+
+/* ===== Rapor | Doktorum sekmeleri, rozetler, not yanıtları, Hesap ve güvenlik ===== */
+.vt-rtabs { display: flex; gap: 6px; padding: 4px; border-radius: 14px; background: var(--vt-surface); border: 1px solid var(--vt-border); max-width: 420px; }
+.vt-rtabs button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; border: 0; border-radius: 10px; background: transparent; color: var(--vt-text-muted); font-size: 13px; font-weight: 800; cursor: pointer; }
+.vt-rtabs button.is-active { background: #0f172a; color: #fff; }
+.vt-rtabs button.hidden { display: none; }
+.vt-badge, .vt-nav-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #e11d48; color: #fff; font-size: 10.5px; font-weight: 900; line-height: 1; }
+.vt-badge.hidden { display: none; }
+#drawer-nav-view-report .vt-nav-badge { margin-left: auto; }
+#mobile-nav-view-report { position: relative; }
+#mobile-nav-view-report .vt-nav-badge { position: absolute; top: 2px; right: calc(50% - 22px); }
+.vt-thread { list-style: none; margin: 8px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--vt-border); display: grid; gap: 6px; }
+.vt-reply { display: grid; gap: 2px; padding: 6px 9px; border-radius: 10px; background: var(--vt-slate-50); }
+.vt-reply.is-mine { background: #ecfdf5; }
+.vt-reply-who { font-size: 10.5px; font-weight: 800; color: var(--vt-text-muted); }
+.vt-reply-body { font-size: 12.5px; line-height: 1.45; color: var(--vt-text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.vt-reply-form { display: flex; gap: 6px; margin-top: 8px; }
+.vt-reply-form input { flex: 1; min-width: 0; min-height: 38px; padding: 0 10px; border-radius: 10px; border: 1.5px solid var(--vt-border-strong); background: var(--vt-surface); color: var(--vt-text); font-size: 13px; }
+.vt-reply-form input:focus { outline: none; border-color: #14b8a6; box-shadow: 0 0 0 3px rgba(20,184,166,.15); }
+.vt-reply-form button { flex: none; min-height: 38px; padding: 0 12px; border: 0; border-radius: 10px; background: #0d9488; color: #fff; font-size: 12px; font-weight: 800; cursor: pointer; }
+.vt-reply-closed { display: block; margin-top: 6px; font-size: 11px; color: var(--vt-text-muted); }
+.vt-acc-form { display: grid; gap: 8px; margin-top: 10px; max-width: 420px; }
+.vt-acc-form input { min-height: 42px; padding: 0 12px; border-radius: 12px; border: 1.5px solid var(--vt-border-strong); background: var(--vt-bg); color: var(--vt-text); font-size: 13.5px; }
+.vt-acc-form input:focus { outline: none; border-color: #14b8a6; box-shadow: 0 0 0 4px rgba(20,184,166,.15); }
+.vt-acc-form button { min-height: 42px; border: 0; border-radius: 12px; background: #0d9488; color: #fff; font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer; }
+.vt-acc-form button:disabled { opacity: .7; cursor: wait; }
+.vt-acc-hint { margin: 0; font-size: 11px; color: var(--vt-text-muted); }
+.vt-acc-pw.hidden { display: none; }
+.vt-acc-pw > summary::-webkit-details-marker { display: none; }
+html[data-theme="dark"] .vt-rtabs button.is-active { background: #0d9488; }
+html[data-theme="dark"] .vt-reply { background: rgba(148,163,184,.08); }
+html[data-theme="dark"] .vt-reply.is-mine { background: rgba(16,185,129,.12); }

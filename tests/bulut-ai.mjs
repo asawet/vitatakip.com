@@ -48,8 +48,8 @@ log('Ayarlar > Yapay zekâ: proxy açıklaması görünür (ücretsiz hizmet, Go
 await page.evaluate(() => { document.getElementById('aiHealthDataConsent').checked = true; VitaAIChat.handleConsentChange(true); });
 await page.evaluate(() => { VitaAIChat.toggle(true); VitaAIChat.sendPreset('tahlil'); });
 await page.waitForFunction(() => window.__ai.calls.length >= 1 && /PROXY_YANIT/.test(document.getElementById('ai-chat-messages').innerText), { timeout: 15000 }).catch(() => {});
-const s2 = await page.evaluate(() => ({ calls: window.__ai.calls.length, auth: (window.__ai.calls[0] || {}).auth, chat: /PROXY_YANIT/.test(document.getElementById('ai-chat-messages').innerText), sent: JSON.stringify((window.__ai.calls[0] || {}).body || {}) }));
-log('Sohbet sorusu proxy\'den (oturum belirteciyle) yanıtlanır', s2.calls >= 1 && /^Bearer t/.test(s2.auth) && s2.chat, JSON.stringify({ calls: s2.calls, chat: s2.chat }));
+const s2 = await page.evaluate(() => ({ token: JSON.parse(VitaCloud.authStorage.getItem('vitatakip-bulut-oturum')).access_token, calls: window.__ai.calls.length, auth: (window.__ai.calls[0] || {}).auth, chat: /PROXY_YANIT/.test(document.getElementById('ai-chat-messages').innerText), sent: JSON.stringify((window.__ai.calls[0] || {}).body || {}) }));
+log('Sohbet sorusu proxy\'den (oturum belirteciyle) yanıtlanır', s2.calls >= 1 && s2.auth === 'Bearer ' + s2.token && s2.chat, JSON.stringify({ calls: s2.calls, chat: s2.chat }));
 log('Proxy\'ye giden istekte ad soyad YOK ("Ayşe", "Bulut" ayıklanır)', s2.calls >= 1 && !/Ayşe|Bulut/i.test(s2.sent), s2.sent.slice(0, 160));
 
 /* 3) Ad ayıklama: tam ad, ad, soyad, ekli hâl; başka kelimeler bozulmaz */

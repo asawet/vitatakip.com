@@ -5,7 +5,7 @@
   "use strict";
   var SECTIONS = [
     { id: "settingsSectionProfile", title: "Profil" },
-    { id: "settingsSectionDoctors", title: "Doktorum" },
+    { id: "settingsSectionAccount", title: "Hesap ve güvenlik" },
     { id: "settingsSectionNotifications", title: "Bildirim ve Kamera İzinleri" },
     { id: "settingsSectionAiConnection", title: "Yapay Zekâ & Model Yönetimi" },
     { id: "settingsSectionTools", title: "Araçlar" },
@@ -51,8 +51,8 @@
         var short = function (el) { var t = el ? String(el.textContent || "").trim() : ""; var i = t.indexOf(":"); return i > -1 ? t.slice(i + 1).trim() : t; };
         return ["Bildirim: " + short(n), "Kamera: " + short(c)].join(" · ");
       }
-      if (id === "settingsSectionDoctors") {
-        return String((document.getElementById("settingsDoctorsSummary") || {}).textContent || "").trim();
+      if (id === "settingsSectionAccount") {
+        return String((document.getElementById("settingsAccountSummary") || {}).textContent || "").trim();
       }
       if (id === "settingsSectionAiConnection") {
         var key = typeof window.getGeminiApiKey === "function" && window.getGeminiApiKey();
@@ -138,7 +138,7 @@
     refreshSummaries();
 
     // Durum değişince özetler güncellenir (model geçişi, izin rozetleri, profil).
-    var watch = ["geminiActiveModelBadge", "apiStatusBadge", "settingsBrowserPermBadge", "settingsCameraPermBadge", "settingsProfileName", "settingsProfileMedsSummary", "settingsDataSummaryText", "settingsDoctorsSummary"];
+    var watch = ["geminiActiveModelBadge", "apiStatusBadge", "settingsBrowserPermBadge", "settingsCameraPermBadge", "settingsProfileName", "settingsProfileMedsSummary", "settingsDataSummaryText", "settingsAccountSummary"];
     if (typeof MutationObserver === "function") {
       var mo = new MutationObserver(refreshSummaries);
       watch.forEach(function (id) { var el = document.getElementById(id); if (el) mo.observe(el, { childList: true, characterData: true, subtree: true }); });

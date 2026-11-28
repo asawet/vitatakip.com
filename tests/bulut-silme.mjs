@@ -69,11 +69,11 @@ const t7 = await p.evaluate(() => ({
   footer: document.querySelector('footer').innerText.replace(/\s+/g, ' '),
   localNote: document.getElementById('authLocalDataNotice').innerText
 }));
-log('KVKK: iki hesap türü, Frankfurt/AB, RLS, buluta gitmeyenler, silme yolu, otomatik yedek yok, Google Gemini', /Yerel hesap:/.test(t7.kvkk) && /Bulut hesabı/.test(t7.kvkk) && /Frankfurt/.test(t7.kvkk) && /RLS/.test(t7.kvkk) && /profil fotoğrafı/.test(t7.kvkk) && /Hesabımı ve verilerimi sil/.test(t7.kvkk) && /otomatik yedekleme yoktur/.test(t7.kvkk) && /Google Gemini/.test(t7.kvkk) && !/Uygulamanın kendi sunucusu yoktur/.test(t7.kvkk), t7.kvkk.slice(0, 120));
-log('Alt bilgi "Önce cihazda · isteğe bağlı bulut"; yerel panel notu "Yerel hesapta …"', /Önce cihazda · isteğe bağlı bulut/.test(t7.footer) && /^Yerel hesapta/.test(t7.localNote.trim()), JSON.stringify({ f: t7.footer.slice(-60), n: t7.localNote.slice(0, 40) }));
+log('KVKK: hesap (önce cihaz, sonra bulut), Frankfurt/AB, RLS, buluta gitmeyenler, silme yolu, otomatik yedek yok, Google Gemini', /VitaTakip hesabınızda/.test(t7.kvkk) && !/Yerel hesap:/.test(t7.kvkk) && /Frankfurt/.test(t7.kvkk) && /RLS/.test(t7.kvkk) && /profil fotoğrafı/.test(t7.kvkk) && /Hesabımı ve verilerimi sil/.test(t7.kvkk) && /otomatik yedekleme yoktur/.test(t7.kvkk) && /Google Gemini/.test(t7.kvkk) && !/Uygulamanın kendi sunucusu yoktur/.test(t7.kvkk), t7.kvkk.slice(0, 120));
+log('Alt bilgi "Önce cihazda · bulutla eşitlenir"; not "Kayıtlarınız önce bu cihaza …"', /Önce cihazda · bulutla eşitlenir/.test(t7.footer) && /^Kayıtlarınız önce bu cihaza/.test(t7.localNote.trim()), JSON.stringify({ f: t7.footer.slice(-60), n: t7.localNote.slice(0, 40) }));
 const legal = await p.evaluate(async () => { const r = await fetch('./js/legal-onboarding.js'); return r.ok ? await r.text() : ''; });
 const bundle = await p.evaluate(async () => (await Promise.all([1, 2, 3, 4].map(i => fetch('./js/app.' + i + '.js').then(r => r.text())))).join('\n'));
-log('İlk açılış KVKK kutusu bulut seçeneğini ve Frankfurt\'u anlatır', /isteğe bağlı bulut hesabında/.test(bundle) && /Frankfurt/.test(bundle), legal ? 'kaynak okundu' : 'paketten');
+log('İlk açılış KVKK kutusu hesabı ve Frankfurt\'u anlatır', /hesabınızda açık rızanızla/.test(bundle) && /Frankfurt/.test(bundle), legal ? 'kaynak okundu' : 'paketten');
 
 const diag = await p.evaluate(() => VitaTakipDiagnostics.run());
 const failed = diag.results.filter(x => !x.passed).map(x => x.name);

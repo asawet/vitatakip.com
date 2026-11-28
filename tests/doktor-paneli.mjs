@@ -51,7 +51,7 @@ await p.evaluate(() => {
 });
 if (typeof addVitaMedicationPlaceholder === 'undefined') await p.evaluate(() => { if (typeof addVitaMedication === 'function') addVitaMedication({ name: 'Euthyrox 50 mcg', frequency: 'gunde1', clocks: ['07:00'] }); });
 await sleep(2500);
-await p.evaluate(() => { navigateToView('view-settings'); window.openSettingsSectionFor(document.getElementById('doctorCodeInput')); }); await sleep(300);
+await p.evaluate(() => VitaDoctors.open()); await sleep(400);
 await fill('doctorCodeInput', code); await p.evaluate(() => doctorAddBtn.scrollIntoView({ block: 'center' })); await p.click('#doctorAddBtn'); await sleep(800);
 const s2 = await p.evaluate(() => ({ drawer: !document.getElementById('drawerSectionDoctor').classList.contains('hidden'), msg: document.getElementById('doctorAddMsg').textContent, links: JSON.parse(localStorage.getItem('__fakeLinks') || '[]').length }));
 log('Hasta kodla izin verdi; hasta hesabında "Doktor Paneli" menüsü görünmez', /Dr\. Deniz Ak artık kayıtlarınızı görebilir/.test(s2.msg) && s2.links === 1 && !s2.drawer, JSON.stringify(s2));

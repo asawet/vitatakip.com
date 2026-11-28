@@ -123,7 +123,8 @@ await fill('cloudInputPassword', 'sifre1234'); await p.evaluate(() => { cloudRem
 const s7 = await p.evaluate(() => ({ uid: activeUserId, name: state.user && state.user.name, tokLocal: localStorage.getItem('vitatakip-bulut-oturum') !== null, tokSession: sessionStorage.getItem('vitatakip-bulut-oturum') !== null, active: localStorage.getItem('vitatakip_active_session_id') }));
 log('Yanlış şifre → "Takma ad / e-posta veya şifre hatalı."', e7 === 'Takma ad / e-posta veya şifre hatalı.', e7);
 log('Büyük harfli takma adla giriş: aynı hesap, veriler (ad) cihazdan yüklenir', s7.uid === uid && s7.name === 'Ayşe Bulut', JSON.stringify(s7));
-log('"Beni hatırla" açık: oturum kalıcı depoda', s7.tokLocal && !s7.tokSession && s7.active === uid, JSON.stringify(s7));
+// Oturum sekme başınadır (sessionStorage); "Beni hatırla" açıkken ayrıca kalıcı kopya tutulur (js/bulut.js authStorage, tests/coklu-sekme.mjs)
+log('"Beni hatırla" açık: oturum bu sekmede + kalıcı kopya', s7.tokLocal && s7.tokSession && s7.active === uid, JSON.stringify(s7));
 
 /* 8) Sayfa yenilenince oturum geri gelir (ağ isteği gerekmeden) */
 await p.reload({ waitUntil: 'networkidle2' }); await sleep(1500);
@@ -150,14 +151,11 @@ await p.evaluate(() => { cloudConsentCheckbox.checked = true; }); await submit()
 const e10 = await msg();
 log('E-postayla kayıt (küçük harfe çevrilir); aynı e-postayla ikinci kayıt Türkçe hatayla reddedilir', VitaUuid(s10.uid) && s10.uid !== uid && s10.email === 'bora@ornek.com' && /zaten var/.test(e10), JSON.stringify({ s10, e10 }));
 
-/* 11) Panel geçişi: yerel hesap paneli ve geri dönüş; cihazda yerel hesap varsa ekran yerel panelle açılır */
-await p.click('#authShowLocalBtn'); await sleep(100);
-const s11a = { cloud: await vis('authCloudCard'), local: await vis('authLocalMethodCard'), localNote: await vis('authLocalDataNotice') };
-await p.click('#authShowCloudBtn'); await sleep(100);
-const s11b = { cloud: await vis('authCloudCard'), local: await vis('authLocalMethodCard') };
-await p.evaluate(() => { safeLocalStorageRemoveItem('vitatakip_auth_panel'); safeLocalStorageSetItem('vitatakip_users_db', JSON.stringify([{ id: 'usr_1_x', fullName: 'Yerel Kişi', password: 'x' }])); openAuthModal(); }); await sleep(100);
-const s11c = { cloud: await vis('authCloudCard'), local: await vis('authLocalMethodCard') };
-log('"Bu cihazda yerel hesap" / "Bulut hesabıyla giriş" geçişi; yerel hesabı olan cihaz yerel panelle açılır', !s11a.cloud && s11a.local && s11a.localNote && s11b.cloud && !s11b.local && !s11c.cloud && s11c.local, JSON.stringify({ s11a, s11b, s11c }));
+/* 11) Yerel hesap kaldırıldı (2026-11-28): düğme yok; eski kayıt/tercih olsa da giriş ekranı hesap paneliyle açılır */
+const s11 = { btn: await p.evaluate(() => !!document.getElementById('authShowLocalBtn')) };
+await p.evaluate(() => { safeLocalStorageSetItem('vitatakip_auth_panel', 'local'); safeLocalStorageSetItem('vitatakip_users_db', JSON.stringify([{ id: 'usr_1_x', fullName: 'Yerel Kişi', password: 'x' }])); openAuthModal(); }); await sleep(100);
+s11.cloud = await vis('authCloudCard'); s11.local = await vis('authLocalMethodCard');
+log('"Yerel hesap" seçeneği yok; cihazda eski yerel kayıt olsa da giriş ekranı hesap paneliyle açılır', !s11.btn && s11.cloud && !s11.local, JSON.stringify(s11));
 
 /* 12) Koyu tema + dar ekranda kayıt formu taşmaz */
 await p.evaluate(() => { VitaTheme.set('dark'); VitaAuthUI.showCloud(); VitaAuthUI.setMode('register'); }); await sleep(200);

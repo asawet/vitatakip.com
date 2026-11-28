@@ -219,7 +219,14 @@
       var stores = {}; var newest = "";
       (res[0].data || []).forEach(function (row) { stores[row.store] = decode(row); if (row.updated_at > newest) newest = row.updated_at; });
       renderDetail(pt, stores, newest || pt.last_update);
-      renderNotes(Array.isArray(res[1].data) ? res[1].data : []);
+      var notes = Array.isArray(res[1].data) ? res[1].data : [];
+      var replies = [];
+      if (notes.length) { // hastanın yanıtları (note_replies; supabase/migrations/20261128220000_not_yanitlari.sql)
+        var rr = await c.from("note_replies").select("id, note_id, author_role, body, created_at").in("note_id", notes.map(function (n) { return n.id; })).order("created_at", { ascending: true });
+        replies = (rr && Array.isArray(rr.data)) ? rr.data : [];
+        if (!selected || selected.id !== patientId) return;
+      }
+      renderNotes(notes, replies);
     } catch (e) {
       var b = $("vdpDetail"); if (b) { b.textContent = ""; b.appendChild(el("p", "vdp-error", VitaCloud.describeError(e).message)); }
     }
@@ -232,7 +239,8 @@
   }
 
   /* ---------------- Doktor notları ---------------- */
-  function renderNotes(notes) {
+  function renderNotes(notes, replies) {
+    replies = replies || [];
     var ul = $("vdpNoteList"); if (!ul) return;
     ul.textContent = "";
     if (!notes.length) { ul.appendChild(el("li", "vdp-muted", "Bu hastaya henüz not yazmadınız.")); return; }
@@ -244,6 +252,21 @@
       top.appendChild(del);
       li.appendChild(top);
       li.appendChild(el("p", "", n.body || ""));
+      var thread = replies.filter(function (r) { return r.note_id === n.id; });
+      if (thread.length) {
+        var tl = el("ul", "vt-thread");
+        thread.forEach(function (r) {
+          var it = el("li", "vt-reply" + (r.author_role === "doctor" ? " is-mine" : ""));
+          it.appendChild(el("span", "vt-reply-who", (r.author_role === "doctor" ? "Siz" : ((selected && selected.full_name) || "Hasta")) + " · " + fmtDate(r.created_at, true)));
+          it.appendChild(el("span", "vt-reply-body", r.body || ""));
+          tl.appendChild(it);
+        });
+        li.appendChild(tl);
+      }
+      var f = el("form", "vt-reply-form"); f.setAttribute("data-vdp-reply-note", n.id); f.noValidate = true;
+      var inp = el("input"); inp.type = "text"; inp.maxLength = 1000; inp.placeholder = "Hastaya yanıt yazın"; inp.setAttribute("aria-label", "Nota yanıt");
+      var b = el("button", null, "Yanıtla"); b.type = "submit";
+      f.appendChild(inp); f.appendChild(b); li.appendChild(f);
       ul.appendChild(li);
     });
   }
@@ -258,7 +281,7 @@
       var r = await c.from("doctor_notes").insert({ doctor_id: cloudUid(), patient_id: selected.id, body: body }).select("id");
       if (r.error) throw r.error;
       if (input) input.value = "";
-      noteMsg("Not gönderildi; hasta Ayarlar > Doktorum'da görür.", "ok");
+      noteMsg("Not gönderildi; hasta Rapor > Doktorum'da görür.", "ok");
       await loadDetail(selected.id, true);
     } catch (e) {
       noteMsg(/row-level security|42501/.test(String(e && (e.message || e.code))) ? "Bu hastaya not yazma izniniz yok (izin geri alınmış olabilir)." : VitaCloud.describeError(e).message, "error");
@@ -320,7 +343,23 @@
       } catch (_) { shown(false); }
     }
   });
-  document.addEventListener("submit", function (e) { if (e.target && e.target.id === "vdpNoteForm") { e.preventDefault(); saveNote(); } });
+  async function sendReply(noteId, input) {
+    var body = String(input && input.value || "").trim(); if (!body || !selected) return;
+    if (input) input.disabled = true;
+    try {
+      var c = await VitaCloud.getClient();
+      var r = await c.from("note_replies").insert({ note_id: noteId, author_id: cloudUid(), author_role: "doctor", body: body.slice(0, 1000) });
+      if (r && r.error) noteMsg(String(r.error.code) === "42501" ? "Bu hastanın izni olmadığı için yanıt gönderilemedi." : "Yanıt gönderilemedi.", "error");
+      else { noteMsg("Yanıt gönderildi.", "ok"); if (input) input.value = ""; }
+    } catch (e) { noteMsg(VitaCloud.describeError(e).message, "error"); }
+    finally { if (input) input.disabled = false; }
+    if (selected) loadDetail(selected.id, true);
+  }
+  document.addEventListener("submit", function (e) {
+    if (e.target && e.target.id === "vdpNoteForm") { e.preventDefault(); saveNote(); return; }
+    var nid = e.target && e.target.getAttribute && e.target.getAttribute("data-vdp-reply-note");
+    if (nid) { e.preventDefault(); sendReply(nid, e.target.querySelector("input")); }
+  });
   window.addEventListener("online", function () { if (viewVisible()) loadPatients(); });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", watchView); else watchView();
 

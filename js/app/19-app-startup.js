@@ -37,6 +37,7 @@
       applyCompactMode();
       startNotificationScheduler();
       purgeLegacyDemoAccounts();
+      purgeVitaLocalAccounts();
 
       const rememberMeActive = typeof isRememberMeEnabled === "function"
         ? isRememberMeEnabled()

@@ -31,21 +31,55 @@
     } catch (_) { return false; }
   }
 
-  /* Oturum belirteci deposu: "Beni hatırla"ya göre kalıcı ya da yalnız bu sekme. Her yazımda diğer depodaki kopya silinir. */
+  /* Oturum belirteci deposu — SEKME BAŞINA.
+     Her sekmenin oturumu kendi sessionStorage'ındadır; böylece farklı sekmelerde farklı hesaplar aynı anda çalışır
+     (eskiden "Beni hatırla" açıkken tüm sekmeler tek localStorage kopyasını paylaşıyordu: son giriş yapılan hesap
+     diğer sekmelerin isteklerini ele geçiriyordu). localStorage yalnız "hatırlanan hesap" kopyasıdır: yeni sekme /
+     tarayıcı yeniden açılınca oradan başlanır. Aynı hesabın başka sekmede YENİLENMİŞ belirteci varsa o kullanılır
+     (yenileme belirteci döndürmesinde sekmeler birbirinin eski belirtecini kullanıp oturumu düşürmesin). */
+  var TAB_REMEMBER_KEY = "vitatakip-bulut-sekme-hatirla";
+  function ssGet(k) { try { return sessionStorage.getItem(k); } catch (_) { return null; } }
+  function ssSet(k, v) { try { sessionStorage.setItem(k, v); } catch (_) {} }
+  function ssDel(k) { try { sessionStorage.removeItem(k); } catch (_) {} }
+  function lsGetRaw(k) { try { return localStorage.getItem(k); } catch (_) { return null; } }
+  function lsSetRaw(k, v) { try { localStorage.setItem(k, v); } catch (_) {} }
+  function lsDelRaw(k) { try { localStorage.removeItem(k); } catch (_) {} }
+  function sessionUid(raw) { try { var o = JSON.parse(raw); return (o && o.user && o.user.id) || null; } catch (_) { return null; } }
+  /* Sunucu oturum kimliği (erişim belirtecindeki session_id). Aynı hatırlanan kopyadan açılan sekmeler aynı oturumu paylaşır. */
+  function sessionIdOf(raw) {
+    try {
+      var t = JSON.parse(raw).access_token || "";
+      var part = t.split(".")[1]; if (!part) return null;
+      var json = atob(part.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((part.length + 3) % 4));
+      return JSON.parse(json).session_id || null;
+    } catch (_) { return null; }
+  }
+  function sessionExp(raw) { try { return Number(JSON.parse(raw).expires_at) || 0; } catch (_) { return 0; } }
+  /* Bu sekmede girişte seçilen "Beni hatırla" (yoksa genel tercih) */
+  function tabRemember() {
+    var t = ssGet(TAB_REMEMBER_KEY);
+    return t === "true" || t === "false" ? t === "true" : rememberMe();
+  }
+  function setTabRemember(on) { ssSet(TAB_REMEMBER_KEY, on ? "true" : "false"); }
+
   var authStorage = {
     getItem: function (k) {
-      try { var s = sessionStorage.getItem(k); if (s !== null) return s; } catch (_) {}
-      try { return localStorage.getItem(k); } catch (_) { return null; }
+      var s = ssGet(k), l = lsGetRaw(k);
+      if (s === null) return l; // yeni sekme / yeniden açılış: hatırlanan hesap
+      if (l !== null && sessionUid(l) === sessionUid(s) && sessionExp(l) > sessionExp(s)) { ssSet(k, l); return l; }
+      return s;
     },
     setItem: function (k, v) {
-      try {
-        if (rememberMe()) { localStorage.setItem(k, v); sessionStorage.removeItem(k); }
-        else { sessionStorage.setItem(k, v); localStorage.removeItem(k); }
-      } catch (_) {}
+      ssSet(k, v);
+      var l = lsGetRaw(k);
+      // Hatırlanan kopya: bu sekme "hatırla" ile girdiyse ya da kopya zaten aynı hesaba aitse güncellenir
+      if (tabRemember() || (l !== null && sessionUid(l) === sessionUid(v))) lsSetRaw(k, v);
     },
     removeItem: function (k) {
-      try { localStorage.removeItem(k); } catch (_) {}
-      try { sessionStorage.removeItem(k); } catch (_) {}
+      var s = ssGet(k), l = lsGetRaw(k);
+      ssDel(k);
+      // Hatırlanan kopya yalnız AYNI hesaba aitse silinir (başka sekmede hatırlanan başka hesap etkilenmez)
+      if (l !== null && (s === null || sessionUid(l) === sessionUid(s))) lsDelRaw(k);
     }
   };
 
@@ -55,8 +89,9 @@
     return Promise.reject(new Error("Kütüphane yükleyici bulunamadı"));
   }
 
-  /* Supabase istemcisi (tek örnek). İlk çağrıda kütüphane yüklenir. */
-  function getClient() {
+  /* Supabase istemcisi (tek örnek). İlk çağrıda kütüphane yüklenir. Bu dosyadaki giriş/kayıt/sıfırlama işlemleri
+     doğrudan bunu kullanır (oturum o sırada değişebilir). */
+  function rawClient() {
     if (testClient) return Promise.resolve(testClient);
     if (client) return Promise.resolve(client);
     if (!clientPromise) {
@@ -68,6 +103,24 @@
       }).catch(function (e) { clientPromise = null; throw e; });
     }
     return clientPromise;
+  }
+
+  /* Uygulamadaki hesap (activeUserId) ile bu sekmedeki bulut oturumu FARKLI kişiye mi ait? (güvenlik ağı) */
+  function identityMismatch() {
+    var a = typeof activeUserId !== "undefined" ? activeUserId : null;
+    if (!isCloudUserId(a)) return false;
+    var s = storedUserId();
+    return s !== null && s !== a;
+  }
+  /* Diğer modüllerin kullandığı istemci: istekler YANLIŞ hesap adına gitmesin diye önce kimlik eşleşmesi denetlenir;
+     eşleşmezse istek yapılmaz ve "vita:cloud-identity-mismatch" olayıyla güvenli çıkış istenir (js/bulut-giris.js). */
+  function getClient() {
+    if (identityMismatch()) {
+      try { document.dispatchEvent(new CustomEvent("vita:cloud-identity-mismatch", { detail: { appUserId: activeUserId, sessionUserId: storedUserId() } })); } catch (_) {}
+      var err = new Error("Oturum bu sekmedeki hesapla eşleşmiyor."); err.code = "identity_mismatch";
+      return Promise.reject(err);
+    }
+    return rawClient();
   }
 
   function normalizeUsername(u) { return String(u == null ? "" : u).trim().toLocaleLowerCase("tr-TR"); }
@@ -98,6 +151,7 @@
     }
     if (code === "invalid_credentials" || /Invalid login credentials/i.test(msg)) return { code: "invalid_credentials", message: "Takma ad / e-posta veya şifre hatalı." };
     if (code === "user_already_exists" || code === "email_exists" || /already registered|already exists/i.test(msg)) return { code: "user_already_exists", message: "Bu takma ad veya e-posta ile kayıtlı bir hesap zaten var. Giriş yapmayı deneyin." };
+    if (code === "identity_mismatch") return { code: code, message: "Bu sekmedeki oturum başka bir hesapla değişti. Lütfen tekrar giriş yapın." };
     if (code === "same_password" || /different from the old password/i.test(msg)) return { code: "same_password", message: "Yeni şifre eski şifrenizle aynı olamaz." };
     if (code === "weak_password" || /Password should be/i.test(msg)) return { code: "weak_password", message: "Şifre çok zayıf. En az " + MIN_PASSWORD + " karakter, harf ve rakam kullanın." };
     if (code === "email_address_invalid" || /invalid/i.test(msg) && /email/i.test(msg)) return { code: "email_address_invalid", message: "Bu e-posta adresi kabul edilmedi. Farklı bir adres deneyin." };
@@ -125,7 +179,7 @@
       return { ok: false, code: "identifier", error: opts.kind === "username" ? "Takma ad 3-20 karakter olmalı; yalnız küçük harf, rakam ve alt çizgi (_) kullanın." : "Geçerli bir e-posta adresi girin." };
     }
     try {
-      var c = await getClient();
+      var c = await rawClient();
       // consent_at: KVKK açık rıza zamanı (kayıt ekranındaki onay kutusu); kullanıcı meta verisinde saklanır.
       var meta = { full_name: fullName, username: username };
       if (opts.consentAt) meta.consent_at = String(opts.consentAt);
@@ -146,7 +200,7 @@
     try { email = identifierToEmail(identifier); }
     catch (e) { return { ok: false, code: "identifier", error: "Takma adınızı veya e-posta adresinizi kontrol edin." }; }
     try {
-      var c = await getClient();
+      var c = await rawClient();
       var res = await c.auth.signInWithPassword({ email: email, password: String(password || "") });
       if (res.error) return fail(res.error);
       return { ok: true, user: res.data.user, session: res.data.session };
@@ -155,7 +209,7 @@
 
   async function signOut() {
     try {
-      var c = await getClient();
+      var c = await rawClient();
       // scope "local": yalnız bu cihazdaki oturum kapanır (diğer cihazlar açık kalır); çevrimdışıyken de yerel belirteç silinir.
       var res = await c.auth.signOut({ scope: "local" });
       if (res && res.error) return fail(res.error);
@@ -170,7 +224,7 @@
      sunucudaki "hesap-sil" Edge Function'ı çağrılır (supabase/functions/hesap-sil); fonksiyon yalnız oturum sahibini siler. */
   async function deleteAccount() {
     try {
-      var c = await getClient();
+      var c = await rawClient();
       var res = await c.functions.invoke("hesap-sil", { method: "POST" });
       if (res.error) return fail(res.error);
       if (!res.data || res.data.ok !== true) return { ok: false, code: "delete_failed", error: "Hesap silinemedi. Lütfen tekrar deneyin." };
@@ -197,7 +251,7 @@
     if (!EMAIL_RE.test(email)) return { ok: false, code: "identifier", error: "Geçerli bir e-posta adresi girin." };
     if (isUsernameAccount(email)) return { ok: false, code: "username_account", error: "Bu bir takma ad hesabıdır; takma adınızı ve kurtarma kodunuzu kullanın." };
     try {
-      var c = await getClient();
+      var c = await rawClient();
       var res = await c.auth.resetPasswordForEmail(email, { redirectTo: resetRedirectUrl() });
       if (res && res.error) {
         var d = describeError(res.error);
@@ -215,7 +269,7 @@
     tokenHash = String(tokenHash || "");
     if (!tokenHash) return { ok: false, code: "link_expired", error: describeError({ code: "otp_expired" }).message };
     try {
-      var c = await getClient();
+      var c = await rawClient();
       var session = null, user = null;
       if (verifiedRecoveryToken !== tokenHash) {
         var v = await c.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" });
@@ -227,6 +281,28 @@
       if (!session) { var g = await c.auth.getSession(); session = g && g.data && g.data.session; }
       verifiedRecoveryToken = null;
       return { ok: true, user: (u.data && u.data.user) || user || (session && session.user), session: session };
+    } catch (e) { return fail(e); }
+  }
+
+  /* Giriş yapmışken şifre değiştirme: mevcut şifre aynı hesapla doğrulanır, sonra yeni şifre kaydedilir. */
+  async function changePassword(current, next) {
+    next = String(next || "");
+    if (next.length < MIN_PASSWORD) return { ok: false, code: "weak_password", error: "Şifre en az " + MIN_PASSWORD + " karakter olmalıdır." };
+    if (String(current || "") === next) return { ok: false, code: "same_password", error: describeError({ code: "same_password" }).message };
+    try {
+      var c = await rawClient();
+      var g = await c.auth.getSession();
+      var u = g && g.data && g.data.session && g.data.session.user;
+      var app = typeof activeUserId !== "undefined" ? activeUserId : null;
+      if (!u || !u.email || (isCloudUserId(app) && u.id !== app)) return { ok: false, code: "no_session", error: "Şifre değiştirmek için hesabınızla yeniden giriş yapın." };
+      var v = await c.auth.signInWithPassword({ email: u.email, password: String(current || "") });
+      if (v.error) {
+        var d = describeError(v.error);
+        return d.code === "invalid_credentials" ? { ok: false, code: "wrong_current", error: "Mevcut şifreniz hatalı." } : { ok: false, code: d.code, error: d.message };
+      }
+      var r = await c.auth.updateUser({ password: next });
+      if (r.error) return fail(r.error);
+      return { ok: true };
     } catch (e) { return fail(e); }
   }
 
@@ -250,7 +326,7 @@
       var uid = await sessionUserId();
       if (!uid) return { ok: false, code: "no_session", error: "Kurtarma kodu için bulut hesabıyla giriş yapmalısınız." };
       var code = generateRecoveryCode();
-      var c = await getClient();
+      var c = await rawClient();
       var res = await c.from("recovery_codes").upsert({ user_id: uid, code_hash: await hashRecoveryCode(code), created_at: new Date().toISOString() }, { onConflict: "user_id" });
       if (res && res.error) return fail(res.error);
       return { ok: true, code: code };
@@ -261,7 +337,7 @@
     try {
       var uid = await sessionUserId();
       if (!uid) return { ok: false, code: "no_session" };
-      var c = await getClient();
+      var c = await rawClient();
       var res = await c.from("recovery_codes").select("created_at").eq("user_id", uid).maybeSingle();
       if (res.error) return fail(res.error);
       return { ok: true, exists: Boolean(res.data), createdAt: res.data ? res.data.created_at : null };
@@ -275,7 +351,7 @@
     password = String(password || "");
     if (password.length < MIN_PASSWORD) return { ok: false, code: "weak_password", error: "Şifre en az " + MIN_PASSWORD + " karakter olmalıdır." };
     try {
-      var c = await getClient();
+      var c = await rawClient();
       var res = await c.functions.invoke("sifre-kurtar", { method: "POST", body: { username: username, code: normalizeRecoveryCode(code), password: password } });
       var data = res.data, reason = data && data.error;
       if (res.error) {
@@ -298,7 +374,7 @@
   }
   async function myProfile(uid) {
     try {
-      var c = await getClient();
+      var c = await rawClient();
       var res = await c.rpc("my_profile");
       if (res.error || !Array.isArray(res.data) || !res.data[0]) return cachedProfile(uid);
       var p = res.data[0];
@@ -308,10 +384,22 @@
     } catch (_) { return cachedProfile(uid); }
   }
 
+  /* Hesap türü: sunucudan okunmuş profil, yoksa bu sekmedeki oturumun kayıt bilgisi (yeni kayıtta profil henüz gelmemiş olabilir) */
+  function accountTypeOf(uid) {
+    var p = cachedProfile(uid);
+    if (p && p.account_type) return p.account_type;
+    try {
+      var raw = authStorage.getItem(CONFIG.sessionStorageKey);
+      var u = raw && JSON.parse(raw).user;
+      if (u && u.id === uid && u.user_metadata && u.user_metadata.account_type === "doctor") return "doctor";
+    } catch (_) {}
+    return null;
+  }
+
   /* Kayıtlı oturum (ağ isteği yapmadan; çevrimdışıyken de çalışır). Yoksa null. */
   async function getSession() {
     try {
-      var c = await getClient();
+      var c = await rawClient();
       var res = await c.auth.getSession();
       return (res && res.data && res.data.session) || null;
     } catch (_) { return null; }
@@ -340,11 +428,16 @@
     deleteAccount: deleteAccount,
     myProfile: myProfile,
     cachedProfile: cachedProfile,
+    accountTypeOf: accountTypeOf,
     getSession: getSession,
     hasStoredSession: hasStoredSession,
     storedUserId: storedUserId,
     isCloudUserId: isCloudUserId,
     authStorage: authStorage,
+    setTabRemember: setTabRemember,
+    sessionIdOf: sessionIdOf,
+    sessionUid: sessionUid,
+    identityMismatch: identityMismatch,
     normalizeUsername: normalizeUsername,
     isValidUsername: isValidUsername,
     usernameToEmail: usernameToEmail,
@@ -354,6 +447,7 @@
     requestPasswordReset: requestPasswordReset,
     completeEmailReset: completeEmailReset,
     recoverWithCode: recoverWithCode,
+    changePassword: changePassword,
     createRecoveryCode: createRecoveryCode,
     recoveryCodeStatus: recoveryCodeStatus,
     normalizeRecoveryCode: normalizeRecoveryCode,

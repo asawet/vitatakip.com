@@ -16,7 +16,7 @@ const toasts = () => p.evaluate(() => document.body.innerText);
 /* 1) Kayıt formu: hesap türü; varsayılan Hasta */
 await p.evaluate(() => { VitaAuthUI.showCloud(); VitaAuthUI.setMode('register'); });
 const s1 = { row: (await vis('cloudTabPatient')) && (await vis('cloudTabDoctor')), consent: await vis('cloudConsentRow'), dinfo: await vis('cloudDoctorInfo'), dpledge: await vis('cloudDoctorConsentRow'), sel: await p.evaluate(() => cloudTabPatient.getAttribute('aria-selected')), local: await vis('authShowLocalBtn') };
-log('Üstte "Hasta | Doktor" sekmeleri; varsayılan Hasta, sağlık verisi açık rızası ve yerel hesap seçeneği görünür', s1.row && s1.consent && !s1.dinfo && !s1.dpledge && s1.sel === 'true' && s1.local, JSON.stringify(s1));
+log('Üstte "Hasta | Doktor" sekmeleri; varsayılan Hasta, sağlık verisi açık rızası görünür; yerel hesap seçeneği yok', s1.row && s1.consent && !s1.dinfo && !s1.dpledge && s1.sel === 'true' && !s1.local, JSON.stringify(s1));
 
 /* 2) Doktor seçilince: onay bilgisi + hekim taahhüdü, hasta açık rızası gizli */
 await p.click('[data-cloud-acct="doctor"]'); await sleep(100);

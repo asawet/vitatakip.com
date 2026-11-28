@@ -43,10 +43,10 @@
 
   /* Giriş ekranı her açıldığında: son kullanılan panel; yoksa cihazda yerel hesap varsa yerel, yoksa bulut. */
   function onOpen() {
-    var saved = lsGet(PANEL_KEY);
-    var panel = saved === "cloud" || saved === "local" ? saved : (localAccountCount() > 0 ? "local" : "cloud");
+    // Yerel hesap kaldırıldı: giriş ekranı her zaman hesap (bulut) paneliyle açılır.
+    // showLocal() yalnız test altyapısı için içeride durur; arayüzde yerel hesaba giden bir yol yoktur.
     setMode(mode);
-    showPanel(panel, false);
+    showPanel("cloud", false);
   }
 
   /* ---------------- Sekme (Hasta | Doktor) ve giriş/kayıt modu ---------------- */
@@ -81,7 +81,6 @@
     show($("cloudConsentRow"), reg && acct === "patient");
     show($("cloudDoctorInfo"), reg && acct === "doctor");
     show($("cloudDoctorConsentRow"), reg && acct === "doctor");
-    show($("authShowLocalBtn"), acct === "patient"); // yerel hesap yalnız hasta içindir
     var nameInput = $("cloudInputFullName"); if (nameInput) nameInput.placeholder = acct === "doctor" ? "Ad Soyad (ör. Dr. Ahmet Yılmaz)" : "Ad Soyad";
     var t = $("cloudFormTitle"); if (t) t.textContent = title();
     var sub = $("authSubtitle"); if (sub && currentPanel() === "cloud") sub.textContent = title();
@@ -110,7 +109,7 @@
   }
   function updateOfflineNotice() {
     if (currentPanel() !== "cloud") return;
-    if (!navigator.onLine) setMessage("İnternet bağlantısı yok. Bulut hesabına giriş için bağlantı gerekir; bu cihazda daha önce giriş yaptıysanız uygulama zaten açılır. İsterseniz yerel hesap kullanabilirsiniz.", false);
+    if (!navigator.onLine) setMessage("İnternet bağlantısı yok. Bulut hesabına giriş için bağlantı gerekir; bu cihazda daha önce giriş yaptıysanız uygulama zaten açılır.", false);
     else { var note = $("cloudNoticeMsg"); if (note && /İnternet bağlantısı yok/.test(note.textContent)) setMessage(""); }
   }
   function syncRememberBox() {
@@ -146,12 +145,13 @@
       if (password !== ($("cloudInputPasswordConfirm") ? $("cloudInputPasswordConfirm").value : "")) { setMessage("Girdiğiniz şifreler birbiriyle eşleşmiyor.", true, true); if ($("cloudInputPasswordConfirm")) $("cloudInputPasswordConfirm").focus(); return false; }
       if (acct === "doctor") {
         if (!($("cloudDoctorConsentCheckbox") && $("cloudDoctorConsentCheckbox").checked)) { setMessage("Doktor hesabı için hekim taahhüdünü onaylamanız gerekir.", true, true); return false; }
-      } else if (!($("cloudConsentCheckbox") && $("cloudConsentCheckbox").checked)) { setMessage("Bulut hesabı için sağlık verilerinizin saklanmasına açık rıza vermeniz gerekir. İstemiyorsanız \"Bu cihazda yerel hesap\" seçeneğini kullanabilirsiniz.", true, true); return false; }
+      } else if (!($("cloudConsentCheckbox") && $("cloudConsentCheckbox").checked)) { setMessage("Bulut hesabı için sağlık verilerinizin saklanmasına açık rıza vermeniz gerekir.", true, true); return false; }
     } else if (!password) { setMessage("Lütfen şifrenizi girin.", true, true); if (pwInput) pwInput.focus(); return false; }
     if (!navigator.onLine) { updateOfflineNotice(); return false; }
 
     // Oturum belirtecinin hangi depoya yazılacağı bu tercihe bağlı (js/bulut.js authStorage) — istekten ÖNCE kaydedilir.
     lsSet("vitatakip_remember_me", remember ? "true" : "false");
+    if (VitaCloud.setTabRemember) VitaCloud.setTabRemember(remember); // bu sekmenin oturumu (js/bulut.js authStorage)
     setBusy(true);
     var res;
     try {
@@ -236,6 +236,8 @@
       if (activeUserId !== uid) return;
       var err = res && res.error;
       if (!err && res.data && res.data.user && res.data.user.id === uid) { refreshProfile(uid, false); return; }
+      // Oturum başka bir hesaba ait (ör. eski sürümde başka sekmeden yapılan giriş): bu sekme güvenli çıkış yapar
+      if (!err && res.data && res.data.user && res.data.user.id !== uid) { forceLogout(MISMATCH_MSG); return; }
       var status = err && (err.status || 0);
       var code = String((err && err.code) || "");
       var revoked = (status === 401 || status === 403) || /session_not_found|refresh_token_not_found|user_not_found|bad_jwt/.test(code) || (!err && !(res.data && res.data.user));
@@ -244,10 +246,14 @@
     } catch (_) { /* ağ hatası: oturum açık kalır */ }
   }
   function forceLogout(message) {
-    try { VitaCloud.signOut(); } catch (_) {}
+    // Oturum başka hesaba aitse sunucudaki o oturum kapatılmaz (o hesap başka sekmede çalışıyor olabilir);
+    // yalnız bu sekmenin kopyası bırakılır.
+    if (VitaCloud.identityMismatch && VitaCloud.identityMismatch()) { try { sessionStorage.removeItem(VitaCloud.config.sessionStorageKey); } catch (_) {} }
+    else { try { VitaCloud.signOut(); } catch (_) {} }
     safeLocalStorageRemoveItem("vitatakip_active_session_id");
     safeSessionStorageRemoveItem("vitatakip_active_session_id");
     activeUserId = null;
+    if (window.VitaMigrate) try { VitaMigrate.close(); } catch (_) {}
     if (window.VitaSync) window.VitaSync.updateStatus();
     resetApplicationDOMAndState();
     openAuthModal();
@@ -259,7 +265,30 @@
   function onLogout(wasCloud) {
     if (wasCloud && window.VitaCloud) { try { VitaCloud.signOut(); } catch (_) {} lsSet(PANEL_KEY, "cloud"); }
     if (window.VitaSync) window.VitaSync.updateStatus(); // eşitleme göstergesi gizlenir
+    if (window.VitaMigrate) try { VitaMigrate.close(); } catch (_) {} // önceki hesabın taşıma sorusu kalmasın
   }
+
+  var MISMATCH_MSG = "Bu sekmedeki oturum başka bir hesapla değişti; güvenliğiniz için çıkış yapıldı. Lütfen tekrar giriş yapın. Bu cihazdaki verileriniz silinmedi.";
+  var mismatchHandled = false;
+  document.addEventListener("vita:cloud-identity-mismatch", function () {
+    if (mismatchHandled) return;
+    mismatchHandled = true;
+    setTimeout(function () { mismatchHandled = false; }, 3000);
+    forceLogout(MISMATCH_MSG);
+  });
+
+  /* Aynı sunucu oturumunu paylaşan başka bir sekmede çıkış yapıldı (hatırlanan kopya silindi): bu sekmenin oturumu da
+     sunucuda kapandı. Yarım çalışmasın diye açıklamayla giriş ekranına dönülür. Ayrı girişli sekmeler etkilenmez. */
+  window.addEventListener("storage", function (e) {
+    if (!window.VitaCloud || e.key !== VitaCloud.config.sessionStorageKey || e.newValue !== null || !e.oldValue) return;
+    var uid = typeof activeUserId !== "undefined" ? activeUserId : null;
+    if (!VitaCloud.isCloudUserId(uid) || VitaCloud.sessionUid(e.oldValue) !== uid) return;
+    var mine = null; try { mine = sessionStorage.getItem(VitaCloud.config.sessionStorageKey); } catch (_) {}
+    var sid = VitaCloud.sessionIdOf(e.oldValue);
+    if (!mine || !sid || VitaCloud.sessionIdOf(mine) !== sid) return;
+    try { sessionStorage.removeItem(VitaCloud.config.sessionStorageKey); } catch (_) {}
+    forceLogout("Bu hesaptan başka bir sekmede çıkış yapıldı; bu sekmede de oturum kapandı. Bu cihazdaki verileriniz silinmedi.");
+  });
 
   /* ---------------- Olaylar ---------------- */
   document.addEventListener("click", function (e) {
