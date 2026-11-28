@@ -57,13 +57,15 @@ await p.evaluate(() => { try { closeProfileModal(); } catch (e) {} handleLogout(
 await p.evaluate(() => { VitaAuthUI.showCloud(); VitaAuthUI.setMode('login'); });
 await p.click('#cloudTabDoctor'); await sleep(100);
 const s6row = { row: await vis('cloudTabDoctor'), sub: await p.evaluate(() => authSubtitle.textContent), dinfo: await vis('cloudDoctorInfo'), dpledge: await vis('cloudDoctorConsentRow'), name: await vis('cloudFullNameField') };
-await p.click('#cloudForgotBtn'); await sleep(100);
-const forgot = await p.evaluate(() => document.getElementById('cloudNoticeMsg').textContent + document.getElementById('cloudErrorMsg').textContent);
+await p.click('#cloudForgotBtn'); await sleep(150);
+const forgot = { reset: await vis('authResetCard'), sub: await p.evaluate(() => authSubtitle.textContent) };
+await p.click('#resetBackBtn'); await sleep(150);
+forgot.back = await vis('authCloudCard');
 await p.evaluate(uid => { window.__verifiedDoctors = [uid]; }, s4.uid);
 await fill('cloudInputIdentifier', 'dr_deniz'); await fill('cloudInputPassword', 'doktor123'); await p.click('#cloudSubmitBtn'); await sleep(1500);
 const s6 = await p.evaluate(() => JSON.parse(localStorage.getItem('vitatakip_bulut_profil_' + activeUserId) || 'null'));
 log('Girişte de sekmeler görünür ("Doktor girişi"); doktor kayıt alanları gizli', s6row.row && s6row.sub === 'Doktor girişi' && !s6row.dinfo && !s6row.dpledge && !s6row.name, JSON.stringify(s6row));
-log('"Şifremi unuttum" ne yapılacağını açıklar (sıfırlama yakında)', /Şifre sıfırlama yakında/.test(forgot), forgot.slice(0, 60));
+log('"Şifremi unuttum" sıfırlama ekranını açar, "Girişe dön" geri getirir', forgot.reset && forgot.sub === 'Şifre sıfırlama' && forgot.back, JSON.stringify(forgot));
 log('Doktor tekrar girince profil sunucudan tazelenir (yönetici onayı görünür)', s6 && s6.doctor_verified === true, JSON.stringify(s6));
 
 const diag = await p.evaluate(() => VitaTakipDiagnostics.run());

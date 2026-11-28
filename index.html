@@ -27,11 +27,11 @@
 <!-- Uses Inter when already available; otherwise falls back immediately to the system UI font. -->
 <!-- Font Awesome 6 CDN -->
 <!-- build:css -->
-<link rel="stylesheet" href="./css/app.css?v=6907b12e45">
-<script defer src="./js/app.1.js?v=6907b12e45"></script>
-<script defer src="./js/app.2.js?v=6907b12e45"></script>
-<script defer src="./js/app.3.js?v=6907b12e45"></script>
-<script defer src="./js/app.4.js?v=6907b12e45"></script>
+<link rel="stylesheet" href="./css/app.css?v=3732f029b4">
+<script defer src="./js/app.1.js?v=3732f029b4"></script>
+<script defer src="./js/app.2.js?v=3732f029b4"></script>
+<script defer src="./js/app.3.js?v=3732f029b4"></script>
+<script defer src="./js/app.4.js?v=3732f029b4"></script>
 <!-- /build:css -->
 <!-- Chart.js loads only if a trend chart is needed. -->
 <!-- PDF.js loads only when a user selects a PDF for analysis. -->
@@ -2049,6 +2049,18 @@ Anahtar girerseniz Vita AI sohbeti ve kutu fotoğrafı tanıma Google Gemini ile
 <span class="min-w-0"><span class="block font-bold text-navy-900">Bu cihazdaki yerel hesap verileri</span><span class="block text-[11px] text-slate-500">Yerel hesabınızdaki kayıtları bulut hesabınıza kopyalayın.</span></span>
 <button class="px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5" id="settingsCloudImportBtn" type="button"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i><span>Buluta taşı</span></button>
 </div></div>
+<!-- Takma ad bulut hesabı: kurtarma kodu (js/bulut-sifre.js; e-posta hesabında ve yerel hesapta gizli) -->
+<div class="py-2.5 hidden" id="settingsRecoveryRow">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<span class="min-w-0 flex-1"><span class="block font-bold text-navy-900"><i class="fa-solid fa-shield-halved text-teal-600" aria-hidden="true"></i> Kurtarma kodu</span><span class="block text-[11px] text-slate-500" id="settingsRecoveryStatus">Şifrenizi unutursanız takma ad hesabınıza bu kodla dönersiniz.</span></span>
+<button class="px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0" id="settingsRecoveryNewBtn" type="button"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i><span>Yeni kod oluştur</span></button>
+</div>
+<div class="hidden vt-rc-box" id="settingsRecoveryCodeBox" role="status">
+<span class="block text-[11px] font-bold text-slate-600">Yeni kurtarma kodunuz (eski kod artık geçersiz). Bu kod bir daha gösterilmez; güvenli bir yere kaydedin:</span>
+<span class="vt-rc-code" id="settingsRecoveryCodeValue" translate="no"></span>
+<button class="px-3 py-1.5 rounded-xl bg-white border border-teal-300 text-teal-800 text-xs font-bold cursor-pointer" id="settingsRecoveryCopyBtn" type="button"><i class="fa-solid fa-copy" aria-hidden="true"></i> Kopyala</button>
+</div>
+</div>
 <!-- Şifreli: 4 haneli kodla Oyun Merkezi'ne yönlendirir (js/day-compact.js). Kod sayfada düz yazılı değildir; yalnızca özeti saklanır. -->
 <details class="py-2.5 set-locked" id="settingsLockedRow">
 <summary class="flex items-center justify-between gap-3 cursor-pointer list-none"><span class="flex items-center gap-2 font-bold text-navy-900"><i class="fa-solid fa-lock text-slate-500" aria-hidden="true"></i>Şifreli</span><i class="fa-solid fa-chevron-down text-slate-400 text-[10px]" aria-hidden="true"></i></summary>
@@ -2623,7 +2635,7 @@ Verileri Sil
 <button class="vta-eye" aria-label="Şifreyi göster/gizle" onclick="togglePasswordVisibility('cloudInputPasswordConfirm', this)" type="button"><i class="fa-solid fa-eye"></i></button>
 </div>
 </div>
-<p class="hidden vta-warn" id="cloudUsernameWarning" role="note"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> <span>Takma adla açılan hesapta e-posta yoktur; şifrenizi unutursanız şu an sıfırlama yolu bulunmuyor. Şifrenizi güvenli bir yere not edin.</span></p>
+<p class="hidden vta-warn" id="cloudUsernameWarning" role="note"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> <span>Takma adla açılan hesapta e-posta yoktur. Kayıttan sonra size bir <strong>kurtarma kodu</strong> verilecek; şifrenizi unutursanız hesabınıza yalnız bu kodla dönebilirsiniz.</span></p>
 <p class="hidden vta-warn vta-info" id="cloudDoctorInfo" role="note"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i> <span>Doktor hesabı <strong>onay bekliyor</strong> olarak açılır ve size bir doktor kodu verilir (ör. DR-4829). Hastalar kodunuzla size erişim izni verebilmesi için hesabınızın VitaTakip yöneticisince onaylanması gerekir.</span></p>
 <label class="hidden vta-check" id="cloudDoctorConsentRow"><input id="cloudDoctorConsentCheckbox" type="checkbox"/> <span>Hekim taahhüdü: hasta verilerini yalnızca hastanın verdiği izinle ve takip/tedavi amacıyla görüntüleyeceğimi, başkasıyla paylaşmayacağımı ve hastanın izni istediği an geri alabileceğini kabul ediyorum. <button onclick="openKvkkInfoModal()" type="button">Gizlilik metni</button></span></label>
 <label class="hidden vta-check" id="cloudConsentRow"><input id="cloudConsentCheckbox" type="checkbox"/> <span>Sağlık verilerimin (takviye, ilaç, tahlil, belirti kayıtlarım) hesabımla eşitlenmek üzere VitaTakip bulut veritabanında (Supabase, Frankfurt / AB) saklanmasına <strong>açık rıza</strong> veriyorum. Verilerime yalnızca ben erişebilirim. <button onclick="openKvkkInfoModal()" type="button">Gizlilik metni</button></span></label>
@@ -2637,6 +2649,77 @@ Verileri Sil
 </div>
 </form>
 <button class="vta-secondary" id="authShowLocalBtn" type="button"><i class="fa-solid fa-mobile-screen" aria-hidden="true"></i> Bu cihazda yerel hesap (internetsiz)</button>
+</div>
+
+<!-- Şifremi unuttum / e-posta bağlantısıyla yeni şifre / kurtarma kodu gösterimi (js/bulut-sifre.js) -->
+<div class="hidden" id="authResetCard">
+<button class="vta-link vta-back" id="resetBackBtn" type="button"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Girişe dön</button>
+<form id="resetRequestForm" novalidate="">
+<p class="vta-lead" id="resetLead">E-posta adresinizi ya da takma adınızı yazın. E-postayla açılan hesaplara sıfırlama bağlantısı gönderilir.</p>
+<div class="vta-field">
+<label class="sr-only" for="resetIdentifier">E-posta veya takma ad</label>
+<div class="vta-input">
+<i class="fa-solid fa-at vta-ico" aria-hidden="true"></i>
+<input aria-describedby="resetErrorMsg" autocapitalize="none" autocomplete="username" id="resetIdentifier" maxlength="254" placeholder="E-posta veya takma ad" spellcheck="false" type="text"/>
+</div>
+</div>
+<div class="hidden" id="resetCodeFields">
+<div class="vta-field">
+<label class="sr-only" for="resetCodeInput">Kurtarma kodu</label>
+<div class="vta-input">
+<i class="fa-solid fa-shield-halved vta-ico" aria-hidden="true"></i>
+<input aria-describedby="resetErrorMsg" autocapitalize="characters" autocomplete="off" class="vta-code-input" id="resetCodeInput" maxlength="24" placeholder="Kurtarma kodu (16 karakter)" spellcheck="false" type="text"/>
+</div>
+</div>
+<div class="vta-field">
+<label class="sr-only" for="resetNewPassword">Yeni şifre</label>
+<div class="vta-input">
+<i class="fa-solid fa-lock vta-ico" aria-hidden="true"></i>
+<input aria-describedby="resetErrorMsg" autocomplete="new-password" id="resetNewPassword" minlength="8" placeholder="Yeni şifre (en az 8 karakter)" type="password"/>
+<button class="vta-eye" aria-label="Şifreyi göster/gizle" onclick="togglePasswordVisibility('resetNewPassword', this)" type="button"><i class="fa-solid fa-eye"></i></button>
+</div>
+</div>
+<div class="vta-field">
+<label class="sr-only" for="resetNewPassword2">Yeni şifre tekrar</label>
+<div class="vta-input">
+<i class="fa-solid fa-shield-halved vta-ico" aria-hidden="true"></i>
+<input aria-describedby="resetErrorMsg" autocomplete="new-password" id="resetNewPassword2" placeholder="Yeni şifre tekrar" type="password"/>
+<button class="vta-eye" aria-label="Şifreyi göster/gizle" onclick="togglePasswordVisibility('resetNewPassword2', this)" type="button"><i class="fa-solid fa-eye"></i></button>
+</div>
+</div>
+</div>
+<div aria-live="assertive" class="hidden vta-msg vta-msg-err" id="resetErrorMsg" role="alert" tabindex="-1"></div>
+<div aria-live="polite" class="hidden vta-msg vta-msg-info" id="resetNoticeMsg" role="status"></div>
+<button class="vta-primary" id="resetSubmitBtn" type="submit"><span>Sıfırlama bağlantısı gönder</span></button>
+</form>
+<form class="hidden" id="resetLinkForm" novalidate="">
+<p class="vta-lead">Hesabınız için yeni bir şifre belirleyin. Kaydettiğinizde giriş yapmış olursunuz.</p>
+<div class="vta-field">
+<label class="sr-only" for="resetLinkPassword">Yeni şifre</label>
+<div class="vta-input">
+<i class="fa-solid fa-lock vta-ico" aria-hidden="true"></i>
+<input aria-describedby="resetErrorMsg" autocomplete="new-password" id="resetLinkPassword" minlength="8" placeholder="Yeni şifre (en az 8 karakter)" type="password"/>
+<button class="vta-eye" aria-label="Şifreyi göster/gizle" onclick="togglePasswordVisibility('resetLinkPassword', this)" type="button"><i class="fa-solid fa-eye"></i></button>
+</div>
+</div>
+<div class="vta-field">
+<label class="sr-only" for="resetLinkPassword2">Yeni şifre tekrar</label>
+<div class="vta-input">
+<i class="fa-solid fa-shield-halved vta-ico" aria-hidden="true"></i>
+<input aria-describedby="resetErrorMsg" autocomplete="new-password" id="resetLinkPassword2" placeholder="Yeni şifre tekrar" type="password"/>
+<button class="vta-eye" aria-label="Şifreyi göster/gizle" onclick="togglePasswordVisibility('resetLinkPassword2', this)" type="button"><i class="fa-solid fa-eye"></i></button>
+</div>
+</div>
+<button class="vta-primary" id="resetLinkSubmitBtn" type="submit"><span>Yeni şifreyi kaydet</span></button>
+<button class="hidden vta-secondary" id="resetLinkExpiredBtn" type="button"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> Yeni bağlantı iste</button>
+</form>
+<div class="hidden vta-rc" id="recoveryCodeBox">
+<p class="vta-lead" id="recoveryLead">Takma ad hesabınızda e-posta yok: şifrenizi unutursanız hesabınıza <strong>yalnız bu kodla</strong> dönebilirsiniz. Bir yere yazın veya ekran görüntüsü alın. Kod bir kez kullanılır; kullanınca yenisi verilir.</p>
+<p class="vta-rc-code" id="recoveryCodeValue" translate="no"></p>
+<button class="vta-secondary" id="recoveryCopyBtn" type="button"><i class="fa-solid fa-copy" aria-hidden="true"></i> Kodu kopyala</button>
+<label class="vta-check"><input id="recoveryAckCheckbox" type="checkbox"/> <span>Kodu güvenli bir yere kaydettim</span></label>
+<button class="vta-primary" disabled="" id="recoveryContinueBtn" type="button"><span>Devam et</span></button>
+</div>
 </div>
 
 <div id="authLocalMethodCard">
@@ -3268,7 +3351,7 @@ Verileri Sil
 <li><strong>Kapsam ve veri sorumlusu.</strong> Bu metin, VitaTakip'te işlenen kişisel verilere ilişkin 6698 sayılı KVKK kapsamındaki aydınlatma özetidir. Uygulama eğitim ve klinik karar desteği amacıyla sunulur.</li>
 <li><strong>İşlenen veriler.</strong> Profil bilgileriniz (yaş, cinsiyet, boy, kilo), tahlil sonuçları ve referans aralıkları, seçtiğiniz belirtiler, kullandığınız ilaç ve takviyeler, günlük takip kayıtları ve yüklediğiniz PDF/fotoğraf içerikleri; bunlar sağlık verisi olup özel nitelikli kişisel veridir.</li>
 <li><strong>İşleme amaçları.</strong> Verileriniz yalnızca tahlil ve belirti analizi, takviye ve ilaç etkileşimi kontrolü, hatırlatmalar ve doktorunuzla paylaşabileceğiniz özetlerin üretilmesi için kullanılır. Reklam veya profilleme amacıyla kullanılmaz.</li>
-<li><strong>Saklama yeri.</strong> İki hesap türü vardır. <em>Yerel hesap:</em> kayıtlarınız yalnızca bu cihazın tarayıcı/uygulama hafızasında (localStorage ve IndexedDB) tutulur, hiçbir sunucuya gönderilmez. <em>Bulut hesabı</em> (açık rızanızla): kayıtlarınız önce bu cihaza yazılır, ardından hesabınızla eşitlenmek üzere VitaTakip bulut veritabanında (Supabase, Frankfurt / Avrupa Birliği) saklanır. Bulutta takviye, ilaç, tahlil, belirti, profil, su takibi ve notlarınız bulunur; e-Nabız PDF dosyaları, profil fotoğrafı ve Gemini API anahtarınız buluta gönderilmez, bu cihazda kalır. Bulut kayıtlarınızı yalnızca siz, kendi hesabınızla görebilirsiniz; erişim veritabanı düzeyinde satır güvenliğiyle (RLS) sınırlandırılmıştır.</li>
+<li><strong>Saklama yeri.</strong> İki hesap türü vardır. <em>Yerel hesap:</em> kayıtlarınız yalnızca bu cihazın tarayıcı/uygulama hafızasında (localStorage ve IndexedDB) tutulur, hiçbir sunucuya gönderilmez. <em>Bulut hesabı</em> (açık rızanızla): kayıtlarınız önce bu cihaza yazılır, ardından hesabınızla eşitlenmek üzere VitaTakip bulut veritabanında (Supabase, Frankfurt / Avrupa Birliği) saklanır. Bulutta takviye, ilaç, tahlil, belirti, profil, su takibi ve notlarınız bulunur; e-Nabız PDF dosyaları, profil fotoğrafı ve Gemini API anahtarınız buluta gönderilmez, bu cihazda kalır. Bulut kayıtlarınızı yalnızca siz, kendi hesabınızla görebilirsiniz; erişim veritabanı düzeyinde satır güvenliğiyle (RLS) sınırlandırılmıştır. <em>Şifre sıfırlama:</em> e-postayla açılan hesaplarda sıfırlama bağlantısı, e-posta gönderim hizmeti Resend aracılığıyla gönderilir; bu amaçla yalnızca e-posta adresiniz işlenir, sağlık kayıtlarınız e-postaya konmaz. Takma adla açılan hesaplarda size bir kurtarma kodu verilir; kodun kendisi hiçbir yerde saklanmaz, veritabanında yalnızca geri döndürülemez özeti (SHA-256) tutulur. Kurtarma denemeleri kötüye kullanımı önlemek için takma ad ve IP adresiyle en fazla 1 gün kaydedilir.</li>
 <li><strong>Üçüncü taraflarla paylaşım.</strong> Reklam, pazarlama veya profilleme amacıyla hiçbir üçüncü tarafla veri paylaşılmaz. <em>Doktorunuzla paylaşım (bulut hesabı, isteğe bağlı):</em> Ayarlar &gt; Doktorum bölümüne doktorunuzun kodunu girip onaylarsanız, yalnızca o doktor profil, takviye, ilaç, tahlil ve belirti kayıtlarınızı ve doktora notlarınızı <strong>yalnızca okuyabilir</strong>; su takibi ve günlük işaretleriniz paylaşılmaz. Yalnızca VitaTakip yöneticisince onaylanmış doktor hesaplarına izin verilebilir. Doktorunuz size not yazabilir; notları yalnızca siz ve o doktor görür. İzni Ayarlar &gt; Doktorum'dan istediğiniz an geri alırsınız; geri alındığı anda doktorun erişimi veritabanı düzeyinde sona erer. Ayarlar'da Google Gemini API anahtarı eklerseniz: Vita AI sohbetinde yalnızca paylaşım onayını açtığınızda o soru ve soruyla ilgili sağlık bağlamı; "Yapay Zekâ ile Kutuyu Tanı"yı kullandığınızda yalnızca onayladığınız kutu fotoğrafı yanıt üretimi için Google'a gönderilir. Bulut hesabında kendi anahtarınızı girmezseniz aynı istekler, onayınızla, VitaTakip sunucusu (Supabase, Frankfurt) üzerinden Google Gemini'nin ücretsiz hizmetine iletilir; ücretsiz hizmette Google gönderilen içeriği inceleyebilir ve ürün geliştirmede kullanabilir; adınız gönderilmez ve günlük soru hakkı sınırlıdır. Anahtar ve bulut hesabı yoksa veya onay kapalıysa yanıtlar cihazınızdaki yerel motorla üretilir ve hiçbir şey gönderilmez. Geri bildirim yazarsanız mesajınız cihazınıza kaydedilir; göndermek isterseniz kendi e-posta uygulamanız hazır mesajla açılır ve gönderim kararı size aittir.</li>
 <li><strong>Yurt dışına aktarım.</strong> Bulut hesabı açarsanız sağlık kayıtlarınız Avrupa Birliği'ndeki (Frankfurt) sunucularda saklanır; bu, kayıt ekranında verdiğiniz açık rızaya dayanır ve tamamen isteğe bağlıdır (yerel hesap kullanabilirsiniz). Google Gemini kullanımı da gönderilen soru veya fotoğrafın yurt dışındaki sunucularda işlenmesi anlamına gelir; isteğe bağlıdır. Yerel hesapta Gemini kullanmadığınız sürece verileriniz cihazınızdan çıkmaz; başka cihaza taşımak için Ayarlar'daki "Yedek İndir" dosyasını kendiniz aktarırsınız.</li>
 <li><strong>Güvenlik ve sınırlar.</strong> Bulut bağlantısı şifrelidir (HTTPS); bulut hesabının şifresi bizde değil, kimlik doğrulama hizmetinde özetlenmiş olarak tutulur. Bulut için otomatik yedekleme yoktur; kayıtlarınızı korumak için Ayarlar'dan düzenli olarak "Yedek İndir" dosyası alın. Takma adla açılan hesapta e-posta olmadığından şifre unutulursa sıfırlanamaz. Tarayıcı yerel depolaması şifrelenmemiştir; cihazı ortak kullanıyorsanız gerçek sağlık verisi girmeyin. API anahtarı tarayıcıda saklandığından bu cihaza erişen biri tarafından görülebilir; anahtarınızı Google hesabınızdan dilediğiniz zaman iptal edebilirsiniz. Tarayıcı verilerini temizlerseniz kayıtlarınız silinir; düzenli olarak yedek dosyası almanız önerilir. Bu uygulama otomatik KVKK uyumluluğu garantisi vermez.</li>

@@ -194,3 +194,19 @@ html[data-theme="dark"] .vta-form-title{color:#e2e8f0}
 html[data-theme="dark"] .vta-link{color:#5eead4}
 html[data-theme="dark"] .vta-secondary{background:transparent;border-color:#2dd4bf;color:#5eead4}
 html[data-theme="dark"] .vta-secondary:hover{background:rgba(20,184,166,.10)}
+
+/* ===== Şifre sıfırlama ve kurtarma kodu (js/bulut-sifre.js) ===== */
+.vta-back{display:inline-flex;align-items:center;gap:6px;margin:-4px 0 12px}
+.vta-lead{margin:0 0 12px;font-size:13px;line-height:1.5;color:#475569}
+.vta-code-input{text-transform:uppercase;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.vta-code-input::placeholder{text-transform:none;letter-spacing:normal}
+.vta-rc .vta-secondary{margin:0 0 12px}
+.vta-rc .vta-check{margin-bottom:12px}
+.vta-rc-code{margin:0 0 12px;padding:14px 10px;border:1.5px dashed #14b8a6;border-radius:14px;background:#f0fdfa;color:#134e4a;text-align:center;font:800 20px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;word-break:break-all;user-select:all}
+.vta-primary:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+.vt-rc-box{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin-top:10px;padding:12px;border-radius:14px;background:#f0fdfa;border:1px solid #99f6e4}
+.vt-rc-code{font:800 17px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;color:#134e4a;word-break:break-all;user-select:all}
+html[data-theme="dark"] .vta-lead{color:#cbd5e1}
+html[data-theme="dark"] .vta-rc-code{background:rgba(20,184,166,.10);border-color:#2dd4bf;color:#99f6e4}
+html[data-theme="dark"] .vt-rc-box{background:rgba(20,184,166,.10);border-color:rgba(45,212,191,.4)}
+html[data-theme="dark"] .vt-rc-code{color:#99f6e4}

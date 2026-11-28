@@ -1,0 +1,28 @@
+<!--
+  Supabase Dashboard → Authentication → Emails → Templates → "Reset Password"
+  Konu (Subject):  VitaTakip şifre sıfırlama
+  Gövde: bu dosyanın <!-- … --> yorumu DIŞINDAKİ her şeyi yapıştırın.
+
+  Bağlantı uygulamaya ?type=recovery&token_hash=… ile döner; uygulama (js/bulut-sifre.js) belirteci adres çubuğundan
+  hemen siler ve kullanıcı yeni şifresini kaydedince doğrular (verifyOtp). Böylece e-posta tarayıcıları bağlantıyı
+  önceden açsa bile kod harcanmaz; bağlantı başka tarayıcıda açılsa da çalışır.
+  {{ .RedirectTo }} uygulamanın adresidir (izinli "Redirect URLs" listesinde olmalı; değilse Site URL kullanılır).
+-->
+<div style="margin:0;padding:24px 12px;background:#f1f5f9;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#0f172a">
+  <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e2e8f0">
+    <div style="padding:22px 24px;background:#0f766e;color:#ffffff">
+      <div style="font-size:20px;font-weight:800">VitaTakip</div>
+      <div style="font-size:13px;opacity:.85;margin-top:2px">Şifre sıfırlama</div>
+    </div>
+    <div style="padding:24px">
+      <p style="margin:0 0 14px;font-size:15px;line-height:1.55">Merhaba,</p>
+      <p style="margin:0 0 18px;font-size:15px;line-height:1.55">VitaTakip hesabınız için şifre sıfırlama isteği aldık. Yeni şifrenizi belirlemek için aşağıdaki düğmeye dokunun.</p>
+      <p style="margin:0 0 22px;text-align:center">
+        <a href="{{ .RedirectTo }}?type=recovery&token_hash={{ .TokenHash }}" style="display:inline-block;padding:14px 26px;border-radius:14px;background:#0d9488;color:#ffffff;font-weight:800;font-size:15px;text-decoration:none">Yeni şifre belirle</a>
+      </p>
+      <p style="margin:0 0 10px;font-size:13px;line-height:1.55;color:#475569">Bağlantı <strong>1 saat</strong> geçerlidir ve yalnızca bir kez kullanılabilir.</p>
+      <p style="margin:0;font-size:13px;line-height:1.55;color:#475569">Bu isteği siz yapmadıysanız bu e-postayı yok sayabilirsiniz; şifreniz değişmez.</p>
+    </div>
+    <div style="padding:14px 24px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8">Bu e-posta otomatik gönderilmiştir, lütfen yanıtlamayın. · vitatakip.com.tr</div>
+  </div>
+</div>

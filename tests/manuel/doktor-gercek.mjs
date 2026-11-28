@@ -22,6 +22,8 @@ async function signup(p, acct, name, user) {
   await fill(p, 'cloudInputFullName', name); await fill(p, 'cloudInputIdentifier', user); await fill(p, 'cloudInputPassword', 'testpass123'); await fill(p, 'cloudInputPasswordConfirm', 'testpass123');
   await p.evaluate(a => { if (a === 'doctor') cloudDoctorConsentCheckbox.checked = true; else cloudConsentCheckbox.checked = true; }, acct);
   await p.click('#cloudSubmitBtn'); await sleep(7000);
+  // Takma adla kayıt: kurtarma kodu adımı onaylanır (js/bulut-sifre.js)
+  if (await p.evaluate(() => !document.getElementById('recoveryCodeBox').classList.contains('hidden'))) { await p.click('#recoveryAckCheckbox'); await p.click('#recoveryContinueBtn'); await sleep(3000); }
   await p.evaluate(() => { try { closeProfileModal(); } catch (e) {} try { finishVitaSpotlightTour(true); } catch (e) {} });
 }
 async function login(p, user) {

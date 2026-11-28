@@ -39,7 +39,28 @@ export const fakeCloudPreload = () => {
       },
       async signOut() { VitaCloud.authStorage.removeItem(KEY); return { error: null }; },
       async getSession() { const raw = VitaCloud.authStorage.getItem(KEY); return { data: { session: raw ? JSON.parse(raw) : null } }; },
-      async getUser() { net(); const raw = VitaCloud.authStorage.getItem(KEY); return { data: { user: raw ? JSON.parse(raw).user : null }, error: null }; }
+      async getUser() { net(); const raw = VitaCloud.authStorage.getItem(KEY); return { data: { user: raw ? JSON.parse(raw).user : null }, error: null }; },
+      // Şifre sıfırlama (e-posta): bağlantı belirteci __fakeResetTokens'ta; test __lastResetToken ile "e-postadaki bağlantıyı" açar
+      async resetPasswordForEmail(email, opts) {
+        net(); window.__calls.push(['resetPasswordForEmail', email, opts && opts.redirectTo]);
+        if (users[email]) { const t = 'tok_' + crypto.randomUUID().replace(/-/g, ''); const all = J('__fakeResetTokens', {}); all[t] = email; localStorage.setItem('__fakeResetTokens', JSON.stringify(all)); window.__lastResetToken = t; }
+        return { data: {}, error: null }; // hesap olsun olmasın aynı yanıt
+      },
+      async verifyOtp({ token_hash, type }) {
+        net(); window.__calls.push(['verifyOtp', type]);
+        const all = J('__fakeResetTokens', {}); const email = all[token_hash];
+        if (type !== 'recovery' || !email || !users[email]) return { data: {}, error: { code: 'otp_expired', status: 403, message: 'Email link is invalid or has expired' } };
+        delete all[token_hash]; localStorage.setItem('__fakeResetTokens', JSON.stringify(all)); // tek kullanımlık
+        const s = mkSession(users[email]); VitaCloud.authStorage.setItem(KEY, JSON.stringify(s)); return { data: { session: s, user: s.user }, error: null };
+      },
+      async updateUser({ password }) {
+        net(); window.__calls.push(['updateUser']);
+        const uid = curUid(); const u = Object.values(users).find(x => x.id === uid);
+        if (!u) return { data: {}, error: { code: 'session_not_found', status: 401, message: 'Auth session missing!' } };
+        if (u.password === password) return { data: {}, error: { code: 'same_password', status: 422, message: 'New password should be different from the old password.' } };
+        u.password = password; localStorage.setItem('__fakeUsers', JSON.stringify(users));
+        return { data: { user: mkSession(u).user }, error: null };
+      }
     },
     // my_profile (SECURITY INVOKER; yalnız kendi satırı). __verifiedDoctors: onaylı doktor kimlikleri
     async rpc(name, args) {
@@ -76,8 +97,20 @@ export const fakeCloudPreload = () => {
     },
     functions: {
       // hesap-sil Edge Function: oturum sahibini ve tüm satırlarını siler (cascade). __deleteFails ile hata canlandırılır.
-      async invoke(name) {
+      async invoke(name, opts) {
         net(); window.__calls.push(['invoke', name]);
+        // sifre-kurtar: takma ad + kurtarma kodu (özet __fakeRecovery'de) + yeni şifre; 5 hatalı denemede kilit
+        if (name === 'sifre-kurtar') {
+          const b = (opts && opts.body) || {}; const err = (code, status) => ({ data: null, error: { name: 'FunctionsHttpError', message: 'Edge Function returned a non-2xx status code', context: { status, json: async () => ({ error: code }) } } });
+          const fails = J('__fakeRecoveryFails', {}); const un = String(b.username || '');
+          if ((fails[un] || 0) >= 5) return err('too_many_attempts', 429);
+          const u = users[un + '@hesap.vitatakip.com.tr']; const rec = J('__fakeRecovery', {});
+          const ok = u && rec[u.id] && rec[u.id] === await VitaCloud.hashRecoveryCode(b.code);
+          if (!ok) { fails[un] = (fails[un] || 0) + 1; localStorage.setItem('__fakeRecoveryFails', JSON.stringify(fails)); return err('invalid', 400); }
+          u.password = b.password; localStorage.setItem('__fakeUsers', JSON.stringify(users));
+          const fresh = VitaCloud.generateRecoveryCode(); rec[u.id] = await VitaCloud.hashRecoveryCode(fresh); localStorage.setItem('__fakeRecovery', JSON.stringify(rec));
+          return { data: { ok: true, code: fresh }, error: null };
+        }
         if (window.__deleteFails) return { data: null, error: { name: 'FunctionsHttpError', message: 'Edge Function returned a non-2xx status code' } };
         const uid = curUid(); if (!uid) return { data: null, error: { message: 'unauthorized' } };
         Object.keys(users).forEach(e => { if (users[e].id === uid) delete users[e]; }); localStorage.setItem('__fakeUsers', JSON.stringify(users));
@@ -86,6 +119,21 @@ export const fakeCloudPreload = () => {
       }
     },
     from(table) {
+      // recovery_codes (RLS: yalnız kendi satırı); yalnız özet saklanır
+      if (table === 'recovery_codes') {
+        const rec = () => J('__fakeRecovery', {}); const at = () => J('__fakeRecoveryAt', {});
+        return {
+          async upsert(row) {
+            net(); window.__calls.push(['recovery-upsert']); const me = curUid();
+            if (!me || row.user_id !== me) return { error: { code: '42501', message: 'new row violates row-level security policy' } };
+            if (!/^[0-9a-f]{64}$/.test(row.code_hash)) return { error: { code: '23514', message: 'check constraint' } };
+            const r = rec(); r[me] = row.code_hash; localStorage.setItem('__fakeRecovery', JSON.stringify(r));
+            const a = at(); a[me] = row.created_at || new Date().toISOString(); localStorage.setItem('__fakeRecoveryAt', JSON.stringify(a));
+            return { error: null };
+          },
+          select() { return { eq(col, uid) { return { async maybeSingle() { net(); const me = curUid(); if (uid !== me || !rec()[uid]) return { data: null, error: null }; return { data: { created_at: at()[uid] || new Date().toISOString() }, error: null }; } }; } }; }
+        };
+      }
       if (table === 'doctor_notes') {
         const rows = () => J('__fakeNotes', []); const save = r => localStorage.setItem('__fakeNotes', JSON.stringify(r));
         return {
@@ -119,5 +167,14 @@ export const fakeCloudPreload = () => {
     const i = db.findIndex(x => x.user_id === uid && x.store === store); const row = { user_id: uid, store, data: { v: value }, updated_at: at };
     if (i >= 0) db[i] = row; else db.push(row); window.__dbSave(db); return at;
   };
+  // Takma adla kayıttan sonraki kurtarma kodu adımı: bu adımı sınamayan testlerde otomatik onaylanır
+  // (tests/sifre-sifirlama.mjs window.__autoAckRecovery = false ile kapatır ve adımı kendisi sınar).
+  if (window.__autoAckRecovery === undefined) window.__autoAckRecovery = true;
+  setInterval(() => {
+    if (window.__autoAckRecovery === false) return;
+    const box = document.getElementById('recoveryCodeBox'), cb = document.getElementById('recoveryAckCheckbox'), btn = document.getElementById('recoveryContinueBtn');
+    if (!box || box.classList.contains('hidden') || !cb || !btn) return;
+    cb.checked = true; btn.disabled = false; btn.click();
+  }, 60);
   let vc; Object.defineProperty(window, 'VitaCloud', { configurable: true, get: () => vc, set: v => { vc = v; v.setClientForTests(fake); } });
 };

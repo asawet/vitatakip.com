@@ -165,7 +165,11 @@
     if (pwInput) pwInput.value = "";
     if ($("cloudInputPasswordConfirm")) $("cloudInputPasswordConfirm").value = "";
     lsSet(PANEL_KEY, "cloud");
-    enterSession(res.user, { isNew: mode === "register", remember: remember, doctor: mode === "register" && acct === "doctor" });
+    var isNew = mode === "register", isDoctor = isNew && acct === "doctor";
+    var go = function () { enterSession(res.user, { isNew: isNew, remember: remember, doctor: isDoctor }); };
+    // Takma ad hesabında e-posta yok: kayıttan hemen sonra kurtarma kodu bir kez gösterilir (js/bulut-sifre.js)
+    if (isNew && kind === "username" && window.VitaPasswordReset) { VitaPasswordReset.afterUsernameSignup(go); return false; }
+    go();
     return false;
   }
 
@@ -262,10 +266,7 @@
     var t = e.target && e.target.closest ? e.target : null; if (!t) return;
     var m = t.closest("[data-cloud-mode]"); if (m) { if (window.SoundEffects) try { SoundEffects.playClick(); } catch (_) {} setMode(m.getAttribute("data-cloud-mode")); return; }
     var k = t.closest("[data-cloud-kind]"); if (k) { setKind(k.getAttribute("data-cloud-kind")); setMessage(""); return; }
-    if (t.closest("#cloudForgotBtn")) {
-      setMessage("Şifre sıfırlama yakında eklenecek: e-postayla açılan hesaplarda sıfırlama bağlantısı e-postanıza gönderilecek, takma ad hesapları için kurtarma kodları gelecek. Şimdilik şifrenizi hatırlayamıyorsanız yeni bir hesap açabilirsiniz.", false);
-      return;
-    }
+    // "Şifremi unuttum": js/bulut-sifre.js
     var a = t.closest("[data-cloud-acct]"); if (a) { setAcct(a.getAttribute("data-cloud-acct")); setMessage(""); return; }
     if (t.closest("#authShowLocalBtn")) { showLocal(); return; }
     if (t.closest("#authShowCloudBtn")) { showCloud(); }
