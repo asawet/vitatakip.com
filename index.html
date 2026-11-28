@@ -27,11 +27,11 @@
 <!-- Uses Inter when already available; otherwise falls back immediately to the system UI font. -->
 <!-- Font Awesome 6 CDN -->
 <!-- build:css -->
-<link rel="stylesheet" href="./css/app.css?v=1456d1d2c5">
-<script defer src="./js/app.1.js?v=1456d1d2c5"></script>
-<script defer src="./js/app.2.js?v=1456d1d2c5"></script>
-<script defer src="./js/app.3.js?v=1456d1d2c5"></script>
-<script defer src="./js/app.4.js?v=1456d1d2c5"></script>
+<link rel="stylesheet" href="./css/app.css?v=e572c3524c">
+<script defer src="./js/app.1.js?v=e572c3524c"></script>
+<script defer src="./js/app.2.js?v=e572c3524c"></script>
+<script defer src="./js/app.3.js?v=e572c3524c"></script>
+<script defer src="./js/app.4.js?v=e572c3524c"></script>
 <!-- /build:css -->
 <!-- Chart.js loads only if a trend chart is needed. -->
 <!-- PDF.js loads only when a user selects a PDF for analysis. -->
@@ -1785,17 +1785,54 @@ Bu belge, hastanın VitaTakip sistemine beyan ettiği demografik veriler, seçil
 </div>
 </section>
 
-<!-- Yönetici Paneli: doktor onayları (js/yonetici.js; supabase/migrations/20261128190000_yonetici_paneli.sql) -->
+<!-- Yönetici Paneli (js/yonetici.js): Özet · Kullanıcılar · Doktorlar · İşlem kaydı · Rehber.
+     Yönetici hesap bilgilerini görür; sağlık kayıtlarının içeriğini göremez. Sunucu: supabase/migrations/2026112819*, 2026112821*,
+     supabase/functions/yonetici-islem -->
 <section class="hidden space-y-4 max-w-5xl mx-auto vdp vad" id="view-admin" aria-labelledby="vadTitle">
 <div class="vdp-hero vad-hero">
 <div class="vdp-hero-main">
 <div class="vdp-hero-icon"><i class="fa-solid fa-user-shield" aria-hidden="true"></i></div>
 <div class="min-w-0"><h2 id="vadTitle">Yönetici Paneli</h2><p id="vadAdminName">—</p></div>
 </div>
-<p class="vad-hero-note">Doktor hesaplarını kimliklerini doğruladıktan sonra onaylayın. Onaylı doktor, hastanın izin verdiği kayıtları yalnız okuyabilir.</p>
+<button class="vdp-refresh vad-hero-refresh" id="vadRefreshBtn" type="button" aria-label="Bilgileri yenile"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> Yenile</button>
 </div>
-<div class="vdp-panel">
-<div class="vdp-panel-head"><h3>Doktorlar</h3><button class="vdp-refresh" id="vadRefreshBtn" type="button" aria-label="Listeyi yenile"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> Yenile</button></div>
+<nav class="vad-nav" role="tablist" aria-label="Yönetici bölümleri">
+<button aria-selected="true" class="is-active" data-admin-tab="overview" role="tab" type="button"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Özet</button>
+<button aria-selected="false" data-admin-tab="users" role="tab" type="button"><i class="fa-solid fa-user" aria-hidden="true"></i> Kullanıcılar</button>
+<button aria-selected="false" data-admin-tab="doctors" role="tab" type="button"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i> Doktorlar <span class="hidden vad-nav-badge" id="vadTabBadgeDoctors"></span></button>
+<button aria-selected="false" data-admin-tab="audit" role="tab" type="button"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> İşlem kaydı</button>
+<button aria-selected="false" data-admin-tab="guide" role="tab" type="button"><i class="fa-solid fa-book-open" aria-hidden="true"></i> Rehber</button>
+</nav>
+<div class="hidden vdp-msg" data-tone="info" id="vadMsg" role="status" aria-live="polite"></div>
+
+<div class="vdp-panel" id="vadTab-overview" role="tabpanel">
+<div class="vdp-panel-head"><h3>Yapılacaklar</h3></div>
+<div class="vad-todo" id="vadTodo"></div>
+<div class="vdp-panel-head vad-sub-head"><h3>Genel durum</h3></div>
+<div class="vad-stats" id="vadStats"></div>
+<p class="vdp-updated" id="vadUpdatedAt"></p>
+</div>
+
+<div class="hidden vdp-panel" id="vadTab-users" role="tabpanel">
+<div class="vdp-panel-head"><h3>Kullanıcılar</h3></div>
+<p class="vdp-hint">Hesap bilgileri görünür; kullanıcıların sağlık kayıtlarının içeriği yönetici tarafından görülemez.</p>
+<div class="vad-tabs" role="tablist" aria-label="Kullanıcı süzgeci">
+<button aria-selected="true" class="is-active" data-admin-ufilter="all" role="tab" type="button">Tümü <span class="vad-count">0</span></button>
+<button aria-selected="false" data-admin-ufilter="patient" role="tab" type="button">Hasta <span class="vad-count">0</span></button>
+<button aria-selected="false" data-admin-ufilter="doctor" role="tab" type="button">Doktor <span class="vad-count">0</span></button>
+</div>
+<div class="vad-search">
+<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+<label class="sr-only" for="vadUserSearch">Kullanıcı ara</label>
+<input autocomplete="off" id="vadUserSearch" placeholder="Ad, e-posta, takma ad veya doktor kodu" spellcheck="false" type="search"/>
+</div>
+<div class="hidden vdp-msg" data-tone="info" id="vadUserMsg" role="status" aria-live="polite"></div>
+<ul class="vad-list" id="vadUserList"></ul>
+</div>
+
+<div class="hidden vdp-panel" id="vadTab-doctors" role="tabpanel">
+<div class="vdp-panel-head"><h3>Doktorlar</h3></div>
+<p class="vdp-hint">Doktor hesaplarını kimliklerini doğruladıktan sonra onaylayın. Onaylı doktor, hastanın izin verdiği kayıtları yalnız okuyabilir.</p>
 <div class="vad-tabs" role="tablist" aria-label="Doktor süzgeci">
 <button aria-selected="true" class="is-active" data-admin-filter="pending" role="tab" type="button">Onay bekleyen <span class="vad-count">0</span></button>
 <button aria-selected="false" data-admin-filter="verified" role="tab" type="button">Onaylı <span class="vad-count">0</span></button>
@@ -1806,13 +1843,48 @@ Bu belge, hastanın VitaTakip sistemine beyan ettiği demografik veriler, seçil
 <label class="sr-only" for="vadSearch">Doktor ara</label>
 <input autocomplete="off" id="vadSearch" placeholder="Ad, doktor kodu, e-posta veya takma ad" spellcheck="false" type="search"/>
 </div>
-<div class="hidden vdp-msg" data-tone="info" id="vadMsg" role="status" aria-live="polite"></div>
 <ul class="vad-list" id="vadDoctorList"></ul>
-<p class="vdp-updated" id="vadUpdatedAt"></p>
 </div>
-<div class="vdp-panel">
-<div class="vdp-panel-head"><h3><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Son işlemler</h3></div>
+
+<div class="hidden vdp-panel" id="vadTab-audit" role="tabpanel">
+<div class="vdp-panel-head"><h3>İşlem kaydı</h3></div>
+<p class="vdp-hint">Doktor onayları ve hesap silmeler kimin, ne zaman yaptığıyla kaydedilir (son 40 işlem).</p>
 <ul class="vad-audit" id="vadAuditList"></ul>
+</div>
+
+<div class="hidden vdp-panel vad-guide" id="vadTab-guide" role="tabpanel">
+<div class="vdp-panel-head"><h3>Yönetici rehberi</h3></div>
+<details open="">
+<summary>Doktor onayı</summary>
+<ul>
+<li>Onaylamadan önce kimliği doğrulayın: ad soyad, diploma / oda sicil numarası, iletişim bilgisi.</li>
+<li>Onaylı doktorun adı ve kodu hastaların doktor listesinde görünür; hasta izin vermedikçe doktor hiçbir kaydı göremez.</li>
+<li>Onayı kaldırmak doktorun tüm hasta erişimini anında kapatır; hastaların verdiği izinler kayıtlı kalır, yeniden onaylanınca geri gelir.</li>
+</ul>
+</details>
+<details>
+<summary>Yönetici neyi görür, neyi göremez?</summary>
+<ul>
+<li>Görür: ad, e-posta / takma ad, hesap türü, kayıt ve son giriş tarihi, buluttaki kayıt sayısı ve boyutu, kurtarma kodu var mı.</li>
+<li>Göremez: takviye, ilaç, tahlil, belirti, not gibi sağlık kayıtlarının içeriği; şifreler; kurtarma kodlarının kendisi.</li>
+</ul>
+</details>
+<details>
+<summary>KVKK ve hesap silme</summary>
+<ul>
+<li>Kullanıcılar hesaplarını Ayarlar &gt; Veriler ve yedek'ten kendileri silebilir. Size gelen silme taleplerini en geç 30 gün içinde yanıtlayın.</li>
+<li>Talep sahibinin kimliğini doğrulamadan hesap silmeyin; silerken gerekçeye "KVKK silme talebi" ve talep tarihini yazın.</li>
+<li>Silme kalıcıdır: profil, bulut kayıtları, doktor bağlantıları ve istekleri silinir. Doktorun yazdığı notlar doktorda anonim kalır.</li>
+</ul>
+</details>
+<details>
+<summary>Acil durum (Supabase SQL Editor)</summary>
+<ul>
+<li>Yönetici ekleme: <code>update public.profiles set is_admin = true where id = '&lt;kullanıcı uuid&gt;';</code></li>
+<li>Doktor onayını kaldırma: <code>update public.profiles set doctor_verified = false where doctor_code = 'DR-....';</code></li>
+<li>Yapay zekâ sınırları: Edge Function gizli ayarları <code>AI_DAILY_USER_LIMIT</code> ve <code>AI_DAILY_GLOBAL_LIMIT</code>.</li>
+</ul>
+</details>
 </div>
 </section>
 

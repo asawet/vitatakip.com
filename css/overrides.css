@@ -347,3 +347,62 @@ html[data-theme="dark"] .vdp-req-count { background: rgba(255,255,255,.08); }
 html[data-theme="dark"] .vdp-req-badge[data-tone="wait"] { background: rgba(245,158,11,.15); color: #fcd34d; }
 html[data-theme="dark"] .vdp-req-badge[data-tone="ok"] { background: rgba(16,185,129,.15); color: #6ee7b7; }
 html[data-theme="dark"] .vdp-req-badge[data-tone="no"] { background: rgba(244,63,94,.15); color: #fda4af; }
+
+/* ===== Yönetici Paneli genişletme: sekmeler, özet kutuları, kullanıcı kartı, silme onayı, rehber ===== */
+.vad-hero-refresh { flex: none; background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.25); color: #fff; }
+.vad-nav { display: flex; flex-wrap: wrap; gap: 6px; padding: 2px; }
+.vad-nav::-webkit-scrollbar { display: none; }
+.vad-nav button { flex: none; display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 8px 13px; border-radius: 12px; border: 1px solid var(--vt-border); background: var(--vt-surface); color: var(--vt-text-muted); font-size: 12.5px; font-weight: 800; cursor: pointer; }
+.vad-nav button.is-active { background: #0f172a; border-color: #0f172a; color: #fff; }
+.vad-nav-badge { min-width: 18px; padding: 1px 6px; border-radius: 999px; background: #f59e0b; color: #451a03; font-size: 10.5px; text-align: center; }
+.vad-nav-badge.hidden { display: none; }
+.vad-sub-head { margin-top: 14px; }
+.vad-todo { display: grid; gap: 6px; }
+.vad-todo-item { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--vt-border); background: var(--vt-slate-50); text-align: left; color: var(--vt-text); }
+.vad-todo-item.is-link { cursor: pointer; border-color: #fcd34d; background: #fffbeb; }
+.vad-todo-item.is-link:hover { background: #fef3c7; }
+.vad-todo-item > i { margin-top: 2px; color: #b45309; }
+.vad-todo-text { display: grid; gap: 2px; min-width: 0; }
+.vad-todo-text strong { font-size: 13px; font-weight: 800; }
+.vad-todo-text small { font-size: 11.5px; color: var(--vt-text-muted); line-height: 1.45; }
+.vad-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 900px) { .vad-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.vad-stat { display: grid; gap: 2px; padding: 12px; border-radius: 14px; border: 1px solid var(--vt-border); background: var(--vt-surface); min-width: 0; }
+.vad-stat-label { font-size: 11px; font-weight: 800; color: var(--vt-text-muted); }
+.vad-stat-value { font-size: 22px; font-weight: 900; color: var(--vt-text); line-height: 1.15; overflow-wrap: anywhere; }
+.vad-stat-sub { font-size: 11px; color: var(--vt-text-muted); }
+.vad-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.vad-tag { padding: 3px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 800; background: rgba(148,163,184,.18); color: var(--vt-text-muted); white-space: nowrap; }
+.vad-tag[data-tone="doc"] { background: #ccfbf1; color: #115e59; }
+.vad-tag[data-tone="wait"] { background: #fef3c7; color: #92400e; }
+.vad-tag[data-tone="pat"] { background: #e0f2fe; color: #075985; }
+.vad-tag[data-tone="admin"] { background: #ede9fe; color: #5b21b6; }
+.vad-tag[data-tone="me"] { background: #0f172a; color: #fff; }
+.vad-delete { display: grid; gap: 8px; padding: 10px; border-radius: 12px; border: 1px solid #fecdd3; background: #fff1f2; }
+.vad-delete-warn { margin: 0; font-size: 12px; line-height: 1.5; color: #9f1239; font-weight: 700; }
+.vad-delete-label { font-size: 12px; color: var(--vt-text); }
+.vad-delete-input { width: 100%; min-height: 40px; padding: 0 10px; border-radius: 10px; border: 1.5px solid #fda4af; background: #fff; color: #0f172a; font-size: 13px; }
+.vad-delete-input:focus { outline: none; border-color: #e11d48; box-shadow: 0 0 0 3px rgba(225,29,72,.15); }
+.vad-btn-danger { background: #be123c; color: #fff; }
+.vad-btn-danger:disabled { opacity: .45; cursor: not-allowed; }
+.vad-btn-plain { background: transparent; color: var(--vt-text-muted); border-color: var(--vt-border); }
+.vad-audit-row[data-action="user_delete"] { border-left: 3px solid #e11d48; }
+.vad-audit-note { font-size: 11.5px; color: var(--vt-text-muted); font-style: italic; }
+.vad-guide details { border: 1px solid var(--vt-border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; background: var(--vt-surface); }
+.vad-guide summary { cursor: pointer; font-size: 13px; font-weight: 800; color: var(--vt-text); }
+.vad-guide ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 5px; font-size: 12.5px; line-height: 1.55; color: var(--vt-text); }
+.vad-guide code { font-size: 11px; padding: 1px 5px; border-radius: 6px; background: var(--vt-slate-50); overflow-wrap: anywhere; }
+html[data-theme="dark"] .vad-nav button { background: rgba(148,163,184,.08); border-color: rgba(148,163,184,.25); color: #cbd5e1; }
+html[data-theme="dark"] .vad-nav button.is-active { background: #0d9488; border-color: transparent; color: #fff; }
+html[data-theme="dark"] .vad-todo-item { background: rgba(148,163,184,.08); color: #e2e8f0; }
+html[data-theme="dark"] .vad-todo-item.is-link { background: rgba(245,158,11,.10); border-color: rgba(245,158,11,.35); }
+html[data-theme="dark"] .vad-todo-item > i { color: #fcd34d; }
+html[data-theme="dark"] .vad-tag[data-tone="doc"] { background: rgba(20,184,166,.15); color: #5eead4; }
+html[data-theme="dark"] .vad-tag[data-tone="wait"] { background: rgba(245,158,11,.15); color: #fcd34d; }
+html[data-theme="dark"] .vad-tag[data-tone="pat"] { background: rgba(14,165,233,.15); color: #7dd3fc; }
+html[data-theme="dark"] .vad-tag[data-tone="admin"] { background: rgba(139,92,246,.18); color: #c4b5fd; }
+html[data-theme="dark"] .vad-tag[data-tone="me"] { background: #e2e8f0; color: #0f172a; }
+html[data-theme="dark"] .vad-delete { background: rgba(244,63,94,.08); border-color: rgba(244,63,94,.35); }
+html[data-theme="dark"] .vad-delete-warn { color: #fda4af; }
+html[data-theme="dark"] .vad-delete-input { background: #0f172a; color: #e2e8f0; border-color: rgba(244,63,94,.5); }
+html[data-theme="dark"] .vad-guide code { background: rgba(148,163,184,.12); }

@@ -13,6 +13,7 @@ export const fakeCloudPreload = () => {
   const net = () => { if (window.__netDown || !navigator.onLine) throw new TypeError('Failed to fetch'); };
   // Doktor paneli (sunucudaki RLS'in taklidi): onaylı doktor = __verifiedDoctors içinde ya da __fakeDoctors'ta verified
   const LINKS = () => J('__fakeLinks', []);
+  const saveLinksGlobal = l => localStorage.setItem('__fakeLinks', JSON.stringify(l));
   const DOCTOR_STORES = ['user', 'supplements', 'medications', 'labhistory', 'labs', 'labreferences', 'symptoms', 'resolved_symptoms', 'notes', 'recheck'];
   const findDoctor = code => {
     const f = (window.__fakeDoctors || {})[code]; if (f) return f;
@@ -28,13 +29,14 @@ export const fakeCloudPreload = () => {
       async signUp({ email, password, options }) {
         window.__calls.push(['signUp', email, options && options.data]);
         if (users[email]) return { data: {}, error: { code: 'user_already_exists', status: 422, message: 'User already registered' } };
-        const u = { id: crypto.randomUUID(), email, password, meta: (options && options.data) || {} };
+        const u = { id: crypto.randomUUID(), email, password, meta: (options && options.data) || {}, createdAt: new Date().toISOString(), lastSignIn: new Date().toISOString() };
         if (u.meta.account_type === 'doctor') u.doctorCode = 'DR-' + (1000 + Object.keys(users).length); // sunucu tetikleyicisi gibi
         users[email] = u; localStorage.setItem('__fakeUsers', JSON.stringify(users));
         const s = mkSession(u); VitaCloud.authStorage.setItem(KEY, JSON.stringify(s)); return { data: { user: { ...s.user, identities: [{}] }, session: s }, error: null };
       },
       async signInWithPassword({ email, password }) {
         const u = users[email]; if (!u || u.password !== password) return { data: {}, error: { code: 'invalid_credentials', status: 400, message: 'Invalid login credentials' } };
+        u.lastSignIn = new Date().toISOString(); localStorage.setItem('__fakeUsers', JSON.stringify(users));
         const s = mkSession(u); VitaCloud.authStorage.setItem(KEY, JSON.stringify(s)); return { data: { user: s.user, session: s }, error: null };
       },
       async signOut() { VitaCloud.authStorage.removeItem(KEY); return { error: null }; },
@@ -151,7 +153,21 @@ export const fakeCloudPreload = () => {
           (window.__audit = window.__audit || []).unshift({ at: new Date().toISOString(), admin_label: u ? u.meta.full_name : '', action: args.p_verified ? 'doctor_verify' : 'doctor_unverify', target_label: (d.meta.full_name || '') + ' (' + (d.doctorCode || '—') + ')' });
           return { data: { ok: true, changed: true }, error: null };
         }
-        if (name === 'admin_audit_recent') return { data: (window.__audit || []).slice(0, (args || {}).p_limit || 20), error: null };
+        if (name === 'admin_audit_recent') return { data: (window.__audit || []).slice(0, (args || {}).p_limit || 20).map(a => ({ note: '', ...a })), error: null };
+        const all = Object.values(users); const db = window.__db(); const loginOf = x => /@hesap\.vitatakip\.com\.tr$/.test(x.email) ? '@' + (x.meta.username || '') : x.email;
+        const rec = J('__fakeRecovery', {}); const isDoc = x => x.meta.account_type === 'doctor';
+        if (name === 'admin_stats') return { data: {
+          users_total: all.length, patients: all.filter(x => !isDoc(x)).length, doctors_verified: all.filter(x => isDoc(x) && doctorVerified(x.id)).length,
+          doctors_pending: all.filter(x => isDoc(x) && !doctorVerified(x.id)).length, admins: all.filter(x => (window.__admins || []).includes(x.id)).length,
+          username_accounts: all.filter(x => /@hesap\./.test(x.email)).length, no_recovery_code: all.filter(x => /@hesap\./.test(x.email) && !rec[x.id]).length,
+          new_7d: all.length, new_30d: all.length, active_7d: all.length, links_active: links.filter(l => l.status === 'active').length,
+          requests_pending: J('__fakeRequests', []).filter(r => r.status === 'pending').length, notes_total: J('__fakeNotes', []).length,
+          cloud_users: new Set(db.map(r => r.user_id)).size, cloud_bytes: db.reduce((n, r) => n + JSON.stringify(r.data).length, 0), ai_today: 0, ai_users_today: 0 }, error: null };
+        if (name === 'admin_list_users') return { data: all.map(x => ({ id: x.id, full_name: x.meta.full_name || '', login: loginOf(x), account_type: isDoc(x) ? 'doctor' : 'patient',
+          is_admin: (window.__admins || []).includes(x.id), doctor_code: x.doctorCode || null, doctor_verified: doctorVerified(x.id), created_at: x.createdAt, last_sign_in_at: x.lastSignIn,
+          store_count: db.filter(r => r.user_id === x.id).length, data_bytes: db.filter(r => r.user_id === x.id).reduce((n, r) => n + JSON.stringify(r.data).length, 0),
+          links_active: links.filter(l => l.status === 'active' && (l.patient_id === x.id || l.doctor_id === x.id)).length, has_recovery_code: Boolean(rec[x.id]),
+          username_account: /@hesap\./.test(x.email) })).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))), error: null };
       }
       return { data: null, error: { message: 'bilinmeyen rpc: ' + name } };
     },
@@ -160,6 +176,24 @@ export const fakeCloudPreload = () => {
       async invoke(name, opts) {
         net(); window.__calls.push(['invoke', name]);
         // sifre-kurtar: takma ad + kurtarma kodu (özet __fakeRecovery'de) + yeni şifre; 5 hatalı denemede kilit
+        // yonetici-islem: hesap silme (yönetici; kendisi / başka yönetici olamaz; giriş bilgisi eşleşmeli); kayıt __audit
+        if (name === 'yonetici-islem') {
+          const b = (opts && opts.body) || {}; const me = curUid();
+          const err = (code, status) => ({ data: null, error: { name: 'FunctionsHttpError', message: 'Edge Function returned a non-2xx status code', context: { status, json: async () => ({ error: code }) } } });
+          if (!(window.__admins || []).includes(me)) return err('forbidden', 403);
+          if (b.user_id === me) return err('self', 400);
+          const key = Object.keys(users).find(k => users[k].id === b.user_id); if (!key) return err('not_found', 404);
+          const t = users[key]; if ((window.__admins || []).includes(t.id)) return err('target_admin', 400);
+          const login = /@hesap\.vitatakip\.com\.tr$/.test(t.email) ? '@' + t.meta.username : t.email;
+          if (String(b.confirm || '').trim().toLowerCase().replace(/^@/, '') !== login.toLowerCase().replace(/^@/, '')) return err('confirm_mismatch', 400);
+          const meU = Object.values(users).find(x => x.id === me);
+          const label = (t.meta.full_name || '') + ' (' + login + ', ' + (t.meta.account_type === 'doctor' ? 'doktor' : 'hasta') + ')';
+          (window.__audit = window.__audit || []).unshift({ at: new Date().toISOString(), admin_label: meU ? meU.meta.full_name : '', action: 'user_delete', target_label: label, note: String(b.note || '') });
+          delete users[key]; localStorage.setItem('__fakeUsers', JSON.stringify(users));
+          window.__dbSave(window.__db().filter(r => r.user_id !== t.id));
+          saveLinksGlobal(J('__fakeLinks', []).filter(l => l.patient_id !== t.id && l.doctor_id !== t.id));
+          return { data: { ok: true, label }, error: null };
+        }
         if (name === 'sifre-kurtar') {
           const b = (opts && opts.body) || {}; const err = (code, status) => ({ data: null, error: { name: 'FunctionsHttpError', message: 'Edge Function returned a non-2xx status code', context: { status, json: async () => ({ error: code }) } } });
           const fails = J('__fakeRecoveryFails', {}); const un = String(b.username || '');
