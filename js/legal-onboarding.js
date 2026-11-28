@@ -55,7 +55,7 @@
     '    </section>',
     '    <section class="vl-box vl-kvkk">',
     '      <h2>ℹ️ Kişisel Verilerin Korunması (KVKK)</h2>',
-    '      <p>Girdiğiniz tahlil, belirti ve profil bilgileri önce cihazınızın yerel hafızasında işlenir. Yerel hesapta hiçbir sunucuya gönderilmez; isteğe bağlı bulut hesabında açık rızanızla, yalnızca sizin görebileceğiniz şekilde Avrupa Birliği’ndeki (Frankfurt) VitaTakip bulut veritabanında saklanır. Reklam veya profilleme amacıyla hiçbir üçüncü tarafla paylaşılmaz.</p>',
+    '      <p>Girdiğiniz tahlil, belirti ve profil bilgileri önce cihazınızın yerel hafızasında işlenir. Yerel hesapta hiçbir sunucuya gönderilmez; isteğe bağlı bulut hesabında açık rızanızla, yalnızca sizin görebileceğiniz şekilde Avrupa Birliği’ndeki (Frankfurt) VitaTakip bulut veritabanında saklanır. Reklam veya profilleme amacıyla hiçbir üçüncü tarafla paylaşılmaz; yalnızca sizin kodla izin verdiğiniz doktor, kayıtlarınızı salt okunur görebilir.</p>',
     '      <button type="button" class="vl-link" id="vlReadPolicy">Gizlilik Politikası ve KVKK Metnini Oku</button>',
     '    </section>',
     '    <label class="vl-check"><input type="checkbox" id="vlAgree"><span>Tıbbi Sorumluluk Reddi\'ni ve KVKK Aydınlatma Metni\'ni okudum, kabul ediyorum.</span></label>',

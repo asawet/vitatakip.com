@@ -312,7 +312,12 @@
     var d = t.closest("[data-note-delete]"); if (d) { deleteNote(d.getAttribute("data-note-delete")); return; }
     if (t.closest("#vdpCopyCode")) {
       var code = ($("vdpDoctorCode") || {}).textContent || "";
-      try { navigator.clipboard.writeText(code).then(function () { if (typeof showToast === "function") showToast("Kopyalandı", "Doktor kodunuz panoya kopyalandı: " + code, "success"); }); } catch (_) {}
+      // Pano reddedebilir (izin yok / sayfa odakta değil): Promise hatası yakalanır, kod bildirimde gösterilir
+      var shown = function (ok) { if (typeof showToast === "function") showToast(ok ? "Kopyalandı" : "Doktor kodunuz", ok ? "Doktor kodunuz panoya kopyalandı: " + code : code + " — hastanıza bu kodu verin (kopyalama bu tarayıcıda yapılamadı).", ok ? "success" : "info"); };
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(function () { shown(true); }, function () { shown(false); });
+        else shown(false);
+      } catch (_) { shown(false); }
     }
   });
   document.addEventListener("submit", function (e) { if (e.target && e.target.id === "vdpNoteForm") { e.preventDefault(); saveNote(); } });

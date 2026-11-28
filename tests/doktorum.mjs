@@ -95,6 +95,10 @@ if (process.env.VT_SHOTS) {
   await (await p.$('#settingsSectionDoctors')).screenshot({ path: process.env.VT_SHOTS + '/doktorum.png' });
 }
 
+/* 8) KVKK metni: doktor paylaşımı, yalnız onaylı doktor, salt okuma, izni geri alma, notların akıbeti */
+const kv = await p.evaluate(() => document.getElementById('kvkkInfoBody').innerText.replace(/\s+/g, ' '));
+log('KVKK: doktorla paylaşım (yalnız okuma, onaylı doktor, geri alma) ve notların anonimleşmesi yazılı', /Doktorunuzla paylaşım/.test(kv) && /yalnızca okuyabilir/.test(kv) && /onaylanmış doktor/.test(kv) && /geri alırsınız/.test(kv) && /Anonim hasta/.test(kv), kv.slice(kv.indexOf('Doktorunuzla'), kv.indexOf('Doktorunuzla') + 80));
+
 const diag = await p.evaluate(() => VitaTakipDiagnostics.run());
 const failed = diag.results.filter(x => !x.passed).map(x => x.name);
 log(`Uygulama içi tanılama (${diag.passed}/${diag.results.length})`, failed.length === 0, failed.join(', '));
