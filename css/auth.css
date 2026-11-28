@@ -160,3 +160,4 @@ html[data-theme="dark"] .vta-msg-info{background:rgba(20,184,166,.12);border-col
 /* fontawesome.css yalnız kullanılan simgeleri tanımlar; bulut paneli simgeleri (font dosyasında var) */
 .fa-at{--fa:"\40"}
 .fa-cloud{--fa:"\f0c2"}
+.fa-cloud-arrow-up{--fa:"\f0ee"}

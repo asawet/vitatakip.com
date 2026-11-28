@@ -227,6 +227,8 @@
       status.lastSyncAt = Date.now(); status.error = "";
       setState(Object.keys(q).length ? "pending" : "synced");
       if (Object.keys(q).length) scheduleFlush(300);
+      // Çekme tamamlandı: yerel hesaptan taşıma (js/bulut-tasima.js) ancak bundan SONRA yapılabilir
+      document.dispatchEvent(new CustomEvent("vita:cloud-pulled", { detail: { userId: uid, first: first, applied: applied } }));
       return { ok: true, applied: applied };
     } catch (e) {
       var d = cloud().describeError(e);
@@ -237,7 +239,7 @@
   }
 
   /* Buluttan gelen veriyle uygulamayı yeniden yükler. IndexedDB yedeği daha eski kalmalı: zaman damgası ilerletilir. */
-  function reloadAppData(uid, applied, first) {
+  function reloadAppData(uid, applied, first, silent) {
     if (activeCloudUid() !== uid) return;
     try {
       if (typeof nextVitaExtendedStamp === "function") rawSet("vitatakip_extended_updated_" + uid, String(nextVitaExtendedStamp(uid)));
@@ -246,7 +248,7 @@
       loadUserSessionData(uid);
       if (typeof renderAllAppViews === "function") renderAllAppViews();
       if (tab && typeof navigateToView === "function") { try { navigateToView(tab); } catch (_) {} }
-      if (typeof showToast === "function") {
+      if (!silent && typeof showToast === "function") {
         showToast(first ? "Bulut verileriniz yüklendi" : "Başka cihazdaki değişiklikler alındı",
           first ? "Hesabınızdaki kayıtlar bu cihaza getirildi." : "Kayıtlarınız buluttaki en güncel hâle getirildi.", "info");
       }
@@ -300,6 +302,8 @@
     STORES: STORES.slice(),
     flush: flush, pull: pull, pendingCount: pendingCount, status: function () { return Object.assign({}, status, { pending: pendingCount() }); },
     updateStatus: updateStatus,
+    reloadAppData: function (uid, stores) { reloadAppData(uid, stores || [], false, true); },
+    isInitialPullDone: function (uid) { uid = uid || activeCloudUid(); return Boolean(uid && readMeta(uid).initialPullDone); },
     // Açılışta kayıtlı oturumla girildiğinde (19-app-startup) çağrılır
     start: function () { if (activeCloudUid()) { updateStatus(); pull({ force: true }); } },
     _hash: hash, _encode: encode, _decode: decode

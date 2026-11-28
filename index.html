@@ -27,11 +27,11 @@
 <!-- Uses Inter when already available; otherwise falls back immediately to the system UI font. -->
 <!-- Font Awesome 6 CDN -->
 <!-- build:css -->
-<link rel="stylesheet" href="./css/app.css?v=63bf2a3c87">
-<script defer src="./js/app.1.js?v=63bf2a3c87"></script>
-<script defer src="./js/app.2.js?v=63bf2a3c87"></script>
-<script defer src="./js/app.3.js?v=63bf2a3c87"></script>
-<script defer src="./js/app.4.js?v=63bf2a3c87"></script>
+<link rel="stylesheet" href="./css/app.css?v=5b05fe53c3">
+<script defer src="./js/app.1.js?v=5b05fe53c3"></script>
+<script defer src="./js/app.2.js?v=5b05fe53c3"></script>
+<script defer src="./js/app.3.js?v=5b05fe53c3"></script>
+<script defer src="./js/app.4.js?v=5b05fe53c3"></script>
 <!-- /build:css -->
 <!-- Chart.js loads only if a trend chart is needed. -->
 <!-- PDF.js loads only when a user selects a PDF for analysis. -->
@@ -1963,6 +1963,11 @@ Anahtar girerseniz Vita AI sohbeti ve kutu fotoğrafı tanıma Google Gemini ile
 <span class="flex flex-wrap items-center gap-1.5"><span class="vt-sync hidden" data-cloud-sync-status="" id="settingsCloudSyncStatus"></span><span class="text-[10px] font-bold text-slate-500" id="settingsDataSummaryText">Yerel depolama aktif</span></span>
 </div>
 <div class="divide-y divide-slate-100 text-xs">
+<!-- Bulut hesabı: bu cihazdaki yerel hesaptan veri taşıma (js/bulut-tasima.js; yalnız taşınacak veri varken görünür) -->
+<div class="py-2.5 hidden" id="settingsCloudImportRow"><div class="flex flex-wrap items-center justify-between gap-2">
+<span class="min-w-0"><span class="block font-bold text-navy-900">Bu cihazdaki yerel hesap verileri</span><span class="block text-[11px] text-slate-500">Yerel hesabınızdaki kayıtları bulut hesabınıza kopyalayın.</span></span>
+<button class="px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5" id="settingsCloudImportBtn" type="button"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i><span>Buluta taşı</span></button>
+</div></div>
 <!-- Şifreli: 4 haneli kodla Oyun Merkezi'ne yönlendirir (js/day-compact.js). Kod sayfada düz yazılı değildir; yalnızca özeti saklanır. -->
 <details class="py-2.5 set-locked" id="settingsLockedRow">
 <summary class="flex items-center justify-between gap-3 cursor-pointer list-none"><span class="flex items-center gap-2 font-bold text-navy-900"><i class="fa-solid fa-lock text-slate-500" aria-hidden="true"></i>Şifreli</span><i class="fa-solid fa-chevron-down text-slate-400 text-[10px]" aria-hidden="true"></i></summary>

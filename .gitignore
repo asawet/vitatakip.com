@@ -10,3 +10,8 @@ tests/e2e/playwright-report/
 
 # graphify bilgi grafiği (yerel, üretilmiş)
 graphify-out/
+
+# Gizli anahtarlar asla depoya girmez (Gemini/Supabase gizli anahtarları Supabase Secrets ve GitHub Secrets içinde)
+.env
+.env.*
+!.env.example
