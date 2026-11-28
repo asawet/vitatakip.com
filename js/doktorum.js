@@ -3,10 +3,16 @@
      aktif doktorlar (my_doctors), doktorumdan notlar (doctor_notes; yalnız okuma).
    - Doktor yalnız izin veren hastanın seçili kayıtlarını OKUR; bu kural veritabanında (RLS) uygulanır
      (supabase/migrations/20261128120000_doktor_paneli.sql, supabase/tests/doktor_rls_test.sql).
+   - Onaylı doktor rehberi (verified_doctors: yalnız ad + kod): hasta listeden seçip izin verir (kodla eklemeyle aynı onay).
+   - Doktordan gelen erişim istekleri (access_requests; respond_access_request): Kabul et = izin ver, Reddet.
+     Bekleyen istek varsa oturumda bir kez bildirim gösterilir (supabase/migrations/20261128200000_doktor_rehberi_davet.sql).
    - Doktor adı ve not metni başka kullanıcıdan gelir: ekrana YALNIZ textContent ile yazılır (HTML olarak değil). */
 (function () {
   "use strict";
   var busy = false;
+  var directory = [], activeIds = {}, dirQuery = "";
+  var announced = {}; // oturumda bildirimi gösterilmiş istekler
+  var DIR_LIMIT = 30;
   var REASONS = {
     bad_code: "Kod biçimi hatalı. Doktorunuzun verdiği kodu \"DR-1234\" biçiminde yazın.",
     not_found: "Bu kodla bir doktor bulunamadı. Kodu doktorunuzdan kontrol edin.",
@@ -73,6 +79,77 @@
     });
   }
 
+  /* Onaylı doktor rehberi: arama (ad / kod); izin verilmiş doktor "İzin verildi" olarak görünür */
+  function renderDirectory() {
+    var ul = $("doctorDirList"); if (!ul) return;
+    ul.textContent = "";
+    var q = dirQuery;
+    var rows = directory.filter(function (d) { return !q || ((d.full_name || "") + " " + (d.doctor_code || "")).toLocaleLowerCase("tr-TR").indexOf(q) !== -1; });
+    if (!directory.length) { ul.appendChild(el("li", "vdr-empty", "Şu an listede onaylı doktor yok. Doktorunuzun verdiği kodla ekleyebilirsiniz.")); return; }
+    if (!rows.length) { ul.appendChild(el("li", "vdr-empty", "Aramanızla eşleşen onaylı doktor yok.")); return; }
+    rows.slice(0, DIR_LIMIT).forEach(function (d) {
+      var li = el("li", "vdr-item");
+      var info = el("div", "vdr-info");
+      info.appendChild(el("strong", "", d.full_name || "Doktor"));
+      info.appendChild(el("small", "", d.doctor_code || ""));
+      li.appendChild(info);
+      if (activeIds[d.id]) li.appendChild(el("span", "vdr-badge", "İzin verildi"));
+      else {
+        var b = el("button", "vdr-grant", "İzin ver"); b.type = "button";
+        b.setAttribute("data-doctor-grant", d.doctor_code || "");
+        li.appendChild(b);
+      }
+      ul.appendChild(li);
+    });
+    if (rows.length > DIR_LIMIT) ul.appendChild(el("li", "vdr-empty", (rows.length - DIR_LIMIT) + " doktor daha var; aramayı daraltın."));
+  }
+  /* Doktordan gelen bekleyen erişim istekleri */
+  function renderRequests(list) {
+    var box = $("doctorRequestsBox"), ul = $("doctorRequestList"); if (!box || !ul) return;
+    box.classList.toggle("hidden", !list.length);
+    ul.textContent = "";
+    list.forEach(function (r) {
+      var li = el("li", "vdr-item vdr-request");
+      var info = el("div", "vdr-info");
+      info.appendChild(el("strong", "", r.doctor_label || "Doktor"));
+      info.appendChild(el("small", "", "Kayıtlarınızı görmek için izin istiyor · " + fmtDate(r.created_at)));
+      li.appendChild(info);
+      var acts = el("div", "vdr-req-actions");
+      var ok = el("button", "vdr-grant", "Kabul et"); ok.type = "button"; ok.setAttribute("data-request-accept", r.id); ok.setAttribute("data-doctor-name", r.doctor_label || "Doktor");
+      var no = el("button", "vdr-revoke", "Reddet"); no.type = "button"; no.setAttribute("data-request-decline", r.id); no.setAttribute("data-doctor-name", r.doctor_label || "Doktor");
+      acts.appendChild(ok); acts.appendChild(no);
+      li.appendChild(acts);
+      ul.appendChild(li);
+    });
+  }
+  function announce(uid, list) {
+    var fresh = list.filter(function (r) { return !announced[uid + r.id]; });
+    if (!fresh.length) return;
+    fresh.forEach(function (r) { announced[uid + r.id] = true; });
+    if (typeof showToast === "function") showToast("Erişim isteği", (fresh.length === 1 ? (fresh[0].doctor_label || "Bir doktor") + " kayıtlarınızı görmek için izin istiyor." : fresh.length + " doktor kayıtlarınızı görmek için izin istiyor.") + " Ayarlar > Doktorum'dan yanıtlayabilirsiniz.", "info");
+  }
+  async function respond(id, accept, name) {
+    if (!cloudUid() || busy) return;
+    if (accept && !window.confirm((name || "Doktor") + "; profil, takviye, ilaç, tahlil, belirti kayıtlarınızı ve doktora notlarınızı görebilecek. Doktor bu kayıtları yalnızca okuyabilir; izni istediğiniz an geri alabilirsiniz. Kabul ediyor musunuz?")) return;
+    busy = true;
+    try {
+      var c = await client();
+      var r = await c.rpc("respond_access_request", { p_request: id, p_accept: Boolean(accept) });
+      var d = (r && r.data) || {};
+      if (r.error || !d.ok) {
+        setMsg(d.reason === "not_verified" ? "Bu doktorun onayı kaldırılmış; isteği şu an kabul edemezsiniz." : d.reason === "not_pending" ? "Bu istek artık geçerli değil." : "İstek yanıtlanamadı. Lütfen tekrar deneyin.", "error");
+      } else if (accept) {
+        setMsg((name || "Doktor") + " artık kayıtlarınızı görebilir.", "ok");
+        if (typeof showToast === "function") showToast("Erişim izni verildi", (name || "Doktor") + " kayıtlarınızı yalnızca okuyabilir.", "success");
+        if (window.VitaSync) VitaSync.flush();
+      } else {
+        setMsg((name || "Doktor") + " isteği reddedildi. Bu doktor 7 gün boyunca yeni istek gönderemez.", "info");
+      }
+    } catch (e) { setMsg(VitaCloud.describeError(e).message, "error"); }
+    finally { busy = false; }
+    await refresh();
+  }
+
   async function refresh() {
     updateVisibility();
     var uid = cloudUid();
@@ -82,14 +159,23 @@
       var c = await client();
       var res = await Promise.all([
         c.rpc("my_doctors"),
-        c.from("doctor_notes").select("id, doctor_label, body, created_at").eq("patient_id", uid).order("created_at", { ascending: false }).limit(50)
+        c.from("doctor_notes").select("id, doctor_label, body, created_at").eq("patient_id", uid).order("created_at", { ascending: false }).limit(50),
+        c.rpc("verified_doctors"),
+        c.from("access_requests").select("id, doctor_label, status, created_at").eq("patient_id", uid)
       ]);
       if (cloudUid() !== uid) return;
       var doctors = (res[0] && Array.isArray(res[0].data)) ? res[0].data : [];
       var notes = (res[1] && Array.isArray(res[1].data)) ? res[1].data : [];
+      directory = (res[2] && Array.isArray(res[2].data)) ? res[2].data : [];
+      var requests = ((res[3] && Array.isArray(res[3].data)) ? res[3].data : []).filter(function (r) { return r.status === "pending"; })
+        .sort(function (a, b) { return String(b.created_at).localeCompare(String(a.created_at)); });
+      activeIds = {}; doctors.forEach(function (d) { activeIds[d.doctor_id] = true; });
       renderDoctors(doctors);
       renderNotes(notes);
-      setSummary(doctors.length ? doctors.length + " doktor erişebiliyor" + (notes.length ? " · " + notes.length + " not" : "") : "Erişim izni yok");
+      renderDirectory();
+      renderRequests(requests);
+      announce(uid, requests);
+      setSummary((requests.length ? requests.length + " erişim isteği · " : "") + (doctors.length ? doctors.length + " doktor erişebiliyor" + (notes.length ? " · " + notes.length + " not" : "") : "Erişim izni yok"));
       if (res[0] && res[0].error) setMsg("Doktor listesi alınamadı. Lütfen daha sonra tekrar deneyin.", "error");
     } catch (e) {
       setMsg(window.VitaCloud ? VitaCloud.describeError(e).message : "Doktor listesi alınamadı.", "error");
@@ -140,8 +226,18 @@
     if (e.target && e.target.id === "doctorAddForm") { e.preventDefault(); grant(($("doctorCodeInput") || {}).value); }
   });
   document.addEventListener("click", function (e) {
-    var b = e.target && e.target.closest ? e.target.closest("[data-doctor-revoke]") : null;
-    if (b) revoke(b.getAttribute("data-doctor-revoke"), b.getAttribute("data-doctor-name"));
+    var t = e.target && e.target.closest ? e.target : null; if (!t) return;
+    var b = t.closest("[data-doctor-revoke]");
+    if (b) { revoke(b.getAttribute("data-doctor-revoke"), b.getAttribute("data-doctor-name")); return; }
+    var g = t.closest("[data-doctor-grant]");
+    if (g) { grant(g.getAttribute("data-doctor-grant")); return; }
+    var a = t.closest("[data-request-accept]");
+    if (a) { respond(a.getAttribute("data-request-accept"), true, a.getAttribute("data-doctor-name")); return; }
+    var d = t.closest("[data-request-decline]");
+    if (d) respond(d.getAttribute("data-request-decline"), false, d.getAttribute("data-doctor-name"));
+  });
+  document.addEventListener("input", function (e) {
+    if (e.target && e.target.id === "doctorDirSearch") { dirQuery = e.target.value.trim().toLocaleLowerCase("tr-TR"); renderDirectory(); }
   });
   document.addEventListener("vita:cloud-session", function () { setMsg(""); refresh(); });
   document.addEventListener("vita:cloud-profile", function () { updateVisibility(); refresh(); });
@@ -158,5 +254,5 @@
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", watchSettingsView); else watchSettingsView();
 
-  window.VitaDoctors = { refresh: refresh, grant: grant, revoke: revoke, updateVisibility: updateVisibility };
+  window.VitaDoctors = { refresh: refresh, grant: grant, revoke: revoke, respond: respond, updateVisibility: updateVisibility };
 })();

@@ -144,7 +144,7 @@ function openAppDrawer() {
       state.activeTab = viewId;
       if (typeof markVitaGuideVisit === "function") markVitaGuideVisit(viewId);
 
-      const allViews = ["view-home", "view-labs", "view-neyim", "view-clinical-results", "view-report", "view-settings", "view-add-supplement", "view-add-medication", "view-doctor"];
+      const allViews = ["view-home", "view-labs", "view-neyim", "view-clinical-results", "view-report", "view-settings", "view-add-supplement", "view-add-medication", "view-doctor", "view-admin"];
       allViews.forEach(v => {
         const el = document.getElementById(v);
         if (el) {
@@ -203,7 +203,7 @@ function openAppDrawer() {
           "view-settings": "Ayarlar & Uygulama Yönetimi",
           "view-add-supplement": "Takviye Ekle",
           "view-add-medication": "İlaç Ekle",
-          "view-doctor": "Doktor Paneli"
+          "view-doctor": "Doktor Paneli", "view-admin": "Yönetici Paneli"
         };
         if (titleEl) titleEl.textContent = titles[viewId] || "Modül";
 

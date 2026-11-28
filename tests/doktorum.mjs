@@ -14,7 +14,7 @@ const vis = id => p.evaluate(id => { const e = document.getElementById(id); retu
 const fill = (id, v) => p.evaluate((id, v) => { document.getElementById(id).value = v; }, id, v);
 const msg = () => p.evaluate(() => ({ text: document.getElementById('doctorAddMsg').textContent, tone: document.getElementById('doctorAddMsg').getAttribute('data-tone') }));
 const openSettings = async () => { await p.evaluate(() => { navigateToView('view-settings'); window.openSettingsSectionFor(document.getElementById('doctorCodeInput') || document.getElementById('doctorsLocalNote')); }); await sleep(300); };
-const add = async code => { await fill('doctorCodeInput', code); await p.click('#doctorAddBtn'); await sleep(500); };
+const add = async code => { await fill('doctorCodeInput', code); await p.evaluate(() => doctorAddBtn.scrollIntoView({ block: 'center' })); await p.click('#doctorAddBtn'); await sleep(500); };
 
 /* 0) Yerel hesapta "bulut hesabı gerekir" notu */
 await p.evaluate(() => { VitaAuthUI.showLocal(); switchAuthMode('register'); const cb = document.getElementById('authRememberMeCheckbox'); cb.checked = false; syncRememberMeButtonUI(false); });

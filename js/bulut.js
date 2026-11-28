@@ -302,7 +302,7 @@
       var res = await c.rpc("my_profile");
       if (res.error || !Array.isArray(res.data) || !res.data[0]) return cachedProfile(uid);
       var p = res.data[0];
-      var out = { account_type: p.account_type === "doctor" ? "doctor" : "patient", doctor_code: p.doctor_code || null, doctor_verified: Boolean(p.doctor_verified), full_name: p.full_name || "" };
+      var out = { account_type: p.account_type === "doctor" ? "doctor" : "patient", doctor_code: p.doctor_code || null, doctor_verified: Boolean(p.doctor_verified), full_name: p.full_name || "", is_admin: p.is_admin === true };
       try { localStorage.setItem(profileCacheKey(p.id || uid), JSON.stringify(out)); } catch (_) {}
       return out;
     } catch (_) { return cachedProfile(uid); }

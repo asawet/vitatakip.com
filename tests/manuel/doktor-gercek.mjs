@@ -50,7 +50,7 @@ if (mode === 'hazirla') {
   await p.evaluate(() => { state.supplements.push({ id: 'g1', name: 'Gerçek D3', timing: 'Sabah', scheduleTime: '08:00', scheduleDays: [] }); state.labHistory.push({ id: 'gl1', date: '2026-11-20', timestamp: Date.parse('2026-11-20T09:00:00'), d3: 19, references: {} }); state.hydration.current = 900; saveState(); });
   await sleep(5000);
   await p.evaluate(() => { navigateToView('view-settings'); window.openSettingsSectionFor(document.getElementById('doctorCodeInput')); }); await sleep(500);
-  await fill(p, 'doctorCodeInput', st.code); await p.click('#doctorAddBtn'); await sleep(4000);
+  await fill(p, 'doctorCodeInput', st.code); await p.evaluate(() => doctorAddBtn.scrollIntoView({ block: 'center' })); await p.click('#doctorAddBtn'); await sleep(4000);
   const g = await p.evaluate(() => document.getElementById('doctorAddMsg').textContent);
   log('Hasta gerçek doktora kodla izin verdi', /Dr\. Gercek Test artık kayıtlarınızı görebilir/.test(g), g);
   await p.evaluate(() => handleLogout()); await sleep(1500);

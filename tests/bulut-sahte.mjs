@@ -93,7 +93,66 @@ export const fakeCloudPreload = () => {
         return { data: links.filter(l => l.doctor_id === uid && l.status === 'active').map(l => ({ patient_id: l.patient_id, full_name: userName(l.patient_id), granted_at: l.granted_at,
           last_update: db.filter(r => r.user_id === l.patient_id).map(r => r.updated_at).sort().pop() || null })), error: null };
       }
-      if (name === 'my_profile') return { data: u ? [{ id: u.id, full_name: u.meta.full_name || '', account_type: u.meta.account_type === 'doctor' ? 'doctor' : 'patient', doctor_code: u.doctorCode || null, doctor_verified: (window.__verifiedDoctors || []).includes(u.id) }] : [], error: null };
+      if (name === 'my_profile') return { data: u ? [{ id: u.id, full_name: u.meta.full_name || '', account_type: u.meta.account_type === 'doctor' ? 'doctor' : 'patient', doctor_code: u.doctorCode || null, doctor_verified: (window.__verifiedDoctors || []).includes(u.id), is_admin: (window.__admins || []).includes(u.id) }] : [], error: null };
+      // Doktor rehberi + erişim istekleri (sunucu kurallarının taklidi; istekler __fakeRequests'te)
+      const reqs = () => J('__fakeRequests', []); const saveReqs = r => localStorage.setItem('__fakeRequests', JSON.stringify(r));
+      if (name === 'verified_doctors') return { data: Object.values(users).filter(x => x.meta.account_type === 'doctor' && x.doctorCode && doctorVerified(x.id) && x.id !== uid).map(x => ({ id: x.id, full_name: x.meta.full_name || '', doctor_code: x.doctorCode })).sort((a, b) => a.full_name.localeCompare(b.full_name)), error: null };
+      if (name === 'request_patient_access') {
+        const no = reason => ({ data: { ok: false, reason }, error: null });
+        if (!u || u.meta.account_type !== 'doctor') return no('not_doctor');
+        if (!doctorVerified(uid)) return no('not_verified');
+        let id = String((args || {}).p_identifier || '').trim().toLowerCase().replace(/^@/, '');
+        if (!id) return no('bad_identifier');
+        if (reqs().filter(r => r.doctor_id === uid && Date.now() - Date.parse(r.created_at) < 864e5).length >= 30) return no('rate_limit');
+        let pt;
+        if (id.includes('@')) pt = users[id];
+        else { if (!/^[a-z0-9_]{3,20}$/.test(id)) return no('bad_identifier'); pt = users[id + '@hesap.vitatakip.com.tr']; }
+        if (!pt || pt.meta.account_type === 'doctor') return no('not_found');
+        if (links.some(l => l.patient_id === pt.id && l.doctor_id === uid && l.status === 'active')) return no('already_linked');
+        const all = reqs();
+        if (all.some(r => r.patient_id === pt.id && r.doctor_id === uid && r.status === 'pending')) return no('already_pending');
+        if (all.some(r => r.patient_id === pt.id && r.doctor_id === uid && r.status === 'declined' && Date.now() - Date.parse(r.responded_at) < 7 * 864e5)) return no('recently_declined');
+        all.push({ id: crypto.randomUUID(), doctor_id: uid, patient_id: pt.id, doctor_label: (u.meta.full_name || '') + ' (' + u.doctorCode + ')', requested_as: id, status: 'pending', created_at: new Date().toISOString(), responded_at: null });
+        saveReqs(all); return { data: { ok: true }, error: null };
+      }
+      if (name === 'respond_access_request') {
+        const all = reqs(); const r = all.find(x => x.id === (args || {}).p_request && x.patient_id === uid);
+        if (!r) return { data: { ok: false, reason: 'not_found' }, error: null };
+        if (r.status !== 'pending') return { data: { ok: false, reason: 'not_pending' }, error: null };
+        if (args.p_accept) {
+          if (!doctorVerified(r.doctor_id)) return { data: { ok: false, reason: 'not_verified' }, error: null };
+          const d = Object.values(users).find(x => x.id === r.doctor_id);
+          const i = links.findIndex(l => l.patient_id === uid && l.doctor_id === r.doctor_id);
+          const row = { patient_id: uid, doctor_id: r.doctor_id, status: 'active', granted_at: new Date().toISOString(), code: d && d.doctorCode, name: d ? d.meta.full_name : '' };
+          if (i >= 0) links[i] = row; else links.push(row); saveLinks(links);
+          r.status = 'accepted';
+        } else r.status = 'declined';
+        r.responded_at = new Date().toISOString(); saveReqs(all);
+        return { data: { ok: true, doctor_label: r.doctor_label }, error: null };
+      }
+      if (name === 'cancel_access_request') {
+        const all = reqs(); const r = all.find(x => x.id === (args || {}).p_request && x.doctor_id === uid && x.status === 'pending');
+        if (!r) return { data: false, error: null };
+        r.status = 'cancelled'; r.responded_at = new Date().toISOString(); saveReqs(all); return { data: true, error: null };
+      }
+      // Yönetici paneli (SECURITY DEFINER + yönetici denetimi taklidi): __admins = yönetici kimlikleri; işlem kaydı __audit
+      if (name.startsWith('admin_')) {
+        if (!(window.__admins || []).includes(uid)) return { data: null, error: { code: '42501', message: 'Bu işlem yalnız yöneticiler içindir.' } };
+        const docs = Object.values(users).filter(x => x.meta.account_type === 'doctor');
+        if (name === 'admin_list_doctors') return { data: docs.map(x => ({ id: x.id, full_name: x.meta.full_name || '', doctor_code: x.doctorCode || null, doctor_verified: doctorVerified(x.id),
+          created_at: x.createdAt || new Date().toISOString(), login: /@hesap\.vitatakip\.com\.tr$/.test(x.email) ? '@' + (x.meta.username || '') : x.email,
+          pledge_at: x.meta.doctor_pledge_at || null, active_patients: links.filter(l => l.doctor_id === x.id && l.status === 'active').length }))
+          .sort((a, b) => Number(a.doctor_verified) - Number(b.doctor_verified)), error: null };
+        if (name === 'admin_set_doctor_verified') {
+          const d = docs.find(x => x.id === (args || {}).p_doctor); if (!d) return { data: { ok: false, reason: 'not_found' }, error: null };
+          const v = (window.__verifiedDoctors = window.__verifiedDoctors || []); const was = v.includes(d.id);
+          if (was === Boolean(args.p_verified)) return { data: { ok: true, changed: false }, error: null };
+          if (args.p_verified) v.push(d.id); else v.splice(v.indexOf(d.id), 1);
+          (window.__audit = window.__audit || []).unshift({ at: new Date().toISOString(), admin_label: u ? u.meta.full_name : '', action: args.p_verified ? 'doctor_verify' : 'doctor_unverify', target_label: (d.meta.full_name || '') + ' (' + (d.doctorCode || '—') + ')' });
+          return { data: { ok: true, changed: true }, error: null };
+        }
+        if (name === 'admin_audit_recent') return { data: (window.__audit || []).slice(0, (args || {}).p_limit || 20), error: null };
+      }
       return { data: null, error: { message: 'bilinmeyen rpc: ' + name } };
     },
     functions: {
@@ -120,6 +179,10 @@ export const fakeCloudPreload = () => {
       }
     },
     from(table) {
+      // access_requests (RLS: doktor ve hasta yalnız kendi isteklerini okur; yazma yalnız fonksiyonlarla)
+      if (table === 'access_requests') {
+        return { select() { return { async eq(col, v) { net(); const me = curUid(); return { data: J('__fakeRequests', []).filter(r => (r.doctor_id === me || r.patient_id === me) && r[col] === v), error: null }; } }; } };
+      }
       // recovery_codes (RLS: yalnız kendi satırı); yalnız özet saklanır
       if (table === 'recovery_codes') {
         const rec = () => J('__fakeRecovery', {}); const at = () => J('__fakeRecoveryAt', {});
