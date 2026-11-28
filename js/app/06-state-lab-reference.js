@@ -1135,7 +1135,14 @@ let currentAuthMode = "login";
       }
       const userId = activeUserId;
       const displayName = (state.user && state.user.name) || "bu kullanıcı";
-      const firstConfirm = confirm(`${displayName} hesabına ait VitaTakip verileri bu tarayıcıdan kalıcı olarak silinecek. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?`);
+      const isCloudAccount = Boolean(window.VitaCloud && window.VitaCloud.isCloudUserId(userId));
+      if (isCloudAccount && !navigator.onLine) {
+        showToast("İnternet Gerekli", "Bulut hesabını silmek için internet bağlantısı gerekir. Verileriniz silinmedi.", "warning");
+        return;
+      }
+      const firstConfirm = confirm(isCloudAccount
+        ? `${displayName} bulut hesabı TAMAMEN silinecek: giriş bilgileriniz, buluttaki tüm sağlık kayıtlarınız ve bu tarayıcıdaki kopyaları. Diğer cihazlarınızda da erişim biter. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?`
+        : `${displayName} hesabına ait VitaTakip verileri bu tarayıcıdan kalıcı olarak silinecek. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?`);
       if (!firstConfirm) return;
       const typedConfirm = prompt('Onaylamak için SİL yazın.');
       // "SİL", "sil", "SIL", "Sil" hepsi kabul edilir (klavyede İ/I ve büyük/küçük harf farkı yüzünden sessiz iptal olmasın).
@@ -1144,6 +1151,15 @@ let currentAuthMode = "login";
         const notice = document.getElementById("authNoticeMsg");
         if (notice) { notice.textContent = "Silme işlemi iptal edildi. Verileriniz korundu."; notice.classList.remove("hidden"); }
         return;
+      }
+      // Bulut hesabı: önce sunucuda silinir (giriş kaydı + profil + buluttaki veriler). Başarısızsa yerel veriye DOKUNULMAZ.
+      if (isCloudAccount) {
+        const res = await window.VitaCloud.deleteAccount();
+        if (!res.ok) {
+          showToast("Hesap Silinemedi", `${res.error} Verileriniz silinmedi.`, "error");
+          return;
+        }
+        if (window.VitaSync) window.VitaSync.forget(userId); // yerel temizlik buluta silme isteği üretmesin
       }
       try {
         const users = getUsersDb().filter(user => user.id !== userId);
@@ -1174,7 +1190,8 @@ let currentAuthMode = "login";
         const notice = document.getElementById("authNoticeMsg");
         if (indexedPurged) {
           if (notice) { notice.textContent = "Hesap ve sağlık verileri bu tarayıcıdan silindi. Yeni bir hesap oluşturabilir veya başka bir hesaba giriş yapabilirsiniz."; notice.classList.remove("hidden"); }
-          showToast("Hesap ve Veriler Silindi", "Bu hesaba ait yerel kayıtlar bu tarayıcıdan kaldırıldı.", "success");
+          showToast("Hesap ve Veriler Silindi", isCloudAccount ? "Bulut hesabınız, buluttaki kayıtlarınız ve bu tarayıcıdaki kopyaları silindi." : "Bu hesaba ait yerel kayıtlar bu tarayıcıdan kaldırıldı.", "success");
+          if (isCloudAccount && window.VitaAuthUI) { window.VitaAuthUI.showCloud(); }
         }
       } catch (error) {
         console.error("Hesap silme hatası:", error);

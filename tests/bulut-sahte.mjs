@@ -27,6 +27,17 @@ export const fakeCloudPreload = () => {
       async getSession() { const raw = VitaCloud.authStorage.getItem(KEY); return { data: { session: raw ? JSON.parse(raw) : null } }; },
       async getUser() { net(); const raw = VitaCloud.authStorage.getItem(KEY); return { data: { user: raw ? JSON.parse(raw).user : null }, error: null }; }
     },
+    functions: {
+      // hesap-sil Edge Function: oturum sahibini ve tüm satırlarını siler (cascade). __deleteFails ile hata canlandırılır.
+      async invoke(name) {
+        net(); window.__calls.push(['invoke', name]);
+        if (window.__deleteFails) return { data: null, error: { name: 'FunctionsHttpError', message: 'Edge Function returned a non-2xx status code' } };
+        const uid = curUid(); if (!uid) return { data: null, error: { message: 'unauthorized' } };
+        Object.keys(users).forEach(e => { if (users[e].id === uid) delete users[e]; }); localStorage.setItem('__fakeUsers', JSON.stringify(users));
+        window.__dbSave(window.__db().filter(r => r.user_id !== uid));
+        return { data: { ok: true }, error: null };
+      }
+    },
     from(table) {
       return {
         select() { return { async eq(col, uid) { net(); window.__calls.push(['select']); if (uid !== curUid()) return { data: [], error: null }; return { data: window.__db().filter(r => r.user_id === uid).map(r => ({ store: r.store, data: r.data, updated_at: r.updated_at })), error: null }; } }; },

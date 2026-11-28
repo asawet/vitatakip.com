@@ -5,7 +5,7 @@
 <!-- Gizlilik (CSP connect-src): sayfa yalnızca kendi adresine, bulut hesabı seçilirse VitaTakip'in Supabase projesine (Frankfurt; RLS ile herkes yalnız kendi verisi), kullanıcı kendi anahtarını girerse Google Gemini API'ye ve ürün kataloglarına (Open Food/Products Facts) bağlanabilir. -->
 <meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://lwcdtfwtecomsvucmipp.supabase.co wss://lwcdtfwtecomsvucmipp.supabase.co https://generativelanguage.googleapis.com https://world.openfoodfacts.org https://world.openproductsfacts.org https://formsubmit.co; form-action 'self'">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
-<!-- Ana ekrana eklenebilir web sayfası (PWA): sunucu yok; servis çalışanı yalnızca bu sitenin dosyalarını önbelleğe alır -->
+<!-- Ana ekrana eklenebilir web sayfası (PWA): statik site (uygulama sunucusu yok); isteğe bağlı bulut hesabı Supabase ile (js/bulut*.js). Servis çalışanı yalnızca bu sitenin dosyalarını önbelleğe alır -->
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <meta charset="utf-8"/>
@@ -27,11 +27,11 @@
 <!-- Uses Inter when already available; otherwise falls back immediately to the system UI font. -->
 <!-- Font Awesome 6 CDN -->
 <!-- build:css -->
-<link rel="stylesheet" href="./css/app.css?v=5b05fe53c3">
-<script defer src="./js/app.1.js?v=5b05fe53c3"></script>
-<script defer src="./js/app.2.js?v=5b05fe53c3"></script>
-<script defer src="./js/app.3.js?v=5b05fe53c3"></script>
-<script defer src="./js/app.4.js?v=5b05fe53c3"></script>
+<link rel="stylesheet" href="./css/app.css?v=5d8309370c">
+<script defer src="./js/app.1.js?v=5d8309370c"></script>
+<script defer src="./js/app.2.js?v=5d8309370c"></script>
+<script defer src="./js/app.3.js?v=5d8309370c"></script>
+<script defer src="./js/app.4.js?v=5d8309370c"></script>
 <!-- /build:css -->
 <!-- Chart.js loads only if a trend chart is needed. -->
 <!-- PDF.js loads only when a user selects a PDF for analysis. -->
@@ -2015,8 +2015,8 @@ HL7 FHIR
 </div>
 <div class="py-2.5 flex items-center justify-between gap-3">
 <div>
-<div class="font-bold text-rose-700">Hesabımı ve Yerel Verilerimi Kalıcı Olarak Sil</div>
-<div class="text-[11px] text-slate-500">Bu tarayıcıdaki aktif kullanıcıya ait tüm sağlık, tahlil ve protokol verilerini sıfırlar.</div>
+<div class="font-bold text-rose-700">Hesabımı ve Verilerimi Kalıcı Olarak Sil</div>
+<div class="text-[11px] text-slate-500" id="settingsDeleteAccountDesc">Bu tarayıcıdaki aktif kullanıcıya ait tüm sağlık, tahlil ve protokol verilerini sıfırlar.</div>
 </div>
 <button class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition cursor-pointer shrink-0" onclick="if(window.SoundEffects) SoundEffects.playClick(); deleteMyAccountData()" type="button">
 Verileri Sil
@@ -2298,7 +2298,7 @@ Verileri Sil
 <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
 <p>VitaTakip © 2026 • Tüm hakları <strong class="text-slate-700 font-bold">Abdulsamet Kılıç &amp; Bekir Bostancı</strong>'a aittir.</p>
 <div class="flex flex-wrap items-center justify-center sm:justify-end gap-3 text-[11px]">
-<span class="text-teal-600 font-semibold"><i class="fa-solid fa-database"></i> Tarayıcıda Yerel Depolama</span>
+<span class="text-teal-600 font-semibold"><i class="fa-solid fa-database"></i> Önce cihazda · isteğe bağlı bulut</span>
 <span class="hidden sm:inline text-slate-400">|</span>
 <span class="text-slate-500">v9.6.0</span>
 
@@ -2629,7 +2629,7 @@ Verileri Sil
 </p>
 <p class="vta-note" id="authLocalDataNotice">
 <i class="fa-solid fa-lock" aria-hidden="true"></i>
-<span>Verileriniz yalnızca bu cihazda tutulur; Gemini yapay zekâyı açıkça kullanmadığınız sürece hiçbir yere gönderilmez. Şifre bu cihazdaki ekranı kilitler, verileri şifrelemez; ortak cihazda dikkatli olun. <button type="button" onclick="openKvkkInfoModal()">Gizlilik &amp; Yasal Şartlar</button></span>
+<span>Yerel hesapta verileriniz yalnızca bu cihazda tutulur; Gemini yapay zekâyı açıkça kullanmadığınız sürece hiçbir yere gönderilmez. Şifre bu cihazdaki ekranı kilitler, verileri şifrelemez; ortak cihazda dikkatli olun. <button type="button" onclick="openKvkkInfoModal()">Gizlilik &amp; Yasal Şartlar</button></span>
 </p>
 </div>
 </div>
@@ -2658,7 +2658,7 @@ Verileri Sil
 <div class="vg-tips">
   <div><i class="fa-solid fa-lightbulb text-amber-600"></i><span><strong>İpuçları:</strong> Tahlillerim'de <b>Geçmiş</b> eski sonuçları, <b>Grafik</b> gidişatı gösterir. Testler sekmesindeki <b>(!)</b> olası eksikliği açar; <b>Kopyala</b> test listesini alır.</span></div>
   <div><i class="fa-solid fa-robot text-indigo-700"></i><span><strong>Vita AI ve kaynaklar:</strong> sağ alttaki düğmeden kısa sorular sorabilirsiniz (kaydırırken gizlenir). Testlerin bilimsel kaynakları Ayarlar &gt; <b>Kaynaklar</b>'da.</span></div>
-  <div><i class="fa-solid fa-shield-halved text-teal-700"></i><span><strong>Gizlilik:</strong> verileriniz yalnızca bu tarayıcıda tutulur; başka cihaza taşımak için Ayarlar &gt; "Yedek İndir"i kullanın.</span></div>
+  <div><i class="fa-solid fa-shield-halved text-teal-700"></i><span><strong>Gizlilik:</strong> yerel hesapta verileriniz yalnızca bu tarayıcıda tutulur; bulut hesabında hesabınızla eşitlenir ve yalnızca siz görebilirsiniz. Ayarlar &gt; "Yedek İndir" ile her zaman bir kopya alabilirsiniz.</span></div>
 </div>
 </div>
 <div class="mt-4 flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
@@ -3184,11 +3184,11 @@ Verileri Sil
 <li><strong>Kapsam ve veri sorumlusu.</strong> Bu metin, VitaTakip'te işlenen kişisel verilere ilişkin 6698 sayılı KVKK kapsamındaki aydınlatma özetidir. Uygulama eğitim ve klinik karar desteği amacıyla sunulur.</li>
 <li><strong>İşlenen veriler.</strong> Profil bilgileriniz (yaş, cinsiyet, boy, kilo), tahlil sonuçları ve referans aralıkları, seçtiğiniz belirtiler, kullandığınız ilaç ve takviyeler, günlük takip kayıtları ve yüklediğiniz PDF/fotoğraf içerikleri; bunlar sağlık verisi olup özel nitelikli kişisel veridir.</li>
 <li><strong>İşleme amaçları.</strong> Verileriniz yalnızca tahlil ve belirti analizi, takviye ve ilaç etkileşimi kontrolü, hatırlatmalar ve doktorunuzla paylaşabileceğiniz özetlerin üretilmesi için kullanılır. Reklam veya profilleme amacıyla kullanılmaz.</li>
-<li><strong>Saklama yeri.</strong> Kayıtlarınız yalnızca bu cihazın tarayıcı/uygulama hafızasında (localStorage ve IndexedDB) tutulur. Uygulamanın kendi sunucusu yoktur; verileriniz bir sunucuda saklanmaz veya yedeklenmez. Gemini API anahtarınız da yalnızca bu tarayıcıda, hesabınıza özel saklanır.</li>
+<li><strong>Saklama yeri.</strong> İki hesap türü vardır. <em>Yerel hesap:</em> kayıtlarınız yalnızca bu cihazın tarayıcı/uygulama hafızasında (localStorage ve IndexedDB) tutulur, hiçbir sunucuya gönderilmez. <em>Bulut hesabı</em> (açık rızanızla): kayıtlarınız önce bu cihaza yazılır, ardından hesabınızla eşitlenmek üzere VitaTakip bulut veritabanında (Supabase, Frankfurt / Avrupa Birliği) saklanır. Bulutta takviye, ilaç, tahlil, belirti, profil, su takibi ve notlarınız bulunur; e-Nabız PDF dosyaları, profil fotoğrafı ve Gemini API anahtarınız buluta gönderilmez, bu cihazda kalır. Bulut kayıtlarınızı yalnızca siz, kendi hesabınızla görebilirsiniz; erişim veritabanı düzeyinde satır güvenliğiyle (RLS) sınırlandırılmıştır.</li>
 <li><strong>Üçüncü taraflarla paylaşım.</strong> Reklam, pazarlama veya profilleme amacıyla hiçbir üçüncü tarafla veri paylaşılmaz. Ayarlar'da Google Gemini API anahtarı eklerseniz: Vita AI sohbetinde yalnızca paylaşım onayını açtığınızda o soru ve soruyla ilgili sağlık bağlamı; "Yapay Zekâ ile Kutuyu Tanı"yı kullandığınızda yalnızca onayladığınız kutu fotoğrafı yanıt üretimi için Google'a gönderilir. Anahtar yoksa veya onay kapalıysa yanıtlar cihazınızdaki yerel motorla üretilir ve hiçbir şey gönderilmez. Geri bildirim yazarsanız mesajınız cihazınıza kaydedilir; göndermek isterseniz kendi e-posta uygulamanız hazır mesajla açılır ve gönderim kararı size aittir.</li>
-<li><strong>Yurt dışına aktarım.</strong> Google Gemini kullanımı, gönderilen soru veya fotoğrafın yurt dışındaki sunucularda işlenmesi anlamına gelir; bu tamamen isteğe bağlıdır. Gemini kullanmadığınız sürece verileriniz cihazınızdan çıkmaz. Verilerinizi başka bir cihaza taşımak için Ayarlar'daki "Yedek İndir" ile oluşturduğunuz dosyayı kendiniz aktarırsınız.</li>
-<li><strong>Güvenlik ve sınırlar.</strong> Tarayıcı yerel depolaması şifrelenmemiştir; cihazı ortak kullanıyorsanız gerçek sağlık verisi girmeyin. API anahtarı tarayıcıda saklandığından bu cihaza erişen biri tarafından görülebilir; anahtarınızı Google hesabınızdan dilediğiniz zaman iptal edebilirsiniz. Tarayıcı verilerini temizlerseniz kayıtlarınız silinir; düzenli olarak yedek dosyası almanız önerilir. Bu uygulama otomatik KVKK uyumluluğu garantisi vermez.</li>
-<li><strong>Haklarınız.</strong> KVKK madde 11 uyarınca verilerinize erişme, düzeltme, silme ve işlenmesine itiraz etme hakkınız vardır. Yerel verilerinizi tarayıcı verilerini temizleyerek veya uygulamadaki yedekleme/silme araçlarıyla kendiniz silebilirsiniz.</li>
+<li><strong>Yurt dışına aktarım.</strong> Bulut hesabı açarsanız sağlık kayıtlarınız Avrupa Birliği'ndeki (Frankfurt) sunucularda saklanır; bu, kayıt ekranında verdiğiniz açık rızaya dayanır ve tamamen isteğe bağlıdır (yerel hesap kullanabilirsiniz). Google Gemini kullanımı da gönderilen soru veya fotoğrafın yurt dışındaki sunucularda işlenmesi anlamına gelir; isteğe bağlıdır. Yerel hesapta Gemini kullanmadığınız sürece verileriniz cihazınızdan çıkmaz; başka cihaza taşımak için Ayarlar'daki "Yedek İndir" dosyasını kendiniz aktarırsınız.</li>
+<li><strong>Güvenlik ve sınırlar.</strong> Bulut bağlantısı şifrelidir (HTTPS); bulut hesabının şifresi bizde değil, kimlik doğrulama hizmetinde özetlenmiş olarak tutulur. Bulut için otomatik yedekleme yoktur; kayıtlarınızı korumak için Ayarlar'dan düzenli olarak "Yedek İndir" dosyası alın. Takma adla açılan hesapta e-posta olmadığından şifre unutulursa sıfırlanamaz. Tarayıcı yerel depolaması şifrelenmemiştir; cihazı ortak kullanıyorsanız gerçek sağlık verisi girmeyin. API anahtarı tarayıcıda saklandığından bu cihaza erişen biri tarafından görülebilir; anahtarınızı Google hesabınızdan dilediğiniz zaman iptal edebilirsiniz. Tarayıcı verilerini temizlerseniz kayıtlarınız silinir; düzenli olarak yedek dosyası almanız önerilir. Bu uygulama otomatik KVKK uyumluluğu garantisi vermez.</li>
+<li><strong>Haklarınız.</strong> KVKK madde 11 uyarınca verilerinize erişme, düzeltme, silme ve işlenmesine itiraz etme hakkınız vardır. Yerel verilerinizi tarayıcı verilerini temizleyerek veya uygulamadaki yedekleme/silme araçlarıyla kendiniz silebilirsiniz. Bulut hesabında Ayarlar'daki "Hesabımı ve verilerimi sil" giriş bilgilerinizi, buluttaki tüm kayıtlarınızı ve bu tarayıcıdaki kopyaları kalıcı olarak siler; açık rızanızı bu yolla geri alabilirsiniz.</li>
 <li><strong>Tıbbi sorumluluk ve değişiklikler.</strong> VitaTakip tanı koymaz, tedavi başlatmaz ve reçete düzenlemez; nihai karar hekiminize aittir. Acil durumlarda 112'yi arayın. Bu metin güncellenebilir ve hukuki danışmanlık niteliği taşımaz.</li>
 </ol>
 <div class="flex justify-end"><button class="min-h-10 rounded-xl bg-teal-700 px-5 py-2 text-xs font-black text-white" onclick="closeKvkkInfoModal()" type="button">Kapat</button></div>
@@ -3289,7 +3289,7 @@ Verileri Sil
 <li><strong>"Uygulamayı yükle"</strong>, <strong>"Ana ekrana ekle"</strong> ya da adres çubuğundaki <i class="fa-solid fa-download" aria-hidden="true"></i> simgesini seçin.</li>
 <li>Kurulumu onaylayın.</li>
 </ol>
-<p>Uygulama tarayıcıdan kurulur; mağaza veya APK gerekmez. Verileriniz yalnızca bu cihazda kalır.</p>
+<p>Uygulama tarayıcıdan kurulur; mağaza veya APK gerekmez. Yerel hesapta verileriniz bu cihazda kalır; bulut hesabında hesabınızla eşitlenir.</p>
 <button type="button" onclick="VitaPwaInstall.closeHelp()">Tamam</button>
 </div>
 </div>

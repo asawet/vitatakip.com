@@ -1,11 +1,17 @@
 # VitaTakip (PWA)
 
 Vitamin, takviye, ilaç, tahlil ve belirti takibi için **tarayıcıda çalışan, cihaza yüklenebilen web uygulaması (PWA)**.
-Site: https://asawet05.github.io/VitaTakip-PWA/
+Site: https://vitatakip.com.tr
 
-## Mimari: önce cihaz (local-first), sunucu yok
-- Hesaplar, profil, günlük sıvı/takviye takibi, ilaç listesi, tahliller ve tahlil geçmişi, belirti seçimleri **yalnızca kullanıcının tarayıcısında** (localStorage + IndexedDB yedeği) tutulur. Firebase, bulut eşitleme, uzak veritabanı veya sunucu tabanlı giriş yoktur.
-- **Yedekleme:** Ayarlar > "Yedek İndir" bütün kayıtları JSON dosyası olarak verir; başka cihazda/tarayıcıda "Yedekten Geri Yükle" ile aynen geri gelir (`tests/yedek-geri-yukleme.mjs`).
+## Mimari: önce cihaz (local-first), isteğe bağlı bulut hesabı
+- **Yerel hesap** (giriş ekranında "Bu cihazda yerel hesap"): hesap, profil, günlük takip, ilaç/takviye, tahliller ve belirtiler **yalnızca kullanıcının tarayıcısında** (localStorage + IndexedDB yedeği) tutulur; hiçbir sunucuya gönderilmez.
+- **Bulut hesabı** (takma ad veya e-posta; KVKK açık rızasıyla): veriler yine **önce cihaza** yazılır, sonra Supabase'e (Frankfurt / AB) eşitlenir; telefon ve bilgisayarda aynı hesap. İnternet yokken uygulama çalışır, değişiklikler bağlantı gelince gönderilir.
+  - `js/bulut.js` istemci (yalnız **herkese açık** anahtar; veriyi RLS korur: herkes yalnız kendi satırları), `js/bulut-giris.js` giriş ekranı, `js/bulut-esitleme.js` eşitleme (yalnız değişen veri türü; yeni cihazda ilk çekme bitmeden hiçbir şey gönderilmez), `js/bulut-tasima.js` yerel hesaptan buluta taşıma (yerel şifre gerekir).
+  - Veritabanı şeması ve RLS: `supabase/migrations/`. Hesabı tamamen silme: `supabase/functions/hesap-sil` (Edge Function; yönetici anahtarı yalnız Supabase içinde).
+  - Buluta gitmeyenler: e-Nabız PDF'leri, profil fotoğrafı, Gemini anahtarı, taslaklar.
+  - Ücretsiz plan 7 gün etkinlik olmazsa projeyi duraklatır: `.github/workflows/supabase-keepalive.yml` günde bir kez çağırır.
+  - **Gizli anahtarlar depoya girmez**: Supabase gizli anahtarı yalnız Edge Function ortamında, keepalive bilgileri GitHub Secrets'ta. `.env` dosyaları `.gitignore`'da.
+- **Yedekleme:** Ayarlar > "Yedek İndir" bütün kayıtları JSON dosyası olarak verir; başka cihazda/tarayıcıda "Yedekten Geri Yükle" ile aynen geri gelir (`tests/yedek-geri-yukleme.mjs`). Bulut için otomatik yedek yoktur.
 
 ## Cihaza yükleme (APK yok)
 - `manifest.json` + `service-worker.js`: telefona ve bilgisayara "Uygulamayı Yükle / Ana Ekrana Ekle" ile kurulur, **internetsiz açılır**.
@@ -16,7 +22,7 @@ Site: https://asawet05.github.io/VitaTakip-PWA/
 - Ayarlar > Yapay zekâ: kullanıcı kendi **Gemini API anahtarını** girer; anahtar yalnızca kendi tarayıcısında, hesabına özel saklanır ve kaydederken Google ile doğrulanır.
 - Vita AI, sorulara yanıt verirken tarayıcıdaki **profil, tahliller, seçili belirtiler ve ilaç/takviyeleri** otomatik bağlam olarak ekler. Sağlık verisi dışarı gittiği için ilk soruda bir kez onay istenir; onay hesaba kaydedilir ve sohbetten geri alınabilir.
 - İstekler tarayıcıdan doğrudan Google'a gider (anahtar adres satırında değil `x-goog-api-key` başlığında). Anahtar yoksa, onay verilmezse veya Gemini yanıt veremezse cihazdaki yerel motor yanıtlar.
-- Sayfanın bağlanabildiği tek dış adres: `generativelanguage.googleapis.com` (CSP `connect-src`).
+- Sayfanın bağlanabildiği dış adresler (CSP `connect-src`): VitaTakip Supabase projesi (bulut hesabı), `generativelanguage.googleapis.com` (Gemini), ürün katalogları (Open Food/Products Facts).
 
 ## Hız
 - 11 CSS → `css/app.css`, 43 JS → 4 parça (`js/app.1-4.js`, `defer`, sırası korunur). Servis çalışanı dosyaları önbellekten anında verir, arkada günceller.

@@ -10,14 +10,14 @@
      takviye / ilaç / tahlil / kontrol hatırlatması → id'ye göre birleşim (aynı id'de bulut sürümü kalır)
      belirtiler → birleşim; değerlendirmeler, referans aralıkları → anahtar birleşimi (bulut önce gelir)
      profil → bulut profili doluysa bulut, değilse yerel (ad bulut hesabındaki kalır)
-     su, alım işaretleri, profil fotoğrafı → bulutta varsa bulut, yoksa yerel
+     su, alım işaretleri → bulutta varsa bulut, yoksa yerel (profil fotoğrafı buluta gitmez, cihazda kalır)
      doktor notları → ikisi de doluysa alt alta (yerel notlar başlıkla eklenir) */
 (function () {
   "use strict";
   var LIST_BY_ID = { supplements: true, medications: true, labhistory: true, recheck: true };
   var UNION = { symptoms: true, resolved_symptoms: true };
   var OBJ_MERGE = { reviews: true, labreferences: true };
-  var PREFER_CLOUD = { hydration: true, med_taken: true, avatar: true };
+  var PREFER_CLOUD = { hydration: true, med_taken: true };
   var busy = false;
 
   function $(id) { return document.getElementById(id); }
@@ -27,7 +27,7 @@
   function parse(raw, fb) { if (raw === null || raw === undefined) return fb; try { var v = JSON.parse(raw); return v === null || v === undefined ? fb : v; } catch (_) { return fb; } }
   function doneKey(localId) { return "vitatakip_bulut_tasindi_" + localId; }
   function skipKey(uid) { return "vitatakip_bulut_tasima_sorma_" + uid; }
-  function stores() { return (window.VitaSync && VitaSync.STORES) || ["user", "supplements", "medications", "med_taken", "hydration", "labs", "labreferences", "labhistory", "symptoms", "resolved_symptoms", "reviews", "notes", "avatar", "recheck"]; }
+  function stores() { return (window.VitaSync && VitaSync.STORES) || ["user", "supplements", "medications", "med_taken", "hydration", "labs", "labreferences", "labhistory", "symptoms", "resolved_symptoms", "reviews", "notes", "recheck"]; }
 
   function localAccounts() {
     var users = [];
@@ -67,7 +67,6 @@
             resolved_symptoms: snap.resolvedSymptoms, reviews: snap.supplementReviews };
           Object.keys(map).forEach(function (s) { if (map[s] !== undefined && map[s] !== null) out[s] = JSON.stringify(map[s]); });
           if (typeof snap.doctorNotes === "string" && snap.doctorNotes) out.notes = snap.doctorNotes;
-          if (snap.profilePhoto && !out.avatar) out.avatar = snap.profilePhoto;
         }
       }
     } catch (_) { /* IndexedDB okunamadı: localStorage yeterli */ }

@@ -15,14 +15,15 @@
    bulutta olan tür her zaman kazanır. (Yeni cihazda girişte uygulama boş varsayılanları yazar; bunlar buluttaki
    gerçek verinin üstüne yazılmamalı.)
 
-   Gönderilmeyenler: PDF/IndexedDB kayıtları, taslaklar, önbellekler, bildirim günlükleri (STORES dışındaki her şey).
+   Gönderilmeyenler: profil fotoğrafı, PDF/IndexedDB kayıtları, taslaklar, önbellekler, bildirim günlükleri (STORES dışındaki her şey).
    Bulut biçimi: user_stores(user_id, store, data) — data = {"v": <JSON değeri>} ya da düz metin için {"t": "<metin>"}. */
 (function () {
   "use strict";
 
   // Eşitlenen veri türleri (localStorage anahtarı "vitatakip_<tür>_<uuid>"). Sıra: gönderim/uygulama sırası.
   var STORES = ["user", "supplements", "medications", "med_taken", "hydration", "labs", "labreferences", "labhistory",
-    "symptoms", "resolved_symptoms", "reviews", "notes", "avatar", "recheck"];
+    "symptoms", "resolved_symptoms", "reviews", "notes", "recheck"];
+  // Profil fotoğrafı (vitatakip_avatar_) bilerek YOK: yüz fotoğrafı yalnız bu cihazda kalır (Ayarlar'daki not bunu söyler).
   var STORE_SET = {}; STORES.forEach(function (s) { STORE_SET[s] = true; });
   var KEY_RE = /^vitatakip_([a-z_]+)_([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
   var DEBOUNCE_MS = 1500;
@@ -30,6 +31,7 @@
 
   var originalSet = null, originalRemove = null;
   var applyingRemote = false;
+  var forgotten = {}; // silinen bulut hesapları: kuyruğa alma/gönderme yapılmaz
   var flushTimer = null, retryTimer = null, retryDelay = 5000;
   var flushing = false, pulling = false;
   var lastPullAt = 0;
@@ -80,7 +82,7 @@
     var m = KEY_RE.exec(String(key));
     if (!m || !STORE_SET[m[1]]) return;
     var uid = activeCloudUid();
-    if (!uid || m[2].toLowerCase() !== uid.toLowerCase()) return;
+    if (!uid || m[2].toLowerCase() !== uid.toLowerCase() || forgotten[uid]) return;
     var store = m[1];
     var meta = readMeta(uid);
     var h = removed ? "null" : hash(rawGet(key));
@@ -124,7 +126,7 @@
 
   async function flush() {
     var uid = activeCloudUid();
-    if (!uid || flushing) return { ok: false, skipped: true };
+    if (!uid || flushing || forgotten[uid]) return { ok: false, skipped: true };
     var meta = readMeta(uid);
     if (!meta.initialPullDone) { pull({ force: true }); return { ok: false, skipped: true }; } // VERİ KAYBI KORUMASI
     var q = readQueue(uid);
@@ -179,7 +181,7 @@
   async function pull(opts) {
     opts = opts || {};
     var uid = activeCloudUid();
-    if (!uid || pulling) return { ok: false, skipped: true };
+    if (!uid || pulling || forgotten[uid]) return { ok: false, skipped: true };
     if (!opts.force && Date.now() - lastPullAt < PULL_MIN_INTERVAL_MS) return { ok: true, skipped: true };
     if (!navigator.onLine) { setState("offline"); return { ok: false, offline: true }; }
     pulling = true; setState("syncing");
@@ -276,6 +278,11 @@
   function updateStatus() {
     status.pending = pendingCount();
     var info = statusText();
+    // Ayarlar > hesap silme açıklaması hesap türüne göre (bulutta giriş kaydı ve buluttaki kayıtlar da silinir)
+    var del = document.getElementById("settingsDeleteAccountDesc");
+    if (del) del.textContent = activeCloudUid()
+      ? "Bulut hesabınızı tamamen siler: giriş bilgileri, buluttaki tüm kayıtlar ve bu tarayıcıdaki kopyalar. İnternet gerekir."
+      : "Bu tarayıcıdaki aktif kullanıcıya ait tüm sağlık, tahlil ve protokol verilerini sıfırlar.";
     Array.prototype.forEach.call(document.querySelectorAll("[data-cloud-sync-status]"), function (el) {
       el.classList.toggle("hidden", !info);
       if (!info) return;
@@ -302,6 +309,8 @@
     STORES: STORES.slice(),
     flush: flush, pull: pull, pendingCount: pendingCount, status: function () { return Object.assign({}, status, { pending: pendingCount() }); },
     updateStatus: updateStatus,
+    // Hesap silinirken: bu hesap için kuyruğa alma/gönderme/çekme durur (yerel temizlik silme isteği üretmesin)
+    forget: function (uid) { if (uid) { forgotten[uid] = true; clearTimeout(flushTimer); clearTimeout(retryTimer); } },
     reloadAppData: function (uid, stores) { reloadAppData(uid, stores || [], false, true); },
     isInitialPullDone: function (uid) { uid = uid || activeCloudUid(); return Boolean(uid && readMeta(uid).initialPullDone); },
     // Açılışta kayıtlı oturumla girildiğinde (19-app-startup) çağrılır

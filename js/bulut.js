@@ -162,6 +162,19 @@
     }
   }
 
+  /* Bulut hesabını TAMAMEN siler (giriş kaydı + profil + buluttaki tüm veriler, cascade). Yönetici yetkisi gerektiği için
+     sunucudaki "hesap-sil" Edge Function'ı çağrılır (supabase/functions/hesap-sil); fonksiyon yalnız oturum sahibini siler. */
+  async function deleteAccount() {
+    try {
+      var c = await getClient();
+      var res = await c.functions.invoke("hesap-sil", { method: "POST" });
+      if (res.error) return fail(res.error);
+      if (!res.data || res.data.ok !== true) return { ok: false, code: "delete_failed", error: "Hesap silinemedi. Lütfen tekrar deneyin." };
+      authStorage.removeItem(CONFIG.sessionStorageKey); // sunucuda oturum artık yok; yerel belirteç de silinir
+      return { ok: true };
+    } catch (e) { return fail(e); }
+  }
+
   /* Kayıtlı oturum (ağ isteği yapmadan; çevrimdışıyken de çalışır). Yoksa null. */
   async function getSession() {
     try {
@@ -191,6 +204,7 @@
     signUp: signUp,
     signIn: signIn,
     signOut: signOut,
+    deleteAccount: deleteAccount,
     getSession: getSession,
     hasStoredSession: hasStoredSession,
     storedUserId: storedUserId,
