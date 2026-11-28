@@ -27,11 +27,11 @@
 <!-- Uses Inter when already available; otherwise falls back immediately to the system UI font. -->
 <!-- Font Awesome 6 CDN -->
 <!-- build:css -->
-<link rel="stylesheet" href="./css/app.css?v=7e4e715894">
-<script defer src="./js/app.1.js?v=7e4e715894"></script>
-<script defer src="./js/app.2.js?v=7e4e715894"></script>
-<script defer src="./js/app.3.js?v=7e4e715894"></script>
-<script defer src="./js/app.4.js?v=7e4e715894"></script>
+<link rel="stylesheet" href="./css/app.css?v=6907b12e45">
+<script defer src="./js/app.1.js?v=6907b12e45"></script>
+<script defer src="./js/app.2.js?v=6907b12e45"></script>
+<script defer src="./js/app.3.js?v=6907b12e45"></script>
+<script defer src="./js/app.4.js?v=6907b12e45"></script>
 <!-- /build:css -->
 <!-- Chart.js loads only if a trend chart is needed. -->
 <!-- PDF.js loads only when a user selects a PDF for analysis. -->
@@ -2584,52 +2584,42 @@ Verileri Sil
 </header>
 
 <div class="vta-body">
-<!-- Bulut hesabı: takma ad veya e-posta ile (js/bulut-giris.js, js/bulut.js) -->
+<!-- Bulut hesabı (js/bulut-giris.js, js/bulut.js). Üstte hesap türü sekmeleri: Hasta | Doktor.
+     Giriş ↔ kayıt formun altındaki bağlantıyla değişir; e-posta mı takma ad mı, yazılan değere göre anlaşılır ("@"). -->
 <div class="hidden" id="authCloudCard">
-<div class="vta-seg" role="group" aria-label="Bulut hesabı işlemi">
-<button class="bg-white" data-cloud-mode="login" id="cloudTabLoginBtn" type="button" aria-pressed="true">Giriş Yap</button>
-<button data-cloud-mode="register" id="cloudTabRegisterBtn" type="button" aria-pressed="false">Hesap Oluştur</button>
+<div class="vta-tabs" role="tablist" aria-label="Hesap türü">
+<button aria-selected="true" class="is-active" data-cloud-acct="patient" id="cloudTabPatient" role="tab" type="button"><i class="fa-solid fa-user" aria-hidden="true"></i> Hasta</button>
+<button aria-selected="false" data-cloud-acct="doctor" id="cloudTabDoctor" role="tab" type="button"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i> Doktor</button>
 </div>
 <form id="cloudAuthForm" novalidate="">
-<!-- Hesap türü: hasta / doktor (doktor hesabı "onay bekliyor" açılır; supabase/migrations/20261128120000_doktor_paneli.sql) -->
-<span class="hidden vta-group-label" id="cloudAccountTypeLabel">Hesap türü</span>
-<div class="hidden vta-kind" id="cloudAccountTypeRow" role="group" aria-labelledby="cloudAccountTypeLabel">
-<button data-cloud-acct="patient" type="button" aria-pressed="true"><i class="fa-solid fa-user" aria-hidden="true"></i> Hasta</button>
-<button data-cloud-acct="doctor" type="button" aria-pressed="false"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i> Doktor</button>
-</div>
-<span class="hidden vta-group-label" id="cloudKindLabel">Kayıt yöntemi</span>
-<div class="hidden vta-kind" id="cloudKindRow" role="group" aria-labelledby="cloudKindLabel">
-<button data-cloud-kind="username" type="button" aria-pressed="true"><i class="fa-solid fa-at" aria-hidden="true"></i> Takma adla</button>
-<button data-cloud-kind="email" type="button" aria-pressed="false"><i class="fa-solid fa-envelope" aria-hidden="true"></i> E-postayla</button>
-</div>
 <div class="hidden vta-field" id="cloudFullNameField">
-<label for="cloudInputFullName">Ad Soyad</label>
+<label class="sr-only" for="cloudInputFullName">Ad Soyad</label>
 <div class="vta-input">
 <i class="fa-solid fa-user vta-ico" aria-hidden="true"></i>
-<input aria-describedby="cloudErrorMsg" autocomplete="name" id="cloudInputFullName" maxlength="120" placeholder="Örn: Ahmet Yılmaz" type="text"/>
+<input aria-describedby="cloudErrorMsg" autocomplete="name" id="cloudInputFullName" maxlength="120" placeholder="Ad Soyad" type="text"/>
 </div>
 </div>
 <div class="vta-field">
-<label for="cloudInputIdentifier" id="cloudIdentifierLabel">E-posta veya takma ad</label>
+<label class="sr-only" for="cloudInputIdentifier" id="cloudIdentifierLabel">E-posta veya takma ad</label>
 <div class="vta-input">
 <i class="fa-solid fa-at vta-ico" aria-hidden="true" id="cloudIdentifierIcon"></i>
-<input aria-describedby="cloudIdentifierHint cloudErrorMsg" autocapitalize="none" autocomplete="username" id="cloudInputIdentifier" maxlength="254" placeholder="ornek@mail.com veya takma_adiniz" spellcheck="false" type="text"/>
+<input aria-describedby="cloudIdentifierHint cloudErrorMsg" autocapitalize="none" autocomplete="username" id="cloudInputIdentifier" maxlength="254" placeholder="E-posta veya takma ad" spellcheck="false" type="text"/>
 </div>
-<p class="hidden vta-hint" id="cloudIdentifierHint">3-20 karakter: küçük harf, rakam ve alt çizgi (_). Örn: ayse_k</p>
+<p class="hidden vta-hint" id="cloudIdentifierHint">Takma ad: 3-20 karakter, küçük harf, rakam ve alt çizgi (_). E-postayla açmak için e-posta adresinizi yazın.</p>
 </div>
 <div class="vta-field">
-<label for="cloudInputPassword">Şifre</label>
+<label class="sr-only" for="cloudInputPassword">Şifre</label>
 <div class="vta-input">
 <i class="fa-solid fa-lock vta-ico" aria-hidden="true"></i>
-<input aria-describedby="cloudErrorMsg" autocomplete="current-password" id="cloudInputPassword" minlength="8" placeholder="En az 8 karakter" type="password"/>
+<input aria-describedby="cloudErrorMsg" autocomplete="current-password" id="cloudInputPassword" minlength="8" placeholder="Şifre" type="password"/>
 <button class="vta-eye" aria-label="Şifreyi göster/gizle" onclick="togglePasswordVisibility('cloudInputPassword', this)" type="button"><i class="fa-solid fa-eye"></i></button>
 </div>
 </div>
 <div class="hidden vta-field" id="cloudConfirmField">
-<label for="cloudInputPasswordConfirm">Şifre Tekrar</label>
+<label class="sr-only" for="cloudInputPasswordConfirm">Şifre Tekrar</label>
 <div class="vta-input">
 <i class="fa-solid fa-shield-halved vta-ico" aria-hidden="true"></i>
-<input aria-describedby="cloudErrorMsg" autocomplete="new-password" id="cloudInputPasswordConfirm" placeholder="Şifrenizi tekrar yazın" type="password"/>
+<input aria-describedby="cloudErrorMsg" autocomplete="new-password" id="cloudInputPasswordConfirm" placeholder="Şifre tekrar (en az 8 karakter)" type="password"/>
 <button class="vta-eye" aria-label="Şifreyi göster/gizle" onclick="togglePasswordVisibility('cloudInputPasswordConfirm', this)" type="button"><i class="fa-solid fa-eye"></i></button>
 </div>
 </div>
@@ -2637,12 +2627,16 @@ Verileri Sil
 <p class="hidden vta-warn vta-info" id="cloudDoctorInfo" role="note"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i> <span>Doktor hesabı <strong>onay bekliyor</strong> olarak açılır ve size bir doktor kodu verilir (ör. DR-4829). Hastalar kodunuzla size erişim izni verebilmesi için hesabınızın VitaTakip yöneticisince onaylanması gerekir.</span></p>
 <label class="hidden vta-check" id="cloudDoctorConsentRow"><input id="cloudDoctorConsentCheckbox" type="checkbox"/> <span>Hekim taahhüdü: hasta verilerini yalnızca hastanın verdiği izinle ve takip/tedavi amacıyla görüntüleyeceğimi, başkasıyla paylaşmayacağımı ve hastanın izni istediği an geri alabileceğini kabul ediyorum. <button onclick="openKvkkInfoModal()" type="button">Gizlilik metni</button></span></label>
 <label class="hidden vta-check" id="cloudConsentRow"><input id="cloudConsentCheckbox" type="checkbox"/> <span>Sağlık verilerimin (takviye, ilaç, tahlil, belirti kayıtlarım) hesabımla eşitlenmek üzere VitaTakip bulut veritabanında (Supabase, Frankfurt / AB) saklanmasına <strong>açık rıza</strong> veriyorum. Verilerime yalnızca ben erişebilirim. <button onclick="openKvkkInfoModal()" type="button">Gizlilik metni</button></span></label>
-<label class="vta-check"><input id="cloudRememberMeCheckbox" type="checkbox"/> <span>Beni hatırla <small>(bu cihazda oturumum açık kalsın)</small></span></label>
+<label class="vta-check vta-remember"><input id="cloudRememberMeCheckbox" type="checkbox"/> <span>Beni hatırla</span></label>
 <div aria-live="assertive" class="hidden vta-msg vta-msg-err" id="cloudErrorMsg" role="alert" tabindex="-1"></div>
 <div aria-live="polite" class="hidden vta-msg vta-msg-info" id="cloudNoticeMsg" role="status"></div>
-<button class="vta-primary" id="cloudSubmitBtn" type="submit"><span>Giriş Yap</span> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+<button class="vta-primary" id="cloudSubmitBtn" type="submit"><span>Giriş Yap</span></button>
+<div class="vta-links">
+<button class="vta-link" id="cloudForgotBtn" type="button">Şifremi unuttum</button>
+<button class="vta-link vta-link-strong" data-cloud-mode="register" id="cloudModeToggle" type="button">Hesap oluştur</button>
+</div>
 </form>
-<button class="vta-sync" id="authShowLocalBtn" type="button"><i class="fa-solid fa-mobile-screen" aria-hidden="true"></i> Bu cihazda yerel hesap kullan (internetsiz)</button>
+<button class="vta-secondary" id="authShowLocalBtn" type="button"><i class="fa-solid fa-mobile-screen" aria-hidden="true"></i> Bu cihazda yerel hesap (internetsiz)</button>
 </div>
 
 <div id="authLocalMethodCard">
@@ -2714,8 +2708,8 @@ Verileri Sil
 
 
 <p class="vta-note hidden" id="authCloudDataNotice">
-<i class="fa-solid fa-cloud" aria-hidden="true"></i>
-<span>Bulut hesabında verileriniz şifreli bağlantıyla VitaTakip bulut veritabanına (Supabase, Frankfurt / AB) kaydedilir ve yalnızca sizin hesabınızla görülebilir. İnternet yokken de uygulama çalışır; değişiklikler bağlantı gelince gönderilir. <button type="button" onclick="openKvkkInfoModal()">Gizlilik &amp; Yasal Şartlar</button></span>
+<i class="fa-solid fa-lock" aria-hidden="true"></i>
+<span>Kayıtlarınız önce bu cihaza, sonra şifreli bağlantıyla Frankfurt'taki (AB) bulut veritabanına kaydedilir; yalnızca siz görebilirsiniz. <button type="button" onclick="openKvkkInfoModal()">Gizlilik</button></span>
 </p>
 <p class="vta-note" id="authLocalDataNotice">
 <i class="fa-solid fa-lock" aria-hidden="true"></i>

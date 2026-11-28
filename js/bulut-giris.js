@@ -33,7 +33,7 @@
     show($("authCloudDataNotice"), cloud);
     show($("authLocalDataNotice"), !cloud);
     var sub = $("authSubtitle");
-    if (cloud && sub) sub.textContent = mode === "register" ? "Bulut hesabı oluşturun" : "Bulut hesabınıza giriş yapın";
+    if (cloud && sub) sub.textContent = title();
     if (!cloud && typeof switchAuthMode === "function") switchAuthMode(typeof currentAuthMode === "string" ? currentAuthMode : "login");
     if (remember) lsSet(PANEL_KEY, panel);
     if (cloud) { syncRememberBox(); updateOfflineNotice(); }
@@ -49,62 +49,57 @@
     showPanel(panel, false);
   }
 
-  /* ---------------- Giriş / kayıt modu ---------------- */
+  /* ---------------- Sekme (Hasta | Doktor) ve giriş/kayıt modu ---------------- */
+  function title() {
+    var who = acct === "doctor" ? "Doktor" : "Hasta";
+    return mode === "register" ? who + " hesabı oluşturun" : who + " girişi";
+  }
   function setMode(m) {
     mode = m === "register" ? "register" : "login";
     var reg = mode === "register";
-    [["cloudTabLoginBtn", !reg], ["cloudTabRegisterBtn", reg]].forEach(function (x) {
-      var b = $(x[0]); if (!b) return;
-      b.classList.toggle("bg-white", x[1]); b.setAttribute("aria-pressed", x[1] ? "true" : "false");
-    });
-    show($("cloudAccountTypeLabel"), reg);
-    show($("cloudAccountTypeRow"), reg);
-    show($("cloudKindLabel"), reg);
-    show($("cloudKindRow"), reg);
     show($("cloudFullNameField"), reg);
     show($("cloudConfirmField"), reg);
+    var pw = $("cloudInputPassword"); if (pw) { pw.autocomplete = reg ? "new-password" : "current-password"; pw.placeholder = reg ? "Şifre (en az 8 karakter)" : "Şifre"; }
+    var btn = $("cloudSubmitBtn"); if (btn) btn.innerHTML = reg ? "<span>Hesap Oluştur</span>" : "<span>Giriş Yap</span>";
+    var toggle = $("cloudModeToggle");
+    if (toggle) { toggle.textContent = reg ? "Zaten hesabım var · Giriş yap" : "Hesap oluştur"; toggle.setAttribute("data-cloud-mode", reg ? "login" : "register"); }
+    show($("cloudForgotBtn"), !reg);
     setAcct(acct);
-    var pw = $("cloudInputPassword"); if (pw) pw.autocomplete = reg ? "new-password" : "current-password";
-    var sub = $("authSubtitle"); if (sub && currentPanel() === "cloud") sub.textContent = reg ? "Bulut hesabı oluşturun" : "Bulut hesabınıza giriş yapın";
-    var btn = $("cloudSubmitBtn");
-    if (btn) btn.innerHTML = reg ? '<span>Hesap Oluştur</span> <i class="fa-solid fa-user-plus" aria-hidden="true"></i>' : '<span>Giriş Yap</span> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
     setKind(kind);
     setMessage("");
   }
-  /* Hasta: sağlık verisi açık rıza kutusu. Doktor: onay bilgisi + hekim taahhüdü. */
+  /* Üst sekme hesap türünü belirler. Hasta: sağlık verisi açık rızası; Doktor: onay bilgisi + hekim taahhüdü. */
   function setAcct(a) {
     acct = a === "doctor" ? "doctor" : "patient";
     Array.prototype.forEach.call(document.querySelectorAll("[data-cloud-acct]"), function (b) {
-      b.setAttribute("aria-pressed", b.getAttribute("data-cloud-acct") === acct ? "true" : "false");
+      var on = b.getAttribute("data-cloud-acct") === acct;
+      b.classList.toggle("is-active", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+      b.setAttribute("aria-pressed", on ? "true" : "false");
     });
     var reg = mode === "register";
     show($("cloudConsentRow"), reg && acct === "patient");
     show($("cloudDoctorInfo"), reg && acct === "doctor");
     show($("cloudDoctorConsentRow"), reg && acct === "doctor");
-    var nameInput = $("cloudInputFullName"); if (nameInput) nameInput.placeholder = acct === "doctor" ? "Örn: Dr. Ahmet Yılmaz" : "Örn: Ahmet Yılmaz";
+    show($("authShowLocalBtn"), acct === "patient"); // yerel hesap yalnız hasta içindir
+    var nameInput = $("cloudInputFullName"); if (nameInput) nameInput.placeholder = acct === "doctor" ? "Ad Soyad (ör. Dr. Ahmet Yılmaz)" : "Ad Soyad";
+    var t = $("cloudFormTitle"); if (t) t.textContent = title();
+    var sub = $("authSubtitle"); if (sub && currentPanel() === "cloud") sub.textContent = title();
   }
+  /* Takma ad mı e-posta mı: kayıtta yazılan değere göre ("@" varsa e-posta). Uyarı/ipucu yalnız takma adda. */
   function setKind(k) {
     kind = k === "email" ? "email" : "username";
-    Array.prototype.forEach.call(document.querySelectorAll("[data-cloud-kind]"), function (b) {
-      b.setAttribute("aria-pressed", b.getAttribute("data-cloud-kind") === kind ? "true" : "false");
-    });
     var reg = mode === "register";
-    var label = $("cloudIdentifierLabel"), input = $("cloudInputIdentifier"), icon = $("cloudIdentifierIcon");
-    if (!reg) {
-      if (label) label.textContent = "E-posta veya takma ad";
-      if (input) { input.placeholder = "ornek@mail.com veya takma_adiniz"; input.type = "text"; input.autocomplete = "username"; }
-      if (icon) icon.className = "fa-solid fa-at vta-ico";
-    } else if (kind === "username") {
-      if (label) label.textContent = "Takma ad";
-      if (input) { input.placeholder = "Örn: ayse_k"; input.type = "text"; input.autocomplete = "username"; }
-      if (icon) icon.className = "fa-solid fa-at vta-ico";
-    } else {
-      if (label) label.textContent = "E-posta";
-      if (input) { input.placeholder = "ornek@mail.com"; input.type = "email"; input.autocomplete = "email"; }
-      if (icon) icon.className = "fa-solid fa-envelope vta-ico";
-    }
+    var input = $("cloudInputIdentifier"), icon = $("cloudIdentifierIcon");
+    if (input) { input.type = "text"; input.autocomplete = reg && kind === "email" ? "email" : "username"; }
+    if (icon) icon.className = (kind === "email" ? "fa-solid fa-envelope" : "fa-solid fa-at") + " vta-ico";
+    var typed = input ? input.value.trim() : "";
     show($("cloudIdentifierHint"), reg && kind === "username");
-    show($("cloudUsernameWarning"), reg && kind === "username");
+    show($("cloudUsernameWarning"), reg && kind === "username" && typed.length > 0);
+  }
+  function syncKindFromInput() {
+    var input = $("cloudInputIdentifier"); if (!input || mode !== "register") return;
+    setKind(input.value.indexOf("@") !== -1 ? "email" : "username");
   }
 
   function setMessage(text, isError, focus) {
@@ -143,6 +138,7 @@
 
     if (!identifier) { setMessage(mode === "register" ? (kind === "username" ? "Lütfen bir takma ad girin." : "Lütfen e-posta adresinizi girin.") : "Lütfen e-posta adresinizi veya takma adınızı girin.", true, true); if (idInput) idInput.focus(); return false; }
     if (mode === "register") {
+      kind = identifier.indexOf("@") !== -1 ? "email" : "username";
       var fullName = ($("cloudInputFullName") ? $("cloudInputFullName").value : "").trim().replace(/\s+/g, " ");
       if (fullName.length < 2) { setMessage("Lütfen adınızı en az 2 karakterle girin.", true, true); if ($("cloudInputFullName")) $("cloudInputFullName").focus(); return false; }
       if (kind === "username" && !VitaCloud.isValidUsername(identifier)) { setMessage("Takma ad 3-20 karakter olmalı; yalnız küçük harf, rakam ve alt çizgi (_) kullanın. Türkçe karakter kullanmayın.", true, true); if (idInput) idInput.focus(); return false; }
@@ -266,11 +262,16 @@
     var t = e.target && e.target.closest ? e.target : null; if (!t) return;
     var m = t.closest("[data-cloud-mode]"); if (m) { if (window.SoundEffects) try { SoundEffects.playClick(); } catch (_) {} setMode(m.getAttribute("data-cloud-mode")); return; }
     var k = t.closest("[data-cloud-kind]"); if (k) { setKind(k.getAttribute("data-cloud-kind")); setMessage(""); return; }
+    if (t.closest("#cloudForgotBtn")) {
+      setMessage("Şifre sıfırlama yakında eklenecek: e-postayla açılan hesaplarda sıfırlama bağlantısı e-postanıza gönderilecek, takma ad hesapları için kurtarma kodları gelecek. Şimdilik şifrenizi hatırlayamıyorsanız yeni bir hesap açabilirsiniz.", false);
+      return;
+    }
     var a = t.closest("[data-cloud-acct]"); if (a) { setAcct(a.getAttribute("data-cloud-acct")); setMessage(""); return; }
     if (t.closest("#authShowLocalBtn")) { showLocal(); return; }
     if (t.closest("#authShowCloudBtn")) { showCloud(); }
   });
   document.addEventListener("submit", function (e) { if (e.target && e.target.id === "cloudAuthForm") submit(e); });
+  document.addEventListener("input", function (e) { if (e.target && e.target.id === "cloudInputIdentifier") syncKindFromInput(); });
   window.addEventListener("online", updateOfflineNotice);
   window.addEventListener("offline", updateOfflineNotice);
 

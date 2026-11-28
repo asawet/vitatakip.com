@@ -15,13 +15,13 @@ const toasts = () => p.evaluate(() => document.body.innerText);
 
 /* 1) Kayıt formu: hesap türü; varsayılan Hasta */
 await p.evaluate(() => { VitaAuthUI.showCloud(); VitaAuthUI.setMode('register'); });
-const s1 = { row: await vis('cloudAccountTypeRow'), consent: await vis('cloudConsentRow'), dinfo: await vis('cloudDoctorInfo'), dpledge: await vis('cloudDoctorConsentRow'), pressed: await p.evaluate(() => document.querySelector('[data-cloud-acct="patient"]').getAttribute('aria-pressed')) };
-log('Kayıt: "Hasta / Doktor" seçimi; varsayılan Hasta, sağlık verisi açık rızası görünür', s1.row && s1.consent && !s1.dinfo && !s1.dpledge && s1.pressed === 'true', JSON.stringify(s1));
+const s1 = { row: (await vis('cloudTabPatient')) && (await vis('cloudTabDoctor')), consent: await vis('cloudConsentRow'), dinfo: await vis('cloudDoctorInfo'), dpledge: await vis('cloudDoctorConsentRow'), sel: await p.evaluate(() => cloudTabPatient.getAttribute('aria-selected')), local: await vis('authShowLocalBtn') };
+log('Üstte "Hasta | Doktor" sekmeleri; varsayılan Hasta, sağlık verisi açık rızası ve yerel hesap seçeneği görünür', s1.row && s1.consent && !s1.dinfo && !s1.dpledge && s1.sel === 'true' && s1.local, JSON.stringify(s1));
 
 /* 2) Doktor seçilince: onay bilgisi + hekim taahhüdü, hasta açık rızası gizli */
 await p.click('[data-cloud-acct="doctor"]'); await sleep(100);
-const s2 = { consent: await vis('cloudConsentRow'), dinfo: await vis('cloudDoctorInfo'), dpledge: await vis('cloudDoctorConsentRow'), ph: await p.evaluate(() => cloudInputFullName.placeholder), info: await p.evaluate(() => cloudDoctorInfo.innerText) };
-log('Doktor: "onay bekliyor" bilgisi ve hekim taahhüdü görünür, hasta açık rızası gizlenir', !s2.consent && s2.dinfo && s2.dpledge && /Dr\./.test(s2.ph) && /onay bekliyor/.test(s2.info), JSON.stringify(s2));
+const s2 = { sub: await p.evaluate(() => authSubtitle.textContent), local: await vis('authShowLocalBtn'), sel: await p.evaluate(() => cloudTabDoctor.getAttribute('aria-selected')), consent: await vis('cloudConsentRow'), dinfo: await vis('cloudDoctorInfo'), dpledge: await vis('cloudDoctorConsentRow'), ph: await p.evaluate(() => cloudInputFullName.placeholder), info: await p.evaluate(() => cloudDoctorInfo.innerText) };
+log('Doktor sekmesi: "Doktor hesabı oluşturun", onay bilgisi + hekim taahhüdü; hasta açık rızası ve yerel hesap gizli', s2.sub === 'Doktor hesabı oluşturun' && s2.sel === 'true' && !s2.local && !s2.consent && s2.dinfo && s2.dpledge && /Dr\./.test(s2.ph) && /onay bekliyor/.test(s2.info), JSON.stringify(s2));
 if (process.env.VT_SHOTS) await p.screenshot({ path: process.env.VT_SHOTS + '/doktor-kayit.png', fullPage: false });
 
 /* 3) Taahhüt olmadan doktor kaydı reddedilir */
@@ -55,11 +55,15 @@ log('Hasta kaydı: account_type gönderilmez (hasta), açık rıza zamanı gider
 /* 6) Giriş sekmesinde hesap türü seçimi görünmez; doktor tekrar girince profil tazelenir (onaylandıysa) */
 await p.evaluate(() => { try { closeProfileModal(); } catch (e) {} handleLogout(); }); await sleep(300);
 await p.evaluate(() => { VitaAuthUI.showCloud(); VitaAuthUI.setMode('login'); });
-const s6row = { row: await vis('cloudAccountTypeRow'), dinfo: await vis('cloudDoctorInfo'), dpledge: await vis('cloudDoctorConsentRow') };
+await p.click('#cloudTabDoctor'); await sleep(100);
+const s6row = { row: await vis('cloudTabDoctor'), sub: await p.evaluate(() => authSubtitle.textContent), dinfo: await vis('cloudDoctorInfo'), dpledge: await vis('cloudDoctorConsentRow'), name: await vis('cloudFullNameField') };
+await p.click('#cloudForgotBtn'); await sleep(100);
+const forgot = await p.evaluate(() => document.getElementById('cloudNoticeMsg').textContent + document.getElementById('cloudErrorMsg').textContent);
 await p.evaluate(uid => { window.__verifiedDoctors = [uid]; }, s4.uid);
 await fill('cloudInputIdentifier', 'dr_deniz'); await fill('cloudInputPassword', 'doktor123'); await p.click('#cloudSubmitBtn'); await sleep(1500);
 const s6 = await p.evaluate(() => JSON.parse(localStorage.getItem('vitatakip_bulut_profil_' + activeUserId) || 'null'));
-log('Giriş sekmesinde hesap türü/doktor alanları gizli', !s6row.row && !s6row.dinfo && !s6row.dpledge, JSON.stringify(s6row));
+log('Girişte de sekmeler görünür ("Doktor girişi"); doktor kayıt alanları gizli', s6row.row && s6row.sub === 'Doktor girişi' && !s6row.dinfo && !s6row.dpledge && !s6row.name, JSON.stringify(s6row));
+log('"Şifremi unuttum" ne yapılacağını açıklar (sıfırlama yakında)', /Şifre sıfırlama yakında/.test(forgot), forgot.slice(0, 60));
 log('Doktor tekrar girince profil sunucudan tazelenir (yönetici onayı görünür)', s6 && s6.doctor_verified === true, JSON.stringify(s6));
 
 const diag = await p.evaluate(() => VitaTakipDiagnostics.run());

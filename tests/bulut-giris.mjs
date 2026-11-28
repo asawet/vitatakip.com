@@ -49,12 +49,16 @@ const vis = id => p.evaluate(id => { const e = document.getElementById(id); retu
 const msg = () => p.evaluate(() => document.getElementById('cloudErrorMsg').textContent.trim());
 const fill = (id, v) => p.evaluate((id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); }, id, v);
 const submit = async () => { await p.click('#cloudSubmitBtn'); await sleep(500); };
+// Giriş ↔ kayıt: formun altındaki bağlantı (data-cloud-mode = gideceği mod)
+const toMode = async m => { if ((await p.evaluate(() => cloudModeToggle.getAttribute('data-cloud-mode'))) === m) await p.click('#cloudModeToggle'); await sleep(150); };
 
 /* 1) Yeni cihaz: bulut paneli açılır */
 const s1 = { cloud: await vis('authCloudCard'), local: await vis('authLocalMethodCard'), note: await vis('authCloudDataNotice'), localNote: await vis('authLocalDataNotice'), sub: await p.evaluate(() => authSubtitle.textContent), label: await p.evaluate(() => cloudIdentifierLabel.textContent) };
-log('Yeni cihazda giriş ekranı bulut paneliyle açılır (tek kutu: "E-posta veya takma ad")', s1.cloud && !s1.local && s1.note && !s1.localNote && s1.sub === 'Bulut hesabınıza giriş yapın' && s1.label === 'E-posta veya takma ad', JSON.stringify(s1));
-const s1h = { kind: await vis('cloudKindRow'), warn: await vis('cloudUsernameWarning'), consent: await vis('cloudConsentRow'), name: await vis('cloudFullNameField'), confirm: await vis('cloudConfirmField'), hint: await vis('cloudIdentifierHint'), err: await vis('cloudErrorMsg') };
-log('Giriş sekmesinde kayıt alanları gerçekten gizli (tür seçimi, uyarı, açık rıza, ad, şifre tekrar)', Object.values(s1h).every(v => v === false), JSON.stringify(s1h));
+s1.tabs = await p.evaluate(() => [...document.querySelectorAll('#authCloudCard [role=tab]')].map(t => t.textContent.trim() + ':' + t.getAttribute('aria-selected')).join(','));
+s1.links = (await vis('cloudForgotBtn')) && (await vis('cloudModeToggle')) && (await p.evaluate(() => cloudModeToggle.textContent.trim()));
+log('Yeni cihazda bulut paneli: üstte Hasta | Doktor sekmeleri, "Hasta girişi", tek kutu, altta Şifremi unuttum / Hesap oluştur', s1.cloud && !s1.local && s1.note && !s1.localNote && s1.sub === 'Hasta girişi' && s1.label === 'E-posta veya takma ad' && s1.tabs === 'Hasta:true,Doktor:false' && s1.links === 'Hesap oluştur', JSON.stringify(s1));
+const s1h = { warn: await vis('cloudUsernameWarning'), consent: await vis('cloudConsentRow'), name: await vis('cloudFullNameField'), confirm: await vis('cloudConfirmField'), hint: await vis('cloudIdentifierHint'), err: await vis('cloudErrorMsg') };
+log('Girişte kayıt alanları gerçekten gizli (uyarı, açık rıza, ad, şifre tekrar)', Object.values(s1h).every(v => v === false), JSON.stringify(s1h));
 
 /* 1b) Bulut panelindeki simgeler çizilir (Font Awesome alt kümesinde tanımlı; boş/bozuk glif yok) */
 const icons = await p.evaluate(() => [...document.querySelectorAll('#authCloudCard i[class*="fa-"], #authCloudDataNotice i[class*="fa-"], #authLocalMethodCard i.fa-cloud')].map(i => {
@@ -65,12 +69,15 @@ const badIcons = icons.filter(x => !x.ok).map(x => x.cls);
 log('Bulut paneli simgeleri çizilir (' + icons.length + ' simge)', icons.length >= 8 && badIcons.length === 0, badIcons.join(', '));
 
 /* 2) Kayıt sekmesi alanları */
-await p.click('#cloudTabRegisterBtn'); await sleep(150);
-const s2 = { kind: await vis('cloudKindRow'), name: await vis('cloudFullNameField'), confirm: await vis('cloudConfirmField'), consent: await vis('cloudConsentRow'), hint: await vis('cloudIdentifierHint'), warn: await vis('cloudUsernameWarning'), label: await p.evaluate(() => cloudIdentifierLabel.textContent) };
-await p.click('[data-cloud-kind="email"]'); await sleep(100);
-const s2e = { label: await p.evaluate(() => cloudIdentifierLabel.textContent), type: await p.evaluate(() => cloudInputIdentifier.type), warn: await vis('cloudUsernameWarning') };
-await p.click('[data-cloud-kind="username"]'); await sleep(100);
-log('Kayıt: Takma adla / E-postayla, ad soyad, şifre tekrar, açık rıza; takma ad kuralı ve şifre uyarısı', s2.kind && s2.name && s2.confirm && s2.consent && s2.hint && s2.warn && s2.label === 'Takma ad' && s2e.label === 'E-posta' && s2e.type === 'email' && !s2e.warn, JSON.stringify({ s2, s2e }));
+await toMode('register');
+const s2 = { name: await vis('cloudFullNameField'), confirm: await vis('cloudConfirmField'), consent: await vis('cloudConsentRow'), hint: await vis('cloudIdentifierHint'), warn: await vis('cloudUsernameWarning'), forgot: await vis('cloudForgotBtn'), sub: await p.evaluate(() => authSubtitle.textContent), back: await p.evaluate(() => cloudModeToggle.textContent.trim()), btn: await p.evaluate(() => cloudSubmitBtn.textContent.trim()) };
+await fill('cloudInputIdentifier', 'ayse_k');
+const s2u = { warn: await vis('cloudUsernameWarning'), icon: await p.evaluate(() => cloudIdentifierIcon.className) };
+await fill('cloudInputIdentifier', 'ayse@ornek.com');
+const s2e = { warn: await vis('cloudUsernameWarning'), icon: await p.evaluate(() => cloudIdentifierIcon.className), hint: await vis('cloudIdentifierHint') };
+await fill('cloudInputIdentifier', '');
+log('Kayıt: ad soyad, şifre tekrar, açık rıza, "Hesap Oluştur"; geri dönüş bağlantısı; Şifremi unuttum gizli', s2.name && s2.confirm && s2.consent && s2.hint && !s2.forgot && s2.sub === 'Hasta hesabı oluşturun' && /Giriş yap/.test(s2.back) && s2.btn === 'Hesap Oluştur', JSON.stringify(s2));
+log('Tür yazılandan anlaşılır: takma adda kural + şifre uyarısı; "@" yazınca e-posta (uyarı yok)', !s2.warn && s2u.warn && /fa-at/.test(s2u.icon) && !s2e.warn && !s2e.hint && /fa-envelope/.test(s2e.icon), JSON.stringify({ s2u, s2e }));
 
 /* 3) Doğrulama hataları (sunucuya gitmeden) */
 await fill('cloudInputFullName', 'Ayşe Bulut'); await fill('cloudInputIdentifier', 'Ayşe K'); await fill('cloudInputPassword', 'sifre1234'); await fill('cloudInputPasswordConfirm', 'sifre1234');
@@ -109,7 +116,7 @@ const s6v = { cloud: await vis('authCloudCard'), local: await vis('authLocalMeth
 log('Çıkış: bulut oturumu kapanır, belirteç silinir, ekran bulut paneliyle açılır', s6.uid === null && s6.signOut && !s6.tok && s6v.cloud && !s6v.local, JSON.stringify({ s6, s6v }));
 
 /* 7) Giriş: yanlış şifre, sonra büyük harfli takma ad + doğru şifre ("Beni hatırla" açık) */
-await p.click('#cloudTabLoginBtn'); await sleep(100);
+await toMode('login');
 await fill('cloudInputIdentifier', 'AYSE_BULUT'); await fill('cloudInputPassword', 'yanlis999'); await submit();
 const e7 = await msg();
 await fill('cloudInputPassword', 'sifre1234'); await p.evaluate(() => { cloudRememberMeCheckbox.checked = true; }); await submit(); await sleep(400);
@@ -132,12 +139,12 @@ log('Ağ hatasında oturum açık kalır (çevrimdışı çalışma)', s9a === u
 log('Sunucuda iptal edilmiş oturum: güvenli çıkış, açıklama, cihazdaki veri silinmez', s9b.uid === null && s9b.cloud && /Oturumunuz sona erdi/.test(s9b.msg) && s9b.keptData, JSON.stringify(s9b));
 
 /* 10) E-postayla kayıt; aynı e-postayla ikinci kayıt reddedilir */
-await p.click('#cloudTabRegisterBtn'); await p.click('[data-cloud-kind="email"]'); await sleep(100);
+await toMode('register');
 await fill('cloudInputFullName', 'Bora Eposta'); await fill('cloudInputIdentifier', 'Bora@Ornek.com'); await fill('cloudInputPassword', 'sifre5678'); await fill('cloudInputPasswordConfirm', 'sifre5678');
 await p.evaluate(() => { cloudConsentCheckbox.checked = true; }); await submit(); await sleep(300);
 const s10 = await p.evaluate(() => ({ uid: activeUserId, email: (window.__calls.filter(c => c[0] === 'signUp').pop() || [])[1] }));
 await p.evaluate(() => { try { closeProfileModal(); } catch (e) {} handleLogout(); }); await sleep(300);
-await p.click('#cloudTabRegisterBtn'); await p.click('[data-cloud-kind="email"]');
+await toMode('register');
 await fill('cloudInputFullName', 'Kopya Kişi'); await fill('cloudInputIdentifier', 'bora@ornek.com'); await fill('cloudInputPassword', 'sifre5678'); await fill('cloudInputPasswordConfirm', 'sifre5678');
 await p.evaluate(() => { cloudConsentCheckbox.checked = true; }); await submit();
 const e10 = await msg();
