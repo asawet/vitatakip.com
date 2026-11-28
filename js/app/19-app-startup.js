@@ -66,6 +66,8 @@
         renderAllAppViews();
         // Oturumun sunucuda hâlâ geçerli olduğu açılıştan sonra doğrulanır (kütüphane açılışla yarışmasın).
         if (cloudSessionValid && window.VitaAuthUI) setTimeout(() => window.VitaAuthUI.verifySessionInBackground(savedSessionId), 4000);
+        // Bulut eşitleme: buluttaki değişiklikleri çek, bekleyenleri gönder (js/bulut-esitleme.js)
+        if (cloudSessionValid && window.VitaSync) setTimeout(() => window.VitaSync.start(), 1500);
         if (typeof navigateToView === "function") {
           navigateToView(state.activeTab || "view-home");
         }

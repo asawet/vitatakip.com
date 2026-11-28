@@ -27,11 +27,11 @@
 <!-- Uses Inter when already available; otherwise falls back immediately to the system UI font. -->
 <!-- Font Awesome 6 CDN -->
 <!-- build:css -->
-<link rel="stylesheet" href="./css/app.css?v=398b6bc41e">
-<script defer src="./js/app.1.js?v=398b6bc41e"></script>
-<script defer src="./js/app.2.js?v=398b6bc41e"></script>
-<script defer src="./js/app.3.js?v=398b6bc41e"></script>
-<script defer src="./js/app.4.js?v=398b6bc41e"></script>
+<link rel="stylesheet" href="./css/app.css?v=63bf2a3c87">
+<script defer src="./js/app.1.js?v=63bf2a3c87"></script>
+<script defer src="./js/app.2.js?v=63bf2a3c87"></script>
+<script defer src="./js/app.3.js?v=63bf2a3c87"></script>
+<script defer src="./js/app.4.js?v=63bf2a3c87"></script>
 <!-- /build:css -->
 <!-- Chart.js loads only if a trend chart is needed. -->
 <!-- PDF.js loads only when a user selects a PDF for analysis. -->
@@ -95,6 +95,8 @@
 <span class="text-[9px] px-2 py-0.5 rounded-full font-black bg-teal-500/20 text-teal-300 border border-teal-500/30" id="drawerBmiBadge">VKİ: -</span>
 </div>
 <span class="text-[10px] text-slate-400 block mt-0.5" id="drawerUserWeightHeight">- kg / - cm</span>
+<!-- Bulut eşitleme durumu (yalnız bulut hesabında görünür; js/bulut-esitleme.js) -->
+<span class="vt-sync vt-sync-dark hidden" data-cloud-sync-status="" id="drawerCloudSyncStatus" role="status" aria-live="polite"></span>
 </div>
 <i class="fa-solid fa-pen text-xs text-slate-400 group-hover:text-teal-300 transition"></i>
 </div>
@@ -1958,7 +1960,7 @@ Anahtar girerseniz Vita AI sohbeti ve kutu fotoğrafı tanıma Google Gemini ile
 <i class="fa-solid fa-database text-emerald-600 text-sm"></i>
 <h3 class="text-xs sm:text-sm font-black text-navy-900">Veriler ve yedek</h3>
 </div>
-<span class="text-[10px] font-bold text-slate-500" id="settingsDataSummaryText">Yerel depolama aktif</span>
+<span class="flex flex-wrap items-center gap-1.5"><span class="vt-sync hidden" data-cloud-sync-status="" id="settingsCloudSyncStatus"></span><span class="text-[10px] font-bold text-slate-500" id="settingsDataSummaryText">Yerel depolama aktif</span></span>
 </div>
 <div class="divide-y divide-slate-100 text-xs">
 <!-- Şifreli: 4 haneli kodla Oyun Merkezi'ne yönlendirir (js/day-compact.js). Kod sayfada düz yazılı değildir; yalnızca özeti saklanır. -->

@@ -215,6 +215,7 @@
     safeLocalStorageRemoveItem("vitatakip_active_session_id");
     safeSessionStorageRemoveItem("vitatakip_active_session_id");
     activeUserId = null;
+    if (window.VitaSync) window.VitaSync.updateStatus();
     resetApplicationDOMAndState();
     openAuthModal();
     showCloud(); setMode("login");
@@ -224,6 +225,7 @@
   /* Çıkış (handleLogout çağırır): bulut oturumu bu cihazda kapatılır. */
   function onLogout(wasCloud) {
     if (wasCloud && window.VitaCloud) { try { VitaCloud.signOut(); } catch (_) {} lsSet(PANEL_KEY, "cloud"); }
+    if (window.VitaSync) window.VitaSync.updateStatus(); // eşitleme göstergesi gizlenir
   }
 
   /* ---------------- Olaylar ---------------- */

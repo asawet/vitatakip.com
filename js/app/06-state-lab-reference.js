@@ -540,6 +540,8 @@ let currentAuthMode = "login";
       if (window.VitaRechartsDashboard && typeof window.VitaRechartsDashboard.renderAll === "function") {
         window.VitaRechartsDashboard.renderAll();
       }
+      // Bulut eşitleme göstergesi: oturum değişince (çıkış, hesap silme, başka hesaba geçiş) yeniden hesaplanır
+      if (window.VitaSync && typeof window.VitaSync.updateStatus === "function") window.VitaSync.updateStatus();
     }
 
     // Kullanıcı girdilerini HTML şablonlarına koymadan önce kaçırır; bu tek dosyalı prototipte XSS riskini azaltır.
@@ -1095,7 +1097,12 @@ let currentAuthMode = "login";
     }
 
     function handleLogout() {
-      if (confirm("Oturumunuz kapatılacaktır. Onaylıyor musunuz?")) {
+      // Bulut hesabında henüz gönderilmemiş değişiklik varsa kullanıcıya söylenir (bu cihazda kalır, sonraki girişte gider).
+      const pendingCloud = window.VitaSync && window.VitaCloud && window.VitaCloud.isCloudUserId(activeUserId) ? window.VitaSync.pendingCount() : 0;
+      const logoutQuestion = pendingCloud
+        ? `Oturumunuz kapatılacaktır. ${pendingCloud} değişiklik henüz buluta gönderilmedi; bu cihazda kalır ve bu hesapla tekrar giriş yaptığınızda gönderilir. Onaylıyor musunuz?`
+        : "Oturumunuz kapatılacaktır. Onaylıyor musunuz?";
+      if (confirm(logoutQuestion)) {
         TTSVoice.stop();
         const wasCloudSession = Boolean(window.VitaCloud && window.VitaCloud.isCloudUserId(activeUserId));
         safeLocalStorageRemoveItem("vitatakip_active_session_id");
