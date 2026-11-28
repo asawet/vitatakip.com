@@ -1,16 +1,16 @@
 /* VitaTakip servis çalışanı — çevrimdışı açılış ve hızlı önbellek.
    Sunucu yoktur; yalnızca bu sitenin kendi dosyaları önbelleğe alınır. Kullanıcı verileri (localStorage/IndexedDB)
    burada tutulmaz. CACHE_VERSION ve CORE_FILES `node tools/build.mjs` ile otomatik güncellenir. */
-const CACHE_VERSION = 'vitatakip-af9804ce5a';
+const CACHE_VERSION = 'vitatakip-053d4e8323';
 const CORE_FILES = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./css/app.css?v=af9804ce5a",
-  "./js/app.1.js?v=af9804ce5a",
-  "./js/app.2.js?v=af9804ce5a",
-  "./js/app.3.js?v=af9804ce5a",
-  "./js/app.4.js?v=af9804ce5a",
+  "./css/app.css?v=053d4e8323",
+  "./js/app.1.js?v=053d4e8323",
+  "./js/app.2.js?v=053d4e8323",
+  "./js/app.3.js?v=053d4e8323",
+  "./js/app.4.js?v=053d4e8323",
   "./icons/apple-touch-icon.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

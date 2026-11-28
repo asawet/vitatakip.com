@@ -127,6 +127,8 @@
       // consent_at: KVKK açık rıza zamanı (kayıt ekranındaki onay kutusu); kullanıcı meta verisinde saklanır.
       var meta = { full_name: fullName, username: username };
       if (opts.consentAt) meta.consent_at = String(opts.consentAt);
+      // Doktor hesabı: sunucu tetikleyicisi kod atar ve "onay bekliyor" başlatır (onayı yalnız yönetici verir)
+      if (opts.accountType === "doctor") { meta.account_type = "doctor"; if (opts.doctorPledgeAt) meta.doctor_pledge_at = String(opts.doctorPledgeAt); }
       var res = await c.auth.signUp({ email: email, password: password, options: { data: meta } });
       if (res.error) return fail(res.error);
       // Supabase, var olan bir e-postayla tekrar kayıtta (onay kapalıyken) kimlikleri boş kullanıcı döndürebilir.
@@ -175,6 +177,24 @@
     } catch (e) { return fail(e); }
   }
 
+  /* Kendi profilim: hesap türü (patient/doctor), doktor kodu ve onay durumu. Sunucudan okunur ve cihazda saklanır
+     (çevrimdışı açılışta da bilinsin). Döner: { account_type, doctor_code, doctor_verified, full_name } ya da önbellek/null. */
+  function profileCacheKey(uid) { return "vitatakip_bulut_profil_" + uid; }
+  function cachedProfile(uid) {
+    try { var v = JSON.parse(localStorage.getItem(profileCacheKey(uid)) || "null"); return v && typeof v === "object" ? v : null; } catch (_) { return null; }
+  }
+  async function myProfile(uid) {
+    try {
+      var c = await getClient();
+      var res = await c.rpc("my_profile");
+      if (res.error || !Array.isArray(res.data) || !res.data[0]) return cachedProfile(uid);
+      var p = res.data[0];
+      var out = { account_type: p.account_type === "doctor" ? "doctor" : "patient", doctor_code: p.doctor_code || null, doctor_verified: Boolean(p.doctor_verified), full_name: p.full_name || "" };
+      try { localStorage.setItem(profileCacheKey(p.id || uid), JSON.stringify(out)); } catch (_) {}
+      return out;
+    } catch (_) { return cachedProfile(uid); }
+  }
+
   /* Kayıtlı oturum (ağ isteği yapmadan; çevrimdışıyken de çalışır). Yoksa null. */
   async function getSession() {
     try {
@@ -205,6 +225,8 @@
     signIn: signIn,
     signOut: signOut,
     deleteAccount: deleteAccount,
+    myProfile: myProfile,
+    cachedProfile: cachedProfile,
     getSession: getSession,
     hasStoredSession: hasStoredSession,
     storedUserId: storedUserId,

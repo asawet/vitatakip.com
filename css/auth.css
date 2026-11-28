@@ -161,3 +161,9 @@ html[data-theme="dark"] .vta-msg-info{background:rgba(20,184,166,.12);border-col
 .fa-at{--fa:"\40"}
 .fa-cloud{--fa:"\f0c2"}
 .fa-cloud-arrow-up{--fa:"\f0ee"}
+
+/* Doktor hesabı bilgi notu (uyarı değil, bilgi tonu) */
+.vta-warn.vta-info{background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a}
+html[data-theme="dark"] .vta-warn.vta-info{background:rgba(59,130,246,.14);border-color:rgba(147,197,253,.35);color:#bfdbfe}
+.vta-group-label{display:block;margin:0 0 6px;font-size:12px;font-weight:800;color:#334155}
+html[data-theme="dark"] .vta-group-label{color:#e2e8f0}

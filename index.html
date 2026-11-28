@@ -27,11 +27,11 @@
 <!-- Uses Inter when already available; otherwise falls back immediately to the system UI font. -->
 <!-- Font Awesome 6 CDN -->
 <!-- build:css -->
-<link rel="stylesheet" href="./css/app.css?v=af9804ce5a">
-<script defer src="./js/app.1.js?v=af9804ce5a"></script>
-<script defer src="./js/app.2.js?v=af9804ce5a"></script>
-<script defer src="./js/app.3.js?v=af9804ce5a"></script>
-<script defer src="./js/app.4.js?v=af9804ce5a"></script>
+<link rel="stylesheet" href="./css/app.css?v=053d4e8323">
+<script defer src="./js/app.1.js?v=053d4e8323"></script>
+<script defer src="./js/app.2.js?v=053d4e8323"></script>
+<script defer src="./js/app.3.js?v=053d4e8323"></script>
+<script defer src="./js/app.4.js?v=053d4e8323"></script>
 <!-- /build:css -->
 <!-- Chart.js loads only if a trend chart is needed. -->
 <!-- PDF.js loads only when a user selects a PDF for analysis. -->
@@ -2512,7 +2512,14 @@ Verileri Sil
 <button data-cloud-mode="register" id="cloudTabRegisterBtn" type="button" aria-pressed="false">Hesap Oluştur</button>
 </div>
 <form id="cloudAuthForm" novalidate="">
-<div class="hidden vta-kind" id="cloudKindRow" role="group" aria-label="Hesap türü">
+<!-- Hesap türü: hasta / doktor (doktor hesabı "onay bekliyor" açılır; supabase/migrations/20261128120000_doktor_paneli.sql) -->
+<span class="hidden vta-group-label" id="cloudAccountTypeLabel">Hesap türü</span>
+<div class="hidden vta-kind" id="cloudAccountTypeRow" role="group" aria-labelledby="cloudAccountTypeLabel">
+<button data-cloud-acct="patient" type="button" aria-pressed="true"><i class="fa-solid fa-user" aria-hidden="true"></i> Hasta</button>
+<button data-cloud-acct="doctor" type="button" aria-pressed="false"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i> Doktor</button>
+</div>
+<span class="hidden vta-group-label" id="cloudKindLabel">Kayıt yöntemi</span>
+<div class="hidden vta-kind" id="cloudKindRow" role="group" aria-labelledby="cloudKindLabel">
 <button data-cloud-kind="username" type="button" aria-pressed="true"><i class="fa-solid fa-at" aria-hidden="true"></i> Takma adla</button>
 <button data-cloud-kind="email" type="button" aria-pressed="false"><i class="fa-solid fa-envelope" aria-hidden="true"></i> E-postayla</button>
 </div>
@@ -2548,6 +2555,8 @@ Verileri Sil
 </div>
 </div>
 <p class="hidden vta-warn" id="cloudUsernameWarning" role="note"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> <span>Takma adla açılan hesapta e-posta yoktur; şifrenizi unutursanız şu an sıfırlama yolu bulunmuyor. Şifrenizi güvenli bir yere not edin.</span></p>
+<p class="hidden vta-warn vta-info" id="cloudDoctorInfo" role="note"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i> <span>Doktor hesabı <strong>onay bekliyor</strong> olarak açılır ve size bir doktor kodu verilir (ör. DR-4829). Hastalar kodunuzla size erişim izni verebilmesi için hesabınızın VitaTakip yöneticisince onaylanması gerekir.</span></p>
+<label class="hidden vta-check" id="cloudDoctorConsentRow"><input id="cloudDoctorConsentCheckbox" type="checkbox"/> <span>Hekim taahhüdü: hasta verilerini yalnızca hastanın verdiği izinle ve takip/tedavi amacıyla görüntüleyeceğimi, başkasıyla paylaşmayacağımı ve hastanın izni istediği an geri alabileceğini kabul ediyorum. <button onclick="openKvkkInfoModal()" type="button">Gizlilik metni</button></span></label>
 <label class="hidden vta-check" id="cloudConsentRow"><input id="cloudConsentCheckbox" type="checkbox"/> <span>Sağlık verilerimin (takviye, ilaç, tahlil, belirti kayıtlarım) hesabımla eşitlenmek üzere VitaTakip bulut veritabanında (Supabase, Frankfurt / AB) saklanmasına <strong>açık rıza</strong> veriyorum. Verilerime yalnızca ben erişebilirim. <button onclick="openKvkkInfoModal()" type="button">Gizlilik metni</button></span></label>
 <label class="vta-check"><input id="cloudRememberMeCheckbox" type="checkbox"/> <span>Beni hatırla <small>(bu cihazda oturumum açık kalsın)</small></span></label>
 <div aria-live="assertive" class="hidden vta-msg vta-msg-err" id="cloudErrorMsg" role="alert" tabindex="-1"></div>

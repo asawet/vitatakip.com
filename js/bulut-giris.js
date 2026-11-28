@@ -11,6 +11,7 @@
   var PANEL_KEY = "vitatakip_auth_panel"; // son kullanılan panel: "cloud" | "local"
   var mode = "login";      // login | register
   var kind = "username";   // username | email (yalnız kayıt)
+  var acct = "patient";    // patient | doctor (yalnız kayıt; doktor "onay bekliyor" açılır)
   var busy = false;
 
   function $(id) { return document.getElementById(id); }
@@ -56,16 +57,31 @@
       var b = $(x[0]); if (!b) return;
       b.classList.toggle("bg-white", x[1]); b.setAttribute("aria-pressed", x[1] ? "true" : "false");
     });
+    show($("cloudAccountTypeLabel"), reg);
+    show($("cloudAccountTypeRow"), reg);
+    show($("cloudKindLabel"), reg);
     show($("cloudKindRow"), reg);
     show($("cloudFullNameField"), reg);
     show($("cloudConfirmField"), reg);
-    show($("cloudConsentRow"), reg);
+    setAcct(acct);
     var pw = $("cloudInputPassword"); if (pw) pw.autocomplete = reg ? "new-password" : "current-password";
     var sub = $("authSubtitle"); if (sub && currentPanel() === "cloud") sub.textContent = reg ? "Bulut hesabı oluşturun" : "Bulut hesabınıza giriş yapın";
     var btn = $("cloudSubmitBtn");
     if (btn) btn.innerHTML = reg ? '<span>Hesap Oluştur</span> <i class="fa-solid fa-user-plus" aria-hidden="true"></i>' : '<span>Giriş Yap</span> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
     setKind(kind);
     setMessage("");
+  }
+  /* Hasta: sağlık verisi açık rıza kutusu. Doktor: onay bilgisi + hekim taahhüdü. */
+  function setAcct(a) {
+    acct = a === "doctor" ? "doctor" : "patient";
+    Array.prototype.forEach.call(document.querySelectorAll("[data-cloud-acct]"), function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-cloud-acct") === acct ? "true" : "false");
+    });
+    var reg = mode === "register";
+    show($("cloudConsentRow"), reg && acct === "patient");
+    show($("cloudDoctorInfo"), reg && acct === "doctor");
+    show($("cloudDoctorConsentRow"), reg && acct === "doctor");
+    var nameInput = $("cloudInputFullName"); if (nameInput) nameInput.placeholder = acct === "doctor" ? "Örn: Dr. Ahmet Yılmaz" : "Örn: Ahmet Yılmaz";
   }
   function setKind(k) {
     kind = k === "email" ? "email" : "username";
@@ -132,7 +148,9 @@
       if (kind === "username" && !VitaCloud.isValidUsername(identifier)) { setMessage("Takma ad 3-20 karakter olmalı; yalnız küçük harf, rakam ve alt çizgi (_) kullanın. Türkçe karakter kullanmayın.", true, true); if (idInput) idInput.focus(); return false; }
       if (password.length < VitaCloud.MIN_PASSWORD) { setMessage("Şifre en az " + VitaCloud.MIN_PASSWORD + " karakter olmalıdır.", true, true); if (pwInput) pwInput.focus(); return false; }
       if (password !== ($("cloudInputPasswordConfirm") ? $("cloudInputPasswordConfirm").value : "")) { setMessage("Girdiğiniz şifreler birbiriyle eşleşmiyor.", true, true); if ($("cloudInputPasswordConfirm")) $("cloudInputPasswordConfirm").focus(); return false; }
-      if (!($("cloudConsentCheckbox") && $("cloudConsentCheckbox").checked)) { setMessage("Bulut hesabı için sağlık verilerinizin saklanmasına açık rıza vermeniz gerekir. İstemiyorsanız \"Bu cihazda yerel hesap\" seçeneğini kullanabilirsiniz.", true, true); return false; }
+      if (acct === "doctor") {
+        if (!($("cloudDoctorConsentCheckbox") && $("cloudDoctorConsentCheckbox").checked)) { setMessage("Doktor hesabı için hekim taahhüdünü onaylamanız gerekir.", true, true); return false; }
+      } else if (!($("cloudConsentCheckbox") && $("cloudConsentCheckbox").checked)) { setMessage("Bulut hesabı için sağlık verilerinizin saklanmasına açık rıza vermeniz gerekir. İstemiyorsanız \"Bu cihazda yerel hesap\" seçeneğini kullanabilirsiniz.", true, true); return false; }
     } else if (!password) { setMessage("Lütfen şifrenizi girin.", true, true); if (pwInput) pwInput.focus(); return false; }
     if (!navigator.onLine) { updateOfflineNotice(); return false; }
 
@@ -142,7 +160,8 @@
     var res;
     try {
       res = mode === "register"
-        ? await VitaCloud.signUp({ kind: kind, username: identifier, email: identifier, fullName: fullName, password: password, consentAt: new Date().toISOString() })
+        ? await VitaCloud.signUp({ kind: kind, username: identifier, email: identifier, fullName: fullName, password: password,
+            accountType: acct, consentAt: acct === "patient" ? new Date().toISOString() : null, doctorPledgeAt: acct === "doctor" ? new Date().toISOString() : null })
         : await VitaCloud.signIn(identifier, password);
     } finally { setBusy(false); }
     if (!res || !res.ok) { setMessage((res && res.error) || "İşlem tamamlanamadı.", true, true); return false; }
@@ -150,7 +169,7 @@
     if (pwInput) pwInput.value = "";
     if ($("cloudInputPasswordConfirm")) $("cloudInputPasswordConfirm").value = "";
     lsSet(PANEL_KEY, "cloud");
-    enterSession(res.user, { isNew: mode === "register", remember: remember });
+    enterSession(res.user, { isNew: mode === "register", remember: remember, doctor: mode === "register" && acct === "doctor" });
     return false;
   }
 
@@ -174,9 +193,10 @@
       state.user = Object.assign({}, defaultUserProfile, { name: fullName });
       try { saveState(); } catch (e) { console.warn("İlk profil durumu kaydedilemedi.", e); }
       closeAuthModal();
-      if (typeof openProfileModal === "function") openProfileModal(false);
+      // Doktor hesabında hastaya özgü profil adımı (yaş, kilo…) açılmaz
+      if (!opts.doctor && typeof openProfileModal === "function") openProfileModal(false);
       try { renderAllAppViews(); } catch (e) { console.error(e); }
-      showToast("Bulut Hesabı Oluşturuldu", "Hesabınız hazır. Şimdi profil bilgilerinizi tamamlayın.", "success");
+      if (!opts.doctor) showToast("Bulut Hesabı Oluşturuldu", "Hesabınız hazır. Şimdi profil bilgilerinizi tamamlayın.", "success");
     } else {
       loadUserSessionData(uid);
       if (!state.user || !String(state.user.name || "").trim() || state.user.name === "Kullanıcı") {
@@ -189,7 +209,20 @@
       if (typeof startVitaSpotlightIfFirstVisit === "function") startVitaSpotlightIfFirstVisit();
     }
     if (typeof window.triggerVitaInstallToastOnce === "function") window.triggerVitaInstallToastOnce(uid);
+    // Hesap türü / doktor kodu / onay durumu sunucudan okunur ve saklanır (doktor paneli bunu kullanır)
+    refreshProfile(uid, opts.doctor);
     document.dispatchEvent(new CustomEvent("vita:cloud-session", { detail: { userId: uid, isNew: Boolean(opts.isNew) } }));
+  }
+
+  async function refreshProfile(uid, announceDoctor) {
+    if (!window.VitaCloud || !VitaCloud.myProfile) return null;
+    var p = await VitaCloud.myProfile(uid);
+    if (activeUserId !== uid || !p) return p;
+    document.dispatchEvent(new CustomEvent("vita:cloud-profile", { detail: { userId: uid, profile: p } }));
+    if (announceDoctor && p.account_type === "doctor") {
+      showToast("Doktor Hesabı Oluşturuldu", "Doktor kodunuz: " + (p.doctor_code || "—") + ". Hesabınız onay bekliyor; onaydan sonra hastalar bu kodla size erişim izni verebilir.", "success");
+    }
+    return p;
   }
 
   /* Açılışta kayıtlı oturumla girilen bulut kullanıcısı: internet varsa oturumun sunucuda hâlâ geçerli olduğu
@@ -202,7 +235,7 @@
       var res = await c.auth.getUser();
       if (activeUserId !== uid) return;
       var err = res && res.error;
-      if (!err && res.data && res.data.user && res.data.user.id === uid) return;
+      if (!err && res.data && res.data.user && res.data.user.id === uid) { refreshProfile(uid, false); return; }
       var status = err && (err.status || 0);
       var code = String((err && err.code) || "");
       var revoked = (status === 401 || status === 403) || /session_not_found|refresh_token_not_found|user_not_found|bad_jwt/.test(code) || (!err && !(res.data && res.data.user));
@@ -233,6 +266,7 @@
     var t = e.target && e.target.closest ? e.target : null; if (!t) return;
     var m = t.closest("[data-cloud-mode]"); if (m) { if (window.SoundEffects) try { SoundEffects.playClick(); } catch (_) {} setMode(m.getAttribute("data-cloud-mode")); return; }
     var k = t.closest("[data-cloud-kind]"); if (k) { setKind(k.getAttribute("data-cloud-kind")); setMessage(""); return; }
+    var a = t.closest("[data-cloud-acct]"); if (a) { setAcct(a.getAttribute("data-cloud-acct")); setMessage(""); return; }
     if (t.closest("#authShowLocalBtn")) { showLocal(); return; }
     if (t.closest("#authShowCloudBtn")) { showCloud(); }
   });
@@ -241,7 +275,7 @@
   window.addEventListener("offline", updateOfflineNotice);
 
   window.VitaAuthUI = {
-    onOpen: onOpen, showCloud: showCloud, showLocal: showLocal, setMode: setMode, setKind: setKind,
+    onOpen: onOpen, showCloud: showCloud, showLocal: showLocal, setMode: setMode, setKind: setKind, setAcct: setAcct, refreshProfile: refreshProfile,
     submit: submit, enterSession: enterSession, verifySessionInBackground: verifySessionInBackground,
     onLogout: onLogout, forceLogout: forceLogout, currentPanel: currentPanel
   };

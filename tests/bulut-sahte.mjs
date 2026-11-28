@@ -15,8 +15,11 @@ export const fakeCloudPreload = () => {
   const fake = {
     auth: {
       async signUp({ email, password, options }) {
+        window.__calls.push(['signUp', email, options && options.data]);
         if (users[email]) return { data: {}, error: { code: 'user_already_exists', status: 422, message: 'User already registered' } };
-        const u = { id: crypto.randomUUID(), email, password, meta: (options && options.data) || {} }; users[email] = u; localStorage.setItem('__fakeUsers', JSON.stringify(users));
+        const u = { id: crypto.randomUUID(), email, password, meta: (options && options.data) || {} };
+        if (u.meta.account_type === 'doctor') u.doctorCode = 'DR-' + (1000 + Object.keys(users).length); // sunucu tetikleyicisi gibi
+        users[email] = u; localStorage.setItem('__fakeUsers', JSON.stringify(users));
         const s = mkSession(u); VitaCloud.authStorage.setItem(KEY, JSON.stringify(s)); return { data: { user: { ...s.user, identities: [{}] }, session: s }, error: null };
       },
       async signInWithPassword({ email, password }) {
@@ -26,6 +29,13 @@ export const fakeCloudPreload = () => {
       async signOut() { VitaCloud.authStorage.removeItem(KEY); return { error: null }; },
       async getSession() { const raw = VitaCloud.authStorage.getItem(KEY); return { data: { session: raw ? JSON.parse(raw) : null } }; },
       async getUser() { net(); const raw = VitaCloud.authStorage.getItem(KEY); return { data: { user: raw ? JSON.parse(raw).user : null }, error: null }; }
+    },
+    // my_profile (SECURITY INVOKER; yalnız kendi satırı). __verifiedDoctors: onaylı doktor kimlikleri
+    async rpc(name) {
+      net(); window.__calls.push(['rpc', name]);
+      const uid = curUid(); const u = Object.values(users).find(x => x.id === uid);
+      if (name === 'my_profile') return { data: u ? [{ id: u.id, full_name: u.meta.full_name || '', account_type: u.meta.account_type === 'doctor' ? 'doctor' : 'patient', doctor_code: u.doctorCode || null, doctor_verified: (window.__verifiedDoctors || []).includes(u.id) }] : [], error: null };
+      return { data: null, error: { message: 'bilinmeyen rpc: ' + name } };
     },
     functions: {
       // hesap-sil Edge Function: oturum sahibini ve tüm satırlarını siler (cascade). __deleteFails ile hata canlandırılır.
