@@ -43,6 +43,7 @@ export const fakeCloudPreload = () => {
       // Şifre sıfırlama (e-posta): bağlantı belirteci __fakeResetTokens'ta; test __lastResetToken ile "e-postadaki bağlantıyı" açar
       async resetPasswordForEmail(email, opts) {
         net(); window.__calls.push(['resetPasswordForEmail', email, opts && opts.redirectTo]);
+        if (window.__smtpFails) return { data: {}, error: { code: 'unexpected_failure', status: 500, message: 'Error sending recovery email' } };
         if (users[email]) { const t = 'tok_' + crypto.randomUUID().replace(/-/g, ''); const all = J('__fakeResetTokens', {}); all[t] = email; localStorage.setItem('__fakeResetTokens', JSON.stringify(all)); window.__lastResetToken = t; }
         return { data: {}, error: null }; // hesap olsun olmasın aynı yanıt
       },

@@ -199,7 +199,12 @@
     try {
       var c = await getClient();
       var res = await c.auth.resetPasswordForEmail(email, { redirectTo: resetRedirectUrl() });
-      if (res && res.error) return fail(res.error);
+      if (res && res.error) {
+        var d = describeError(res.error);
+        if (d.code !== "unknown" && d.code !== "unexpected_failure") return { ok: false, error: d.message, code: d.code };
+        // Sunucu e-postayı gönderemedi (SMTP / e-posta hizmeti hatası): kullanıcıya genel hata yerine ne olduğu söylenir
+        return { ok: false, code: "email_send_failed", error: "Sıfırlama e-postası şu an gönderilemedi. Lütfen biraz sonra tekrar deneyin; sorun sürerse bizimle iletişime geçin." };
+      }
       return { ok: true }; // hesap olsun olmasın aynı yanıt (hangi e-postaların kayıtlı olduğu öğrenilemez)
     } catch (e) { return fail(e); }
   }

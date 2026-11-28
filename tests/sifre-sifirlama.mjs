@@ -116,6 +116,9 @@ await fill('resetIdentifier', 'yok@ornek.com'); await p.click('#resetSubmitBtn')
 const i7b = await infoMsg();
 log('E-posta yazılınca kod alanları gizli, "Sıfırlama bağlantısı gönder"', !s7f.code && /bağlantısı gönder/.test(s7f.btn), JSON.stringify(s7f));
 log('Bağlantı isteği: küçük harfli e-posta, dönüş adresi uygulama; "bir hesap varsa… gönderildi"', call7 && call7[1] === 'eda@ornek.com' && call7[2] === BASE && /bir hesap varsa sıfırlama bağlantısı gönderildi/.test(i7), JSON.stringify({ call7, i7 }));
+await p.evaluate(() => { window.__smtpFails = true; }); await p.click('#resetSubmitBtn'); await sleep(500);
+const e7s = await errMsg(); await p.evaluate(() => { window.__smtpFails = false; });
+log('E-posta gönderilemezse (SMTP hatası) genel hata yerine "e-postası şu an gönderilemedi"', /Sıfırlama e-postası şu an gönderilemedi/.test(e7s), e7s);
 log('Kayıtlı olmayan e-posta için de aynı yanıt (hangi e-postanın kayıtlı olduğu öğrenilemez)', i7b === i7, i7b);
 await shot('sifre-4-eposta-istek');
 const token = await p.evaluate(() => window.__lastResetToken);
