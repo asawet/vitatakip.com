@@ -59,7 +59,7 @@
     var reg = mode === "register";
     show($("cloudFullNameField"), reg);
     show($("cloudConfirmField"), reg);
-    var pw = $("cloudInputPassword"); if (pw) { pw.autocomplete = reg ? "new-password" : "current-password"; pw.placeholder = reg ? "Şifre (en az 8 karakter)" : "Şifre"; }
+    var pw = $("cloudInputPassword"); if (pw) { pw.autocomplete = reg ? "new-password" : "current-password"; pw.placeholder = reg ? "Şifre (en az 6 karakter)" : "Şifre"; }
     var btn = $("cloudSubmitBtn"); if (btn) btn.innerHTML = reg ? "<span>Hesap Oluştur</span>" : "<span>Giriş Yap</span>";
     var toggle = $("cloudModeToggle");
     if (toggle) { toggle.textContent = reg ? "Zaten hesabım var · Giriş yap" : "Hesap oluştur"; toggle.setAttribute("data-cloud-mode", reg ? "login" : "register"); }

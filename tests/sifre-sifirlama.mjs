@@ -95,6 +95,18 @@ await p.click('#resetBackBtn'); await sleep(150);
 log('"Girişe dön" giriş ekranına döner', (await vis('authCloudCard')) && !(await vis('authResetCard')));
 
 /* 7) E-posta hesabı: kurtarma kodu yok; "Şifremi unuttum" bağlantı ister (hesap var/yok aynı yanıt) */
+/* 7a) Şifre alt sınırı 6 karakter: 5 karakter reddedilir, 6 karakter kabul edilir */
+await p.evaluate(() => { VitaAuthUI.setMode('register'); });
+await fill('cloudInputFullName', 'Altı Karakter'); await fill('cloudInputIdentifier', 'alti_k'); await fill('cloudInputPassword', 'abc12'); await fill('cloudInputPasswordConfirm', 'abc12');
+await p.evaluate(() => { cloudConsentCheckbox.checked = true; });
+await p.click('#cloudSubmitBtn'); await sleep(400);
+const e7a = await p.evaluate(() => cloudErrorMsg.textContent.trim());
+await fill('cloudInputPassword', 'abc123'); await fill('cloudInputPasswordConfirm', 'abc123'); await p.click('#cloudSubmitBtn'); await sleep(900);
+await p.click('#recoveryAckCheckbox'); await p.click('#recoveryContinueBtn'); await sleep(600); // takma ad: kurtarma kodu adımı
+const s7a = await p.evaluate(() => ({ uid: activeUserId, ph: cloudInputPasswordConfirm.placeholder }));
+log('Şifre en az 6 karakter: 5 karakter reddedilir, 6 karakterle hesap açılır', /en az 6 karakter/.test(e7a) && !!s7a.uid && /en az 6/.test(s7a.ph), JSON.stringify({ e7a, ...s7a }));
+await closeExtras(); await p.evaluate(() => handleLogout()); await sleep(400);
+await p.evaluate(() => { VitaAuthUI.showCloud(); VitaAuthUI.setMode('login'); });
 await p.evaluate(() => { VitaAuthUI.setMode('register'); });
 await fill('cloudInputFullName', 'Eda Posta'); await fill('cloudInputIdentifier', 'eda@ornek.com'); await fill('cloudInputPassword', 'edasifre11'); await fill('cloudInputPasswordConfirm', 'edasifre11');
 await p.evaluate(() => { cloudConsentCheckbox.checked = true; });

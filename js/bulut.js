@@ -18,7 +18,7 @@
   });
   var USERNAME_RE = /^[a-z0-9_]{3,20}$/;
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-  var MIN_PASSWORD = 8;
+  var MIN_PASSWORD = 6;
 
   var client = null;
   var clientPromise = null;

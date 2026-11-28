@@ -969,8 +969,8 @@ let currentAuthMode = "login";
         if (nameInput) nameInput.focus();
         return;
       }
-      if (!password || (currentAuthMode === "register" && password.length < 8)) {
-        setAuthFeedback(currentAuthMode === "register" ? "Yeni şifreniz en az 8 karakter olmalıdır." : "Lütfen şifrenizi giriniz.", true);
+      if (!password || (currentAuthMode === "register" && password.length < 6)) {
+        setAuthFeedback(currentAuthMode === "register" ? "Yeni şifreniz en az 6 karakter olmalıdır." : "Lütfen şifrenizi giriniz.", true);
         if (passwordInput) passwordInput.focus();
         return;
       }

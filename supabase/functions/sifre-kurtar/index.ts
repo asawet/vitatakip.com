@@ -19,7 +19,7 @@ const ALLOWED_ORIGINS = new Set([
 const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 32 karakter (0/O, 1/I yok) → 16 karakter = 80 bit
 const HASH_PREFIX = "vitatakip-kurtarma:";
-const MIN_PASSWORD = 8, MAX_PASSWORD = 72;
+const MIN_PASSWORD = 6, MAX_PASSWORD = 72;
 const USER_LIMIT = 5, USER_WINDOW_MIN = 15;
 const IP_LIMIT = 20, IP_WINDOW_MIN = 60;
 
