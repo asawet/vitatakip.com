@@ -31,9 +31,29 @@ export const fakeCloudPreload = () => {
       async getUser() { net(); const raw = VitaCloud.authStorage.getItem(KEY); return { data: { user: raw ? JSON.parse(raw).user : null }, error: null }; }
     },
     // my_profile (SECURITY INVOKER; yalnız kendi satırı). __verifiedDoctors: onaylı doktor kimlikleri
-    async rpc(name) {
+    async rpc(name, args) {
       net(); window.__calls.push(['rpc', name]);
       const uid = curUid(); const u = Object.values(users).find(x => x.id === uid);
+      // Doktor paneli: __fakeDoctors = { 'DR-4829': { id, full_name, verified } }; bağlantılar/notlar localStorage'da
+      const links = J('__fakeLinks', []); const saveLinks = l => localStorage.setItem('__fakeLinks', JSON.stringify(l));
+      if (name === 'grant_doctor_access') {
+        let c = String((args || {}).p_code || '').trim().toUpperCase();
+        if (!/^DR-?\d{4,6}$/.test(c)) return { data: { ok: false, reason: 'bad_code' }, error: null };
+        if (!c.startsWith('DR-')) c = 'DR-' + c.slice(2);
+        const d = (window.__fakeDoctors || {})[c];
+        if (!d) return { data: { ok: false, reason: 'not_found' }, error: null };
+        if (!d.verified) return { data: { ok: false, reason: 'not_verified', full_name: d.full_name }, error: null };
+        const i = links.findIndex(l => l.patient_id === uid && l.doctor_id === d.id);
+        const row = { patient_id: uid, doctor_id: d.id, status: 'active', granted_at: new Date().toISOString(), code: c, name: d.full_name };
+        if (i >= 0) links[i] = row; else links.push(row); saveLinks(links);
+        return { data: { ok: true, doctor_id: d.id, full_name: d.full_name }, error: null };
+      }
+      if (name === 'revoke_doctor_access') {
+        const id = (args || {}).p_doctor; let ch = false;
+        links.forEach(l => { if (l.patient_id === uid && l.doctor_id === id && l.status === 'active') { l.status = 'revoked'; ch = true; } }); saveLinks(links);
+        return { data: ch, error: null };
+      }
+      if (name === 'my_doctors') return { data: links.filter(l => l.patient_id === uid && l.status === 'active').map(l => ({ doctor_id: l.doctor_id, full_name: l.name, doctor_code: l.code, status: l.status, granted_at: l.granted_at })), error: null };
       if (name === 'my_profile') return { data: u ? [{ id: u.id, full_name: u.meta.full_name || '', account_type: u.meta.account_type === 'doctor' ? 'doctor' : 'patient', doctor_code: u.doctorCode || null, doctor_verified: (window.__verifiedDoctors || []).includes(u.id) }] : [], error: null };
       return { data: null, error: { message: 'bilinmeyen rpc: ' + name } };
     },
@@ -49,6 +69,10 @@ export const fakeCloudPreload = () => {
       }
     },
     from(table) {
+      if (table === 'doctor_notes') {
+        const rows = () => J('__fakeNotes', []);
+        return { select() { return { eq(col, v) { return { order() { return { async limit() { net(); return { data: rows().filter(n => n[col] === v).sort((a, b) => b.created_at.localeCompare(a.created_at)), error: null }; } }; } }; } }; } };
+      }
       return {
         select() { return { async eq(col, uid) { net(); window.__calls.push(['select']); if (uid !== curUid()) return { data: [], error: null }; return { data: window.__db().filter(r => r.user_id === uid).map(r => ({ store: r.store, data: r.data, updated_at: r.updated_at })), error: null }; } }; },
         upsert(rows) {

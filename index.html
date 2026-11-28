@@ -27,11 +27,11 @@
 <!-- Uses Inter when already available; otherwise falls back immediately to the system UI font. -->
 <!-- Font Awesome 6 CDN -->
 <!-- build:css -->
-<link rel="stylesheet" href="./css/app.css?v=053d4e8323">
-<script defer src="./js/app.1.js?v=053d4e8323"></script>
-<script defer src="./js/app.2.js?v=053d4e8323"></script>
-<script defer src="./js/app.3.js?v=053d4e8323"></script>
-<script defer src="./js/app.4.js?v=053d4e8323"></script>
+<link rel="stylesheet" href="./css/app.css?v=951557f5d4">
+<script defer src="./js/app.1.js?v=951557f5d4"></script>
+<script defer src="./js/app.2.js?v=951557f5d4"></script>
+<script defer src="./js/app.3.js?v=951557f5d4"></script>
+<script defer src="./js/app.4.js?v=951557f5d4"></script>
 <!-- /build:css -->
 <!-- Chart.js loads only if a trend chart is needed. -->
 <!-- PDF.js loads only when a user selects a PDF for analysis. -->
@@ -1785,6 +1785,35 @@ Bu belge, hastanın VitaTakip sistemine beyan ettiği demografik veriler, seçil
 </div>
 </div>
 <div id="settingsAgeStage"></div>
+</div>
+
+<!-- 5.1b Doktorum: hasta → doktor erişim izni ve doktor notları (js/doktorum.js; yalnız bulut hasta hesabı) -->
+<div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 space-y-3" id="settingsSectionDoctors">
+<div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-2.5">
+<div class="flex items-center gap-2.5">
+<i class="fa-solid fa-user-doctor text-teal-600 text-sm"></i>
+<h3 class="text-xs sm:text-sm font-black text-navy-900">Doktorum</h3>
+</div>
+</div>
+<span class="hidden" id="settingsDoctorsSummary"></span>
+<div class="hidden vdr-note" id="doctorsLocalNote" role="note"><i class="fa-solid fa-cloud" aria-hidden="true"></i> Doktorunuzla kayıtlarınızı paylaşmak için bulut hesabı gerekir. Çıkış yapıp giriş ekranından bulut hesabı oluşturabilir, bu cihazdaki verilerinizi ona taşıyabilirsiniz.</div>
+<div class="hidden space-y-3" id="doctorsCloudBody">
+<p class="text-[11px] text-slate-600 leading-relaxed">Doktorunuzun verdiği kodu girerek kayıtlarınızı görmesine izin verebilirsiniz. Doktorunuz <strong>profil, takviye, ilaç, tahlil, belirti</strong> kayıtlarınızı ve <strong>doktora notlarınızı yalnızca okuyabilir</strong>; su takibi ve günlük "aldım" işaretleri görünmez. İzni istediğiniz an geri alabilirsiniz.</p>
+<form class="vdr-add" id="doctorAddForm" novalidate="">
+<label class="sr-only" for="doctorCodeInput">Doktor kodu</label>
+<input autocapitalize="characters" autocomplete="off" id="doctorCodeInput" maxlength="10" placeholder="Doktor kodu (ör. DR-4829)" spellcheck="false" type="text"/>
+<button id="doctorAddBtn" type="submit"><i class="fa-solid fa-user-plus" aria-hidden="true"></i><span>İzin ver</span></button>
+</form>
+<div aria-live="polite" class="hidden vdr-msg" id="doctorAddMsg" role="status"></div>
+<div>
+<h4 class="vdr-sub">Erişim izni verdiğim doktorlar</h4>
+<ul class="vdr-list" id="doctorList"></ul>
+</div>
+<div>
+<h4 class="vdr-sub">Doktorumdan notlar</h4>
+<ul class="vdr-notes" id="doctorNotesList"></ul>
+</div>
+</div>
 </div>
 
 <!-- 5.2. Bildirimler, Kamera ve Cihaz İzinleri -->
