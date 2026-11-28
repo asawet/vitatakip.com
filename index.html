@@ -27,11 +27,11 @@
 <!-- Uses Inter when already available; otherwise falls back immediately to the system UI font. -->
 <!-- Font Awesome 6 CDN -->
 <!-- build:css -->
-<link rel="stylesheet" href="./css/app.css?v=951557f5d4">
-<script defer src="./js/app.1.js?v=951557f5d4"></script>
-<script defer src="./js/app.2.js?v=951557f5d4"></script>
-<script defer src="./js/app.3.js?v=951557f5d4"></script>
-<script defer src="./js/app.4.js?v=951557f5d4"></script>
+<link rel="stylesheet" href="./css/app.css?v=6a79a97e26">
+<script defer src="./js/app.1.js?v=6a79a97e26"></script>
+<script defer src="./js/app.2.js?v=6a79a97e26"></script>
+<script defer src="./js/app.3.js?v=6a79a97e26"></script>
+<script defer src="./js/app.4.js?v=6a79a97e26"></script>
 <!-- /build:css -->
 <!-- Chart.js loads only if a trend chart is needed. -->
 <!-- PDF.js loads only when a user selects a PDF for analysis. -->
@@ -106,6 +106,14 @@
 <div id="drawerScrollArea">
 <!-- Çekmece Menü Bağlantıları -->
 <nav class="p-4 space-y-1.5 text-xs font-semibold">
+<!-- Doktor hesabı: Doktor Paneli (js/doktor-paneli.js; yalnız doktor hesabında görünür) -->
+<div class="hidden pb-2 mb-1 border-b border-navy-800/90 space-y-1" id="drawerSectionDoctor">
+<div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1">Hekim</div>
+<button class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-slate-200 hover:text-white hover:bg-navy-800 transition text-left cursor-pointer" id="drawer-nav-view-doctor" onclick="navigateToView('view-doctor')" type="button">
+<i class="fa-solid fa-user-doctor text-teal-300 w-5 text-center text-sm"></i>
+<span>Doktor Paneli</span>
+</button>
+</div>
 <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1">Sağlık Modülleri</div>
 <button class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-teal-600 text-white font-bold transition text-left cursor-pointer shadow-md" id="drawer-nav-view-home" onclick="navigateToView('view-home')" type="button">
 <i class="fa-solid fa-calendar-check text-white w-5 text-center text-sm"></i>
@@ -1714,6 +1722,48 @@ Bu belge, hastanın VitaTakip sistemine beyan ettiği demografik veriler, seçil
 </div>
 </div>
 </section> <!-- view-report Sonu -->
+<!-- ========================================================================= -->
+<!--     DOKTOR PANELİ (view-doctor): izin veren hastaların kayıtları (yalnız okuma) + doktor notları   -->
+<!--     js/doktor-paneli.js · erişim kuralları veritabanında: supabase/migrations/*doktor_paneli*.sql  -->
+<!-- ========================================================================= -->
+<section class="hidden space-y-4 max-w-5xl mx-auto vdp" id="view-doctor" aria-labelledby="vdpTitle">
+<div class="vdp-hero">
+<div class="vdp-hero-main">
+<div class="vdp-hero-icon"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i></div>
+<div class="min-w-0"><h2 id="vdpTitle">Doktor Paneli</h2><p id="vdpDoctorName">—</p></div>
+</div>
+<div class="vdp-code-box">
+<span class="vdp-code-label">Doktor kodunuz</span>
+<span class="vdp-code" id="vdpDoctorCode">—</span>
+<span class="vdp-badge" data-tone="wait" id="vdpVerifiedBadge">Onay bekliyor</span>
+<button class="vdp-copy" id="vdpCopyCode" type="button"><i class="fa-solid fa-copy" aria-hidden="true"></i> Kopyala</button>
+</div>
+</div>
+<p class="hidden vdp-pending" id="vdpPendingNote" role="note"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> <span>Hesabınız onay bekliyor. Onaylandıktan sonra hastalar <strong>Ayarlar &gt; Doktorum</strong> bölümüne kodunuzu girerek size erişim izni verebilir.</span></p>
+<div class="vdp-grid">
+<div class="vdp-panel" id="vdpListPanel">
+<div class="vdp-panel-head"><h3>Hastalarım</h3><button class="vdp-refresh" id="vdpRefreshBtn" type="button" aria-label="Listeyi yenile"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i> Yenile</button></div>
+<p class="vdp-hint" id="vdpListHint">Hastanız <strong>Ayarlar &gt; Doktorum</strong> bölümüne kodunuzu girdiğinde burada görünür. Liste 30 saniyede bir yenilenir.</p>
+<ul class="vdp-patients" id="vdpPatientList"></ul>
+<p class="vdp-updated" id="vdpUpdatedAt"></p>
+</div>
+<div class="vdp-panel hidden" id="vdpDetailPanel" aria-live="polite">
+<div class="vdp-panel-head"><button class="vdp-back" id="vdpBackBtn" type="button"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Hastalar</button><span class="vdp-readonly"><i class="fa-solid fa-eye" aria-hidden="true"></i> Yalnız okuma</span></div>
+<div id="vdpDetail"></div>
+<div class="vdp-section">
+<h4>Doktor notlarım</h4>
+<form class="vdp-note-form" id="vdpNoteForm" novalidate="">
+<label class="sr-only" for="vdpNoteInput">Hastaya not</label>
+<textarea id="vdpNoteInput" maxlength="4000" placeholder="Hastanıza not yazın (ör. kontrol tarihi, doz önerisi). Hasta bu notu Ayarlar &gt; Doktorum'da görür." rows="3"></textarea>
+<button id="vdpNoteSave" type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Notu gönder</button>
+</form>
+<div class="hidden vdp-msg" id="vdpNoteMsg" role="status"></div>
+<ul class="vdp-notes" id="vdpNoteList"></ul>
+</div>
+</div>
+</div>
+</section>
+
 <!-- ========================================================================= -->
 <!--     GÖRÜNÜM 5: AYARLAR VE UYGULAMA YÖNETİMİ (view-settings)               -->
 <!-- ========================================================================= -->

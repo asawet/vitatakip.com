@@ -167,3 +167,4 @@ html[data-theme="dark"] .vta-msg-info{background:rgba(20,184,166,.12);border-col
 html[data-theme="dark"] .vta-warn.vta-info{background:rgba(59,130,246,.14);border-color:rgba(147,197,253,.35);color:#bfdbfe}
 .vta-group-label{display:block;margin:0 0 6px;font-size:12px;font-weight:800;color:#334155}
 html[data-theme="dark"] .vta-group-label{color:#e2e8f0}
+.fa-chevron-right{--fa:"\f054"}

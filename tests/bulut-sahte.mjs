@@ -11,6 +11,17 @@ export const fakeCloudPreload = () => {
   let clock = 0; const serverNow = () => { clock = Math.max(Date.now() + (window.__clockSkew || 0), clock + 1); return new Date(clock).toISOString(); };
   const curUid = () => { const raw = VitaCloud.authStorage.getItem(KEY); return raw ? JSON.parse(raw).user.id : null; };
   const net = () => { if (window.__netDown || !navigator.onLine) throw new TypeError('Failed to fetch'); };
+  // Doktor paneli (sunucudaki RLS'in taklidi): onaylı doktor = __verifiedDoctors içinde ya da __fakeDoctors'ta verified
+  const LINKS = () => J('__fakeLinks', []);
+  const DOCTOR_STORES = ['user', 'supplements', 'medications', 'labhistory', 'labs', 'labreferences', 'symptoms', 'resolved_symptoms', 'notes', 'recheck'];
+  const findDoctor = code => {
+    const f = (window.__fakeDoctors || {})[code]; if (f) return f;
+    const u = Object.values(users).find(x => x.doctorCode === code);
+    return u ? { id: u.id, full_name: u.meta.full_name || '', verified: (window.__verifiedDoctors || []).includes(u.id) } : null;
+  };
+  const doctorVerified = id => (window.__verifiedDoctors || []).includes(id) || Object.values(window.__fakeDoctors || {}).some(d => d.id === id && d.verified);
+  const isDoctorOf = (doctorId, patientId) => doctorVerified(doctorId) && LINKS().some(l => l.doctor_id === doctorId && l.patient_id === patientId && l.status === 'active');
+  const userName = id => { const u = Object.values(users).find(x => x.id === id); return u ? (u.meta.full_name || '') : ''; };
   const mkSession = u => ({ access_token: 't', refresh_token: 'r', expires_at: 9e9, user: { id: u.id, email: u.email, user_metadata: u.meta } });
   const fake = {
     auth: {
@@ -40,7 +51,7 @@ export const fakeCloudPreload = () => {
         let c = String((args || {}).p_code || '').trim().toUpperCase();
         if (!/^DR-?\d{4,6}$/.test(c)) return { data: { ok: false, reason: 'bad_code' }, error: null };
         if (!c.startsWith('DR-')) c = 'DR-' + c.slice(2);
-        const d = (window.__fakeDoctors || {})[c];
+        const d = findDoctor(c);
         if (!d) return { data: { ok: false, reason: 'not_found' }, error: null };
         if (!d.verified) return { data: { ok: false, reason: 'not_verified', full_name: d.full_name }, error: null };
         const i = links.findIndex(l => l.patient_id === uid && l.doctor_id === d.id);
@@ -54,6 +65,12 @@ export const fakeCloudPreload = () => {
         return { data: ch, error: null };
       }
       if (name === 'my_doctors') return { data: links.filter(l => l.patient_id === uid && l.status === 'active').map(l => ({ doctor_id: l.doctor_id, full_name: l.name, doctor_code: l.code, status: l.status, granted_at: l.granted_at })), error: null };
+      if (name === 'my_patients') {
+        if (!doctorVerified(uid)) return { data: [], error: null };
+        const db = window.__db();
+        return { data: links.filter(l => l.doctor_id === uid && l.status === 'active').map(l => ({ patient_id: l.patient_id, full_name: userName(l.patient_id), granted_at: l.granted_at,
+          last_update: db.filter(r => r.user_id === l.patient_id).map(r => r.updated_at).sort().pop() || null })), error: null };
+      }
       if (name === 'my_profile') return { data: u ? [{ id: u.id, full_name: u.meta.full_name || '', account_type: u.meta.account_type === 'doctor' ? 'doctor' : 'patient', doctor_code: u.doctorCode || null, doctor_verified: (window.__verifiedDoctors || []).includes(u.id) }] : [], error: null };
       return { data: null, error: { message: 'bilinmeyen rpc: ' + name } };
     },
@@ -70,11 +87,20 @@ export const fakeCloudPreload = () => {
     },
     from(table) {
       if (table === 'doctor_notes') {
-        const rows = () => J('__fakeNotes', []);
-        return { select() { return { eq(col, v) { return { order() { return { async limit() { net(); return { data: rows().filter(n => n[col] === v).sort((a, b) => b.created_at.localeCompare(a.created_at)), error: null }; } }; } }; } }; } };
+        const rows = () => J('__fakeNotes', []); const save = r => localStorage.setItem('__fakeNotes', JSON.stringify(r));
+        return {
+          select() { return { eq(col, v) { return { order() { return { async limit() { net(); const me = curUid(); return { data: rows().filter(n => (n.doctor_id === me || n.patient_id === me) && n[col] === v).sort((a, b) => b.created_at.localeCompare(a.created_at)), error: null }; } }; } }; } }; },
+          insert(obj) { return { async select() {
+            net(); const me = curUid(); window.__calls.push(['note-insert', obj.patient_id]);
+            if (obj.doctor_id !== me || !isDoctorOf(me, obj.patient_id)) return { data: null, error: { code: '42501', message: 'new row violates row-level security policy for table "doctor_notes"' } };
+            const n = { id: crypto.randomUUID(), doctor_id: me, patient_id: obj.patient_id, body: obj.body, doctor_label: userName(me), created_at: new Date().toISOString() };
+            const r = rows(); r.push(n); save(r); return { data: [{ id: n.id }], error: null };
+          } }; },
+          delete() { return { async eq(col, v) { net(); const me = curUid(); save(rows().filter(n => !(n[col] === v && n.doctor_id === me))); return { error: null }; } }; }
+        };
       }
       return {
-        select() { return { async eq(col, uid) { net(); window.__calls.push(['select']); if (uid !== curUid()) return { data: [], error: null }; return { data: window.__db().filter(r => r.user_id === uid).map(r => ({ store: r.store, data: r.data, updated_at: r.updated_at })), error: null }; } }; },
+        select() { return { async eq(col, uid) { net(); window.__calls.push(['select']); const me = curUid(); if (uid !== me && !isDoctorOf(me, uid)) return { data: [], error: null }; return { data: window.__db().filter(r => r.user_id === uid && (uid === me || DOCTOR_STORES.includes(r.store))).map(r => ({ store: r.store, data: r.data, updated_at: r.updated_at })), error: null }; } }; },
         upsert(rows) {
           return { async select() {
             net(); window.__calls.push(['upsert', rows.map(r => r.store)]);

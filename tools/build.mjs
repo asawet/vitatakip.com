@@ -26,7 +26,7 @@ const JS = [
   'js/lab-trend.js', 'js/recharts-lab-dashboard.js',
   // Bulut modülleri açılıştan ÖNCE: 19-app-startup defer sırasında hemen çalışır (readyState "interactive"),
   // kayıtlı bulut oturumunu ve giriş ekranı panelini tanıyabilmesi için VitaCloud/VitaAuthUI hazır olmalı.
-  'js/bulut.js', 'js/bulut-giris.js', 'js/bulut-esitleme.js', 'js/bulut-tasima.js', 'js/bulut-ai.js', 'js/doktorum.js', 'js/app/19-app-startup.js',
+  'js/bulut.js', 'js/bulut-giris.js', 'js/bulut-esitleme.js', 'js/bulut-tasima.js', 'js/bulut-ai.js', 'js/doktorum.js', 'js/doktor-paneli.js', 'js/app/19-app-startup.js',
   'js/legal-onboarding.js', 'js/medical-drawer.js', 'js/doctor-tests.js', 'js/clinical-simple.js', 'js/report-simple.js',
   'js/age-stage.js', 'js/day-compact.js', 'js/add-sup-simple.js', 'js/scanner-simple.js', 'js/ui-enhancements.js',
   'js/compact-labs-neyim.js', 'js/neyimvar-final-tidy.js', 'js/simplify-ui.js', 'js/ayarlar-akordeon.js', 'js/evidence-guide.js',

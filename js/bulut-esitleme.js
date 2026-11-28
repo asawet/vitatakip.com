@@ -278,6 +278,7 @@
   function updateStatus() {
     if (window.VitaAIProxy) window.VitaAIProxy.updateNotice(); // Ayarlar > Yapay zekâ: proxy açıklaması (oturuma bağlı)
     if (window.VitaDoctors) window.VitaDoctors.updateVisibility(); // Ayarlar > Doktorum (oturuma bağlı)
+    if (window.VitaDoctorPanel) window.VitaDoctorPanel.updateChrome(); // yan menü "Doktor Paneli" (yalnız doktor)
     status.pending = pendingCount();
     var info = statusText();
     // Ayarlar > hesap silme açıklaması hesap türüne göre (bulutta giriş kaydı ve buluttaki kayıtlar da silinir)
